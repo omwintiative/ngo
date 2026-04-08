@@ -1,0 +1,117 @@
+.ui-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.56);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.ui-loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ui-loading-card {
+    min-width: 220px;
+    max-width: 90vw;
+    background: rgba(15, 23, 42, 0.94);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 16px;
+    padding: 22px 20px;
+    color: #e5eef8;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.ui-loading-spinner {
+    width: 26px;
+    height: 26px;
+    border: 3px solid rgba(148, 163, 184, 0.3);
+    border-top-color: #38bdf8;
+    border-radius: 50%;
+    animation: ui-spin 0.8s linear infinite;
+    flex: 0 0 auto;
+}
+
+.ui-loading-text {
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 0.96rem;
+}
+
+.ui-toast-stack {
+    position: fixed;
+    top: 92px;
+    right: 18px;
+    z-index: 1250;
+    display: grid;
+    gap: 10px;
+    width: min(360px, calc(100vw - 24px));
+}
+
+.ui-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28);
+    transform: translateY(-8px);
+    opacity: 0;
+    animation: ui-toast-in 0.22s ease forwards;
+}
+
+.ui-toast.success {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.98), rgba(22, 163, 74, 0.96));
+}
+
+.ui-toast.error {
+    background: linear-gradient(135deg, rgba(153, 27, 27, 0.98), rgba(220, 38, 38, 0.96));
+}
+
+.ui-toast-icon {
+    font-size: 1.05rem;
+    line-height: 1.4;
+}
+
+.ui-toast-message {
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 0.94rem;
+    line-height: 1.45;
+}
+
+@keyframes ui-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes ui-toast-in {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 700px) {
+    .ui-toast-stack {
+        top: 84px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+    }
+
+    .ui-loading-card {
+        min-width: 0;
+        width: calc(100vw - 28px);
+    }
+}

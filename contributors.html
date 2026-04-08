@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Young Heart NGO | Contributors</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ui-feedback.css">
+    <link rel="stylesheet" href="contributors.css">
+</head>
+<body class="contributors-body">
+    <nav class="nav nav_top">
+        <div class="logo">
+            <a href="index.html"><img src="images/logo.png" width="250" alt="Logo"></a>
+        </div>
+        <div class="nav_side">
+            <a href="index.html">HOME</a>
+            <a href="about.html">ABOUT US</a>
+            <a href="donate.html">DONATE</a>
+            <a href="blog.html">BLOG</a>
+            <a href="contributors.html">CONTRIBUTORS</a>
+            <a href="contact.html">CONTACT</a>
+        </div>
+    </nav>
+
+    <main class="contributors-page">
+        <section class="contributors-hero">
+            <div class="contributors-panel contributors-intro">
+                <p class="contributors-eyebrow">Contributor Dashboard</p>
+                <h1>Track confirmed support and manual direct transfers</h1>
+                <p id="status" class="contributors-subtitle">Checking access...</p>
+            </div>
+            <div class="contributors-panel contributors-side">
+                <p id="welcome">Protected access for logged in users and admins.</p>
+                <button id="logoutBtn" type="button">Logout</button>
+            </div>
+        </section>
+
+        <div id="content" class="dashboard-grid contrib-hidden">
+            <section class="contributors-panel contributors-table-card">
+                <div class="table-chip">Paystack successful transactions</div>
+                <h3>Verified Online Contributions</h3>
+                <p class="table-description">This table is read-only and comes directly from successful Paystack transactions.</p>
+                <div class="table-wrapper">
+                    <table class="contributors-table">
+                        <thead>
+                            <tr>
+                                <th>Contributor Name / Email</th>
+                                <th>Amount</th>
+                                <th>Date of Transfer</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paystackTableBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td id="paystackTotalCell"></td>
+                                <td>-</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <p id="paystackEmptyState" class="empty-state contrib-hidden">No successful Paystack transactions found.</p>
+            </section>
+
+            <section id="manualFormCard" class="contributors-panel manual-form-card contrib-hidden">
+                <h3 id="manualFormTitle">Add Direct Bank Transfer</h3>
+                <p class="table-description">Only admins can record and maintain contributors who paid directly into the admin account.</p>
+                <form id="manualContributionForm" class="manual-form">
+                    <div class="manual-form-grid">
+                        <input type="text" id="manualName" placeholder="Contributor name" required>
+                        <input type="email" id="manualEmail" placeholder="Contributor email" required>
+                        <input type="number" id="manualAmount" placeholder="Amount in NGN" min="1" step="0.01" required>
+                        <input type="date" id="manualTransferDate" required>
+                    </div>
+                    <div class="manual-form-actions">
+                        <button id="manualSubmitBtn" type="submit" class="manual-submit">Add Record</button>
+                        <button id="manualCancelBtn" type="button" class="manual-cancel-btn contrib-hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="contributors-panel contributors-table-card">
+                <div class="table-chip">Direct transfer records</div>
+                <h3>Manual Contributor Records</h3>
+                <p class="table-description">Admins can maintain this list for direct bank transfers that did not pass through Paystack.</p>
+                <div class="table-wrapper">
+                    <table class="contributors-table">
+                        <thead>
+                            <tr>
+                                <th>Contributor Name / Email</th>
+                                <th>Amount</th>
+                                <th>Date of Transfer</th>
+                                <th id="manualActionsHead" class="contrib-hidden">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="manualTableBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td id="manualTotalCell"></td>
+                                <td>-</td>
+                                <td id="manualTotalActionCell" class="contrib-hidden">-</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <p id="manualEmptyState" class="empty-state contrib-hidden">No direct transfer records yet.</p>
+            </section>
+        </div>
+    </main>
+
+    <script src="ui-feedback.js"></script>
+    <script src="frontend-config.js"></script>
+    <script>
+        const API_BASE = window.APP_CONFIG.apiBase;
+        const TOKEN_KEY = "jwtToken";
+        const USER_KEY = "authUser";
+
+        const token = localStorage.getItem(TOKEN_KEY);
+        const storedUser = JSON.parse(localStorage.getItem(USER_KEY) || "null");
+        const statusEl = document.getElementById("status");
+        const contentEl = document.getElementById("content");
+        const welcomeEl = document.getElementById("welcome");
+        const paystackTableBody = document.getElementById("paystackTableBody");
+        const paystackTotalCell = document.getElementById("paystackTotalCell");
+        const paystackEmptyState = document.getElementById("paystackEmptyState");
+        const manualTableBody = document.getElementById("manualTableBody");
+        const manualTotalCell = document.getElementById("manualTotalCell");
+        const manualEmptyState = document.getElementById("manualEmptyState");
+        const manualFormCard = document.getElementById("manualFormCard");
+        const manualContributionForm = document.getElementById("manualContributionForm");
+        const manualFormTitle = document.getElementById("manualFormTitle");
+        const manualSubmitBtn = document.getElementById("manualSubmitBtn");
+        const manualCancelBtn = document.getElementById("manualCancelBtn");
+        const manualActionsHead = document.getElementById("manualActionsHead");
+        const manualTotalActionCell = document.getElementById("manualTotalActionCell");
+
+        let currentUser = storedUser;
+        let manualContributions = [];
+        let editingManualId = null;
+
+        const isAdmin = () => currentUser && currentUser.role === "admin";
+
+        const formatCurrency = (amount) =>
+            new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(Number(amount || 0));
+
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            if (Number.isNaN(date.getTime())) {
+                return "-";
+            }
+
+            return new Intl.DateTimeFormat("en-NG", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+            }).format(date);
+        };
+
+        const sumAmounts = (rows) => rows.reduce((total, row) => total + Number(row.amount || 0), 0);
+
+        const setAdminState = () => {
+            const admin = isAdmin();
+            manualFormCard.classList.toggle("contrib-hidden", !admin);
+            manualActionsHead.classList.toggle("contrib-hidden", !admin);
+            manualTotalActionCell.classList.toggle("contrib-hidden", !admin);
+        };
+
+        const resetManualForm = () => {
+            manualContributionForm.reset();
+            editingManualId = null;
+            manualFormTitle.textContent = "Add Direct Bank Transfer";
+            manualSubmitBtn.textContent = "Add Record";
+            manualCancelBtn.classList.add("contrib-hidden");
+        };
+
+        const renderPaystackTable = (transactions) => {
+            paystackTableBody.innerHTML = transactions
+                .map((transaction) => `
+                    <tr>
+                        <td>
+                            <strong>${transaction.contributorName}</strong><br>
+                            <span>${transaction.contributorEmail}</span>
+                        </td>
+                        <td>${formatCurrency(transaction.amount)}</td>
+                        <td>${formatDate(transaction.transferDate)}</td>
+                    </tr>
+                `)
+                .join("");
+
+            paystackEmptyState.classList.toggle("contrib-hidden", transactions.length > 0);
+            paystackTotalCell.textContent = formatCurrency(sumAmounts(transactions));
+        };
+
+        const renderManualTable = () => {
+            manualTableBody.innerHTML = manualContributions
+                .map((entry) => `
+                    <tr>
+                        <td>
+                            <strong>${entry.contributorName}</strong><br>
+                            <span>${entry.contributorEmail}</span>
+                        </td>
+                        <td>${formatCurrency(entry.amount)}</td>
+                        <td>${formatDate(entry.transferDate)}</td>
+                        ${isAdmin() ? `<td><div class="contributor-actions"><button type="button" class="manual-action-btn" onclick="editManualContribution('${entry._id}')">Edit</button><button type="button" class="manual-action-btn delete" onclick="deleteManualContribution('${entry._id}')">Delete</button></div></td>` : ""}
+                    </tr>
+                `)
+                .join("");
+
+            manualEmptyState.classList.toggle("contrib-hidden", manualContributions.length > 0);
+            manualTotalCell.textContent = formatCurrency(sumAmounts(manualContributions));
+        };
+
+        const loadPaystackTransactions = async () => {
+            const response = await fetch(`${API_BASE}/payments/paystack/transactions`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Unable to load Paystack transactions.");
+            }
+
+            renderPaystackTable(data.transactions || []);
+        };
+
+        const loadManualContributions = async () => {
+            const response = await fetch(`${API_BASE}/contributors/manual-payments`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Unable to load manual contributions.");
+            }
+
+            manualContributions = data.contributions || [];
+            renderManualTable();
+        };
+
+        const loadContributorDashboard = async () => {
+            try {
+                AppFeedback.showLoading("Loading contributor records...");
+                await Promise.all([loadPaystackTransactions(), loadManualContributions()]);
+                AppFeedback.hideLoading();
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError(error.message || "Unable to load contributor records.");
+            }
+        };
+
+        const goToLogin = () => {
+            window.location.href = "login.html?redirect=contributors.html";
+        };
+
+        const checkAccess = async () => {
+            if (!token) {
+                goToLogin();
+                return;
+            }
+
+            try {
+                AppFeedback.showLoading("Verifying contributor access...");
+                const response = await fetch(`${API_BASE}/contributors/dashboard`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    AppFeedback.showError(data.message || "Access denied.");
+                    localStorage.removeItem(TOKEN_KEY);
+                    localStorage.removeItem(USER_KEY);
+                    goToLogin();
+                    return;
+                }
+
+                statusEl.style.display = "none";
+                contentEl.classList.remove("contrib-hidden");
+                currentUser = data.user;
+                setAdminState();
+                welcomeEl.textContent = `Welcome, ${data.user.name} (${data.user.role}).`;
+                AppFeedback.showSuccess("Access granted.");
+                await loadContributorDashboard();
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError("Unable to verify access right now.");
+                goToLogin();
+            }
+        };
+
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            goToLogin();
+        });
+
+        manualContributionForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!isAdmin()) {
+                AppFeedback.showError("Only admin can manage direct transfer records.");
+                return;
+            }
+
+            const payload = {
+                contributorName: document.getElementById("manualName").value,
+                contributorEmail: document.getElementById("manualEmail").value,
+                amount: document.getElementById("manualAmount").value,
+                transferDate: document.getElementById("manualTransferDate").value,
+            };
+
+            const method = editingManualId ? "PUT" : "POST";
+            const endpoint = editingManualId
+                ? `${API_BASE}/contributors/manual-payments/${editingManualId}`
+                : `${API_BASE}/contributors/manual-payments`;
+
+            try {
+                AppFeedback.showLoading(editingManualId ? "Updating direct transfer record..." : "Saving direct transfer record...");
+                const response = await fetch(endpoint, {
+                    method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    AppFeedback.showError(data.message || "Unable to save record.");
+                    return;
+                }
+
+                AppFeedback.showSuccess(data.message || "Record saved successfully.");
+                resetManualForm();
+                await loadManualContributions();
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError("Unable to save record.");
+            }
+        });
+
+        manualCancelBtn.addEventListener("click", resetManualForm);
+
+        window.editManualContribution = (id) => {
+            const record = manualContributions.find((entry) => entry._id === id);
+            if (!record) {
+                AppFeedback.showError("Record not found.");
+                return;
+            }
+
+            const shouldEdit = window.confirm("You are about to edit this direct transfer record. Continue?");
+            if (!shouldEdit) {
+                return;
+            }
+
+            editingManualId = id;
+            manualFormTitle.textContent = "Edit Direct Bank Transfer";
+            manualSubmitBtn.textContent = "Update Record";
+            manualCancelBtn.classList.remove("contrib-hidden");
+            document.getElementById("manualName").value = record.contributorName;
+            document.getElementById("manualEmail").value = record.contributorEmail;
+            document.getElementById("manualAmount").value = record.amount;
+            document.getElementById("manualTransferDate").value = new Date(record.transferDate).toISOString().slice(0, 10);
+            AppFeedback.showSuccess("Record loaded for editing.");
+            window.scrollTo({ top: manualFormCard.offsetTop - 90, behavior: "smooth" });
+        };
+
+        window.deleteManualContribution = async (id) => {
+            const shouldDelete = window.confirm("This will permanently delete the direct transfer record. Continue?");
+            if (!shouldDelete) {
+                return;
+            }
+
+            try {
+                AppFeedback.showLoading("Deleting direct transfer record...");
+                const response = await fetch(`${API_BASE}/contributors/manual-payments/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    AppFeedback.showError(data.message || "Unable to delete record.");
+                    return;
+                }
+
+                AppFeedback.showSuccess(data.message || "Record deleted successfully.");
+                await loadManualContributions();
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError("Unable to delete record.");
+            }
+        };
+
+        checkAccess();
+    </script>
+    <script src="nav-drawer.js"></script>
+</body>
+</html>

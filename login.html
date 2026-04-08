@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Young Heart NGO | Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ui-feedback.css">
+    <link rel="stylesheet" href="login.css">
+</head>
+<body class="auth-body">
+    <nav class="nav nav_top">
+        <div class="logo">
+            <a href="index.html"><img src="images/logo.png" width="250" alt="Logo"></a>
+        </div>
+        <div class="nav_side">
+            <a href="index.html">HOME</a>
+            <a href="about.html">ABOUT US</a>
+            <a href="donate.html">DONATE</a>
+            <a href="blog.html">BLOG</a>
+            <a href="contributors.html">CONTRIBUTORS</a>
+            <a href="contact.html">CONTACT</a>
+        </div>
+    </nav>
+
+    <section class="auth-shell">
+        <div class="auth-layout">
+            <aside class="auth-intro">
+                <h1>Welcome Back</h1>
+                <p>Access contributor tools, publish impact stories, and manage your account in one secure place.</p>
+                <ul class="auth-points">
+                    <li>Role-based access for contributors and administrators</li>
+                    <li>Protected routes with secure token authentication</li>
+                    <li>Fast onboarding for new volunteers and staff</li>
+                </ul>
+            </aside>
+
+            <div class="auth-card">
+                <div class="auth-tabs" role="tablist" aria-label="Authentication tabs">
+                    <button id="tabLogin" class="auth-tab active" type="button" role="tab" aria-selected="true" aria-controls="panelLogin">Login</button>
+                    <button id="tabRegister" class="auth-tab" type="button" role="tab" aria-selected="false" aria-controls="panelRegister">Register</button>
+                </div>
+
+                <div id="panelLogin" class="auth-panel active" role="tabpanel" aria-labelledby="tabLogin">
+                    <h2>Sign in to your account</h2>
+                    <form id="loginForm" class="auth-form">
+                        <input type="email" id="loginEmail" placeholder="Email address" required>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                        <button type="submit" class="auth-submit login">Login</button>
+                    </form>
+                </div>
+
+                <div id="panelRegister" class="auth-panel" role="tabpanel" aria-labelledby="tabRegister">
+                    <h2>Create a new account</h2>
+                    <form id="registerForm" class="auth-form">
+                        <input type="text" id="registerName" placeholder="Full name" required>
+                        <input type="email" id="registerEmail" placeholder="Email address" required>
+                        <input type="password" id="registerPassword" placeholder="Password" required>
+                        <button type="submit" class="auth-submit register">Register</button>
+                    </form>
+                </div>
+
+                <p id="message" class="auth-message"></p>
+            </div>
+        </div>
+    </section>
+
+    <script src="frontend-config.js"></script>
+    <script>
+        const API_BASE = window.APP_CONFIG.apiBase;
+        const TOKEN_KEY = "jwtToken";
+        const USER_KEY = "authUser";
+
+        const messageEl = document.getElementById("message");
+        const tabLogin = document.getElementById("tabLogin");
+        const tabRegister = document.getElementById("tabRegister");
+        const panelLogin = document.getElementById("panelLogin");
+        const panelRegister = document.getElementById("panelRegister");
+
+        const redirectTarget = new URLSearchParams(window.location.search).get("redirect") || "contributors.html";
+
+        const handleAuthSuccess = (data) => {
+            localStorage.setItem(TOKEN_KEY, data.token);
+            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            window.location.href = redirectTarget;
+        };
+
+        const switchPanel = (panelName) => {
+            const showLogin = panelName === "login";
+
+            tabLogin.classList.toggle("active", showLogin);
+            tabRegister.classList.toggle("active", !showLogin);
+            panelLogin.classList.toggle("active", showLogin);
+            panelRegister.classList.toggle("active", !showLogin);
+
+            tabLogin.setAttribute("aria-selected", String(showLogin));
+            tabRegister.setAttribute("aria-selected", String(!showLogin));
+            messageEl.textContent = "";
+        };
+
+        tabLogin.addEventListener("click", () => switchPanel("login"));
+        tabRegister.addEventListener("click", () => switchPanel("register"));
+
+        if (new URLSearchParams(window.location.search).get("mode") === "register") {
+            switchPanel("register");
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            messageEl.textContent = "";
+
+            const payload = {
+                email: document.getElementById("loginEmail").value,
+                password: document.getElementById("loginPassword").value,
+            };
+
+            try {
+                AppFeedback.showLoading("Signing you in...");
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    messageEl.textContent = data.message || "Login failed";
+                    AppFeedback.showError(data.message || "Login failed.");
+                    return;
+                }
+
+                AppFeedback.showSuccess("Login successful.");
+                handleAuthSuccess(data);
+            } catch (error) {
+                AppFeedback.hideLoading();
+                messageEl.textContent = "Unable to reach the server.";
+                AppFeedback.showError("Login failed. Please try again.");
+            }
+        });
+
+        document.getElementById("registerForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            messageEl.textContent = "";
+
+            const payload = {
+                name: document.getElementById("registerName").value,
+                email: document.getElementById("registerEmail").value,
+                password: document.getElementById("registerPassword").value,
+            };
+
+            try {
+                AppFeedback.showLoading("Creating your account...");
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    messageEl.textContent = data.message || "Registration failed";
+                    AppFeedback.showError(data.message || "Registration failed.");
+                    return;
+                }
+
+                AppFeedback.showSuccess("Registration successful.");
+                handleAuthSuccess(data);
+            } catch (error) {
+                AppFeedback.hideLoading();
+                messageEl.textContent = "Unable to reach the server.";
+                AppFeedback.showError("Registration failed. Please try again.");
+            }
+        });
+    </script>
+    <script src="ui-feedback.js"></script>
+    <script src="nav-drawer.js"></script>
+</body>
+</html>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Young Heart NGO | Blog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ui-feedback.css">
+    <link rel="stylesheet" href="blog.css">
+</head>
+<body class="blog-body">
+    <nav class="nav nav_top">
+        <div class="logo">
+            <a href="index.html"><img src="images/logo.png" width="250" alt="Logo"></a>
+        </div>
+        <div class="nav_side">
+            <a href="index.html">HOME</a>
+            <a href="about.html">ABOUT US</a>
+            <a href="donate.html">DONATE</a>
+            <a href="blog.html">BLOG</a>
+            <a href="contributors.html">CONTRIBUTORS</a>
+            <a href="contact.html">CONTACT</a>
+        </div>
+    </nav>
+
+    <main class="blog-page">
+        <section class="blog-hero">
+            <div class="blog-header">
+                <p class="eyebrow">Young Heart NGO Journal</p>
+                <h1>Stories, Updates, and Field Impact</h1>
+                <p class="hero-subtitle">Everyone can read posts. Only admins can create, edit, and delete blog entries.</p>
+            </div>
+
+            <div class="auth-actions auth-panel-card">
+                <p class="auth-note">Sign in as admin to manage posts</p>
+                <div class="auth-buttons">
+                    <button id="loginBtn" type="button">Login</button>
+                    <button id="logoutBtn" type="button" class="hidden">Logout</button>
+                </div>
+            </div>
+        </section>
+
+        <p id="blogStatus" class="blog-status">Loading posts...</p>
+
+        <section id="adminFormSection" class="blog-form hidden">
+            <h2 id="formTitle">Create Blog Post</h2>
+            <form id="blogForm" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <input type="text" id="title" name="title" placeholder="Title" required>
+                    <textarea id="description" name="description" placeholder="Description" required></textarea>
+                    <div class="file-row">
+                        <label for="image1">Image 1</label>
+                        <input type="file" id="image1" name="image1" accept="image/*">
+                        <label for="image2">Image 2</label>
+                        <input type="file" id="image2" name="image2" accept="image/*">
+                        <label for="image3">Image 3</label>
+                        <input type="file" id="image3" name="image3" accept="image/*">
+                    </div>
+                    <button id="submitBtn" type="submit">Create Post</button>
+                </div>
+            </form>
+        </section>
+
+        <section>
+            <div id="blogList" class="blog-list"></div>
+        </section>
+    </main>
+
+    <section id="blogDetailOverlay" class="blog-detail-overlay hidden" aria-hidden="true">
+        <div class="blog-detail-card" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+            <button id="closeDetailBtn" class="detail-close" type="button" aria-label="Close expanded post">X</button>
+            <div class="detail-layout">
+                <div class="detail-media">
+                    <button id="detailPrevBtn" class="carousel-control prev" type="button" aria-label="Previous image">&#8249;</button>
+                    <div id="detailImageFrame" class="detail-image-frame"></div>
+                    <button id="detailNextBtn" class="carousel-control next" type="button" aria-label="Next image">&#8250;</button>
+                    <div id="detailDots" class="detail-dots"></div>
+                </div>
+                <div class="detail-copy">
+                    <p class="detail-eyebrow">Full Story</p>
+                    <h2 id="detailTitle"></h2>
+                    <p id="detailDescription" class="detail-description"></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="ui-feedback.js"></script>
+    <script src="frontend-config.js"></script>
+    <script>
+        const API_BASE = window.APP_CONFIG.apiBase;
+        const TOKEN_KEY = "jwtToken";
+        const USER_KEY = "authUser";
+
+        const blogList = document.getElementById("blogList");
+        const adminFormSection = document.getElementById("adminFormSection");
+        const blogForm = document.getElementById("blogForm");
+        const formTitle = document.getElementById("formTitle");
+        const submitBtn = document.getElementById("submitBtn");
+        const blogStatus = document.getElementById("blogStatus");
+        const loginBtn = document.getElementById("loginBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const blogDetailOverlay = document.getElementById("blogDetailOverlay");
+        const closeDetailBtn = document.getElementById("closeDetailBtn");
+        const detailPrevBtn = document.getElementById("detailPrevBtn");
+        const detailNextBtn = document.getElementById("detailNextBtn");
+        const detailImageFrame = document.getElementById("detailImageFrame");
+        const detailDots = document.getElementById("detailDots");
+        const detailTitle = document.getElementById("detailTitle");
+        const detailDescription = document.getElementById("detailDescription");
+
+        let editingId = null;
+        let currentBlogs = [];
+        let activeBlog = null;
+        let activeSlideIndex = 0;
+
+        const getUser = () => {
+            try {
+                return JSON.parse(localStorage.getItem(USER_KEY) || "null");
+            } catch (error) {
+                return null;
+            }
+        };
+
+        const getToken = () => localStorage.getItem(TOKEN_KEY);
+        const isAdmin = () => getUser() && getUser().role === "admin";
+        const resolveImageUrl = (img) => window.APP_CONFIG.assetUrl(img);
+
+        const setStatus = (message, variant = "info") => {
+            blogStatus.textContent = message;
+            blogStatus.className = `blog-status ${variant}`;
+        };
+
+        const getBlogImages = (blog) => (blog.images || []).map((img) => resolveImageUrl(img));
+
+        const closeBlogPost = () => {
+            blogDetailOverlay.classList.add("hidden");
+            blogDetailOverlay.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("detail-open");
+            activeBlog = null;
+            activeSlideIndex = 0;
+        };
+
+        const renderDetailSlide = () => {
+            if (!activeBlog) {
+                return;
+            }
+
+            const images = getBlogImages(activeBlog);
+            const safeIndex = Math.max(0, Math.min(activeSlideIndex, Math.max(images.length - 1, 0)));
+            activeSlideIndex = safeIndex;
+
+            if (!images.length) {
+                detailImageFrame.innerHTML = '<div class="detail-empty">No image uploaded for this post.</div>';
+                detailDots.innerHTML = "";
+                detailPrevBtn.classList.add("hidden");
+                detailNextBtn.classList.add("hidden");
+                return;
+            }
+
+            detailImageFrame.innerHTML = `<img src="${images[safeIndex]}" alt="${activeBlog.title}">`;
+            detailDots.innerHTML = images
+                .map((_, index) => `<button type="button" class="detail-dot ${index === safeIndex ? "active" : ""}" onclick="goToSlide(${index})" aria-label="View image ${index + 1}"></button>`)
+                .join("");
+
+            const showControls = images.length > 1;
+            detailPrevBtn.classList.toggle("hidden", !showControls);
+            detailNextBtn.classList.toggle("hidden", !showControls);
+        };
+
+        const openBlogPost = (id) => {
+            const blog = currentBlogs.find((entry) => entry._id === id);
+            if (!blog) {
+                return;
+            }
+
+            activeBlog = blog;
+            activeSlideIndex = 0;
+            detailTitle.textContent = blog.title;
+            detailDescription.textContent = blog.description;
+            renderDetailSlide();
+            blogDetailOverlay.classList.remove("hidden");
+            blogDetailOverlay.setAttribute("aria-hidden", "false");
+            document.body.classList.add("detail-open");
+        };
+
+        window.goToSlide = (index) => {
+            activeSlideIndex = index;
+            renderDetailSlide();
+        };
+
+        const shiftSlide = (direction) => {
+            if (!activeBlog) {
+                return;
+            }
+
+            const images = getBlogImages(activeBlog);
+            if (images.length <= 1) {
+                return;
+            }
+
+            activeSlideIndex = (activeSlideIndex + direction + images.length) % images.length;
+            renderDetailSlide();
+        };
+
+        const updateAuthButtons = () => {
+            if (getToken()) {
+                loginBtn.classList.add("hidden");
+                logoutBtn.classList.remove("hidden");
+            } else {
+                loginBtn.classList.remove("hidden");
+                logoutBtn.classList.add("hidden");
+            }
+        };
+
+        const renderBlogs = (blogs) => {
+            currentBlogs = blogs;
+
+            if (!blogs.length) {
+                blogList.innerHTML = "<p>No blog posts yet.</p>";
+                setStatus("No posts yet. Be the first to publish impact news.", "info");
+                return;
+            }
+
+            setStatus(`${blogs.length} post(s) available`, "success");
+
+            blogList.innerHTML = blogs
+                .map((blog) => {
+                    const imageMarkup = (blog.images || [])
+                        .map((img) => `<img src="${resolveImageUrl(img)}" alt="${blog.title}">`)
+                        .join("");
+
+                    const adminActions = isAdmin()
+                        ? `<div class="post-actions">
+                               <button type="button" onclick="event.stopPropagation(); editPost('${blog._id}')">Edit</button>
+                               <button type="button" class="delete-btn" onclick="event.stopPropagation(); deletePost('${blog._id}')">Delete</button>
+                           </div>`
+                        : "";
+
+                    return `<article class="blog-card" role="button" tabindex="0" onclick="openBlogPost('${blog._id}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBlogPost('${blog._id}'); }">
+                                <div class="blog-images">${imageMarkup || "<p>No images</p>"}</div>
+                                <div class="blog-content">
+                                    <h3>${blog.title}</h3>
+                                    <p>${blog.description.length > 160 ? `${blog.description.slice(0, 160)}...` : blog.description}</p>
+                                    <span class="read-more-hint">Click to read full story</span>
+                                    ${adminActions}
+                                </div>
+                            </article>`;
+                })
+                .join("");
+        };
+
+        const loadBlogs = async () => {
+            try {
+                setStatus("Loading posts...", "info");
+                AppFeedback.showLoading("Loading blog posts...");
+                const response = await fetch(`${API_BASE}/blogs`);
+                const blogs = await response.json();
+                AppFeedback.hideLoading();
+
+                if (!response.ok) {
+                    setStatus(blogs.message || "Failed to load posts.", "error");
+                    blogList.innerHTML = "<p>Unable to load posts right now.</p>";
+                    AppFeedback.showError(blogs.message || "Failed to load posts.");
+                    return;
+                }
+
+                renderBlogs(blogs);
+            } catch (error) {
+                AppFeedback.hideLoading();
+                setStatus("Cannot reach blog server. Please try again soon.", "error");
+                blogList.innerHTML = "<p>Server unavailable. Start backend and refresh.</p>";
+                AppFeedback.showError("Unable to load blog posts.");
+            }
+        };
+
+        const resetForm = () => {
+            blogForm.reset();
+            editingId = null;
+            formTitle.textContent = "Create Blog Post";
+            submitBtn.textContent = "Create Post";
+        };
+
+        const toFormData = () => {
+            const data = new FormData();
+            data.append("title", document.getElementById("title").value);
+            data.append("description", document.getElementById("description").value);
+
+            ["image1", "image2", "image3"].forEach((field) => {
+                const fileInput = document.getElementById(field);
+                if (fileInput.files[0]) {
+                    data.append(field, fileInput.files[0]);
+                }
+            });
+
+            return data;
+        };
+
+        blogForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!isAdmin()) {
+                AppFeedback.showError("Only admin can manage blogs.");
+                return;
+            }
+
+            const token = getToken();
+            const method = editingId ? "PUT" : "POST";
+            const endpoint = editingId ? `${API_BASE}/blogs/${editingId}` : `${API_BASE}/blogs`;
+
+            try {
+                AppFeedback.showLoading(editingId ? "Updating blog post..." : "Creating blog post...");
+                const response = await fetch(endpoint, {
+                    method,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: toFormData(),
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    AppFeedback.showError(data.message || "Operation failed.");
+                    return;
+                }
+
+                resetForm();
+                setStatus("Post saved successfully.", "success");
+                AppFeedback.showSuccess(editingId ? "Blog post updated successfully." : "Blog post created successfully.");
+                await loadBlogs();
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError("Request failed. Please try again.");
+            }
+        });
+
+        window.editPost = async (id) => {
+            if (!isAdmin()) {
+                return;
+            }
+
+            try {
+                AppFeedback.showLoading("Loading blog post...");
+                const response = await fetch(`${API_BASE}/blogs/${id}`);
+                const blog = await response.json();
+                AppFeedback.hideLoading();
+
+                if (!response.ok) {
+                    AppFeedback.showError(blog.message || "Cannot load blog.");
+                    return;
+                }
+
+                editingId = id;
+                document.getElementById("title").value = blog.title;
+                document.getElementById("description").value = blog.description;
+                formTitle.textContent = "Edit Blog Post";
+                submitBtn.textContent = "Update Post";
+                AppFeedback.showSuccess("Blog post loaded for editing.");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError("Unable to load blog post.");
+            }
+        };
+
+        window.deletePost = async (id) => {
+            if (!isAdmin()) {
+                return;
+            }
+
+            if (!confirm("Delete this post?")) {
+                return;
+            }
+
+            const token = getToken();
+            try {
+                AppFeedback.showLoading("Deleting blog post...");
+                const response = await fetch(`${API_BASE}/blogs/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const data = await response.json();
+                AppFeedback.hideLoading();
+                if (!response.ok) {
+                    AppFeedback.showError(data.message || "Delete failed.");
+                    return;
+                }
+
+                setStatus("Post deleted successfully.", "success");
+                AppFeedback.showSuccess("Blog post deleted successfully.");
+                await loadBlogs();
+            } catch (error) {
+                AppFeedback.hideLoading();
+                AppFeedback.showError("Delete request failed.");
+            }
+        };
+
+        loginBtn.addEventListener("click", () => {
+            window.location.href = "login.html";
+        });
+
+        closeDetailBtn.addEventListener("click", closeBlogPost);
+        detailPrevBtn.addEventListener("click", () => shiftSlide(-1));
+        detailNextBtn.addEventListener("click", () => shiftSlide(1));
+        blogDetailOverlay.addEventListener("click", (event) => {
+            if (event.target === blogDetailOverlay) {
+                closeBlogPost();
+            }
+        });
+
+        window.openBlogPost = openBlogPost;
+
+        window.addEventListener("keydown", (event) => {
+            if (blogDetailOverlay.classList.contains("hidden")) {
+                return;
+            }
+
+            if (event.key === "Escape") {
+                closeBlogPost();
+            }
+
+            if (event.key === "ArrowLeft") {
+                shiftSlide(-1);
+            }
+
+            if (event.key === "ArrowRight") {
+                shiftSlide(1);
+            }
+        });
+
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            adminFormSection.classList.add("hidden");
+            updateAuthButtons();
+            loadBlogs();
+        });
+
+        const bootstrap = async () => {
+            updateAuthButtons();
+            if (isAdmin()) {
+                adminFormSection.classList.remove("hidden");
+            }
+            await loadBlogs();
+        };
+
+        bootstrap();
+    </script>
+    <script src="nav-drawer.js"></script>
+</body>
+</html>
