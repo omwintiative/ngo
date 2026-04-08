@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://your-api-host.example.com/api/$1"
+      "destination": "https://ngo-3bca.onrender.com/api/$1"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "https://your-api-host.example.com/uploads/$1"
+      "destination": "https://ngo-3bca.onrender.com/uploads/$1"
     }
   ]
 }
