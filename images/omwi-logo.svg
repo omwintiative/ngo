@@ -1,0 +1,50 @@
+<svg width="760" height="198" viewBox="0 0 920 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">OMWI logo</title>
+  <desc id="logoDesc">A maternal welfare logo showing an abstract mother and child inside a heart and leaf-inspired emblem, with the OMWI wordmark and Maternal Welfare Initiative subtitle.</desc>
+  <defs>
+    <linearGradient id="omwiLeaf" x1="44" y1="28" x2="170" y2="192" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7CFF87"/>
+      <stop offset="1" stop-color="#0E8F57"/>
+    </linearGradient>
+    <linearGradient id="omwiWarm" x1="74" y1="66" x2="154" y2="152" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFB16E"/>
+      <stop offset="1" stop-color="#E56D4A"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="920" height="240" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="8"/>
+      <feGaussianBlur stdDeviation="10"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0157 0 0 0 0 0.1098 0 0 0 0 0.0706 0 0 0 0.22 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="12" y="18" width="896" height="204" rx="28" fill="#081912" fill-opacity="0.96"/>
+    <circle cx="120" cy="120" r="78" fill="#0E2418"/>
+
+    <path d="M132.345 45.915C161.189 45.915 184.567 69.293 184.567 98.137C184.567 140.305 132.345 178.548 120.615 186.465C118.665 187.782 116.113 187.782 114.163 186.465C102.433 178.548 50.212 140.305 50.212 98.137C50.212 69.293 73.589 45.915 102.433 45.915C113.748 45.915 124.202 49.518 132.717 55.634C141.232 49.518 151.686 45.915 163.001 45.915H132.345Z" fill="url(#omwiLeaf)" fill-opacity="0.18"/>
+
+    <path d="M118.545 57.5C142.367 57.5 161.679 76.807 161.679 100.625C161.679 136.859 120.638 168.941 120.638 168.941C120.638 168.941 79.597 136.859 79.597 100.625C79.597 76.807 98.909 57.5 122.731 57.5C135.29 57.5 146.596 62.872 154.484 71.444" stroke="url(#omwiLeaf)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <path d="M137.5 150.5C127.928 150.5 117.071 146.302 108.955 137.439C102.109 129.963 97.667 119.768 97.667 108.415C97.667 92.158 108.927 78.226 123.998 74.57C130.175 73.072 136.565 73.137 142.562 74.756C138.014 79.528 135.222 85.984 135.222 93.091C135.222 107.782 147.128 119.688 161.819 119.688C165.526 119.688 169.056 118.93 172.264 117.559C170.113 126.978 165.2 135.505 158.272 141.952C152.62 147.206 145.418 150.5 137.5 150.5Z" fill="url(#omwiWarm)"/>
+
+    <circle cx="120.5" cy="93.5" r="13.5" fill="#FFF7EF"/>
+    <circle cx="154.5" cy="89.5" r="9.5" fill="#FFE3CD"/>
+
+    <path d="M108.696 110.928C114.264 103.983 121.558 100.51 130.577 100.51C141.284 100.51 149.639 104.982 155.643 113.926" stroke="#FFF7EF" stroke-width="9" stroke-linecap="round"/>
+    <path d="M140.35 97.397C143.469 94.161 147.486 92.543 152.401 92.543C158.315 92.543 163.022 94.911 166.522 99.648" stroke="#FFF0E2" stroke-width="6.5" stroke-linecap="round"/>
+
+    <path d="M206 78H236.792C264.249 78 282 95.468 282 120C282 144.532 264.249 162 236.792 162H206V78ZM236.111 146.52C253.697 146.52 265.384 135.649 265.384 120C265.384 104.351 253.697 93.48 236.111 93.48H222.121V146.52H236.111Z" fill="#F7FFF8"/>
+    <path d="M295.781 162V78H312.092L338.688 126.34L365.391 78H381.594V162H365.927V107.34L341.913 150.084H335.245L311.341 107.34V162H295.781Z" fill="#F7FFF8"/>
+    <path d="M393.156 78H410.034L427.772 137.424L446.355 78H459.372L477.956 137.424L495.694 78H512.571L486.087 162H470.637L452.807 106.908L434.977 162H419.64L393.156 78Z" fill="#F7FFF8"/>
+    <path d="M524.805 78H541.564V162H524.805V78Z" fill="#F7FFF8"/>
+
+    <text x="565" y="110" fill="#7CFF87" font-family="Trebuchet MS, Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="4">OMUGWO</text>
+    <text x="565" y="150" fill="#DCEEE0" font-family="Trebuchet MS, Segoe UI, Arial, sans-serif" font-size="30" font-weight="500" letter-spacing="2">MATERNAL WELFARE INITIATIVE</text>
+    <text x="565" y="184" fill="#FFB16E" font-family="Trebuchet MS, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">CARE. DIGNITY. HEALTH EQUITY.</text>
+  </g>
+</svg>

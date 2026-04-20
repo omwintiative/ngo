@@ -1,0 +1,22 @@
+<svg width="920" height="240" viewBox="0 0 920 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">OMWI logo direction 2</title>
+  <desc id="desc">Emblem style logo featuring a protective arch, sunrise, leaf forms, and maternal care symbol for Omugwo Maternal Welfare Initiative.</desc>
+  <rect width="920" height="240" rx="28" fill="#081912"/>
+  <rect x="34" y="34" width="184" height="172" rx="26" fill="#10271D" stroke="#1E4A36" stroke-width="2"/>
+  <path d="M126 59C92.311 59 65 86.311 65 120V164C65 170.627 70.373 176 77 176H175C181.627 176 187 170.627 187 164V120C187 86.311 159.689 59 126 59Z" fill="#0D2218" stroke="#7CFF87" stroke-width="8"/>
+  <path d="M90 123C90 102.013 107.013 85 128 85C148.987 85 166 102.013 166 123" stroke="#7CFF87" stroke-width="8" stroke-linecap="round"/>
+  <path d="M101 122H155" stroke="#28563F" stroke-width="3" stroke-linecap="round"/>
+  <path d="M127 83C121.264 83 116.615 78.337 116.615 72.585C116.615 66.833 121.264 62.17 127 62.17C132.736 62.17 137.385 66.833 137.385 72.585C137.385 78.337 132.736 83 127 83Z" fill="#FFB16E"/>
+  <path d="M127 103C117.855 103 110.148 107.074 103.878 115.221C100.799 119.219 98.507 123.78 97 128.79C99.805 141.732 111.344 151.428 125.5 151.428C139.764 151.428 151.378 141.584 154.079 128.49C152.452 123.596 150.034 119.151 146.826 115.221C140.448 107.074 132.506 103 123 103H127Z" fill="#FF8A65"/>
+  <circle cx="116" cy="104" r="10" fill="#FFF3E8"/>
+  <circle cx="141" cy="100" r="7" fill="#FFE0CA"/>
+  <path d="M105 121C109.444 114.823 115.778 111.735 124 111.735C133.206 111.735 140.417 115.297 145.633 122.422" stroke="#FFF7EF" stroke-width="6.5" stroke-linecap="round"/>
+  <path d="M76 154C89.69 137.839 106.731 129.759 127.123 129.759C147.514 129.759 164.473 137.839 178 154" stroke="#7CFF87" stroke-width="7" stroke-linecap="round" opacity="0.65"/>
+  <path d="M255 80H292.971C322.133 80 341 97.936 341 122C341 146.064 322.133 164 292.971 164H255V80ZM292.248 148.452C311.225 148.452 323.616 137.015 323.616 122C323.616 106.985 311.225 95.548 292.248 95.548H272.273V148.452H292.248Z" fill="#F5FFF6"/>
+  <path d="M356.557 164V80H372.869L399.464 128.34L426.167 80H442.37V164H426.703V109.34L402.689 152.084H396.021L372.117 109.34V164H356.557Z" fill="#F5FFF6"/>
+  <path d="M453.933 80H470.811L488.549 139.424L507.132 80H520.149L538.732 139.424L556.47 80H573.347L546.863 164H531.413L513.583 108.908L495.753 164H480.416L453.933 80Z" fill="#F5FFF6"/>
+  <path d="M585.581 80H602.34V164H585.581V80Z" fill="#F5FFF6"/>
+  <text x="628" y="108" fill="#7CFF87" font-family="Trebuchet MS, Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="4">OMUGWO</text>
+  <text x="628" y="148" fill="#E4F5E7" font-family="Trebuchet MS, Segoe UI, Arial, sans-serif" font-size="29" font-weight="600" letter-spacing="1.9">MATERNAL WELFARE INITIATIVE</text>
+  <text x="628" y="180" fill="#FFB16E" font-family="Trebuchet MS, Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="3">PROTECTION, WELLNESS, AND COMMUNITY CARE</text>
+</svg>

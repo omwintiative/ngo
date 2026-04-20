@@ -26,12 +26,20 @@ body
     float:left;
     width: auto;
 }
+.logo a
+{
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+}
 .logo img
 {
+    display: block;
     padding: 8px;
-    width:180px;
-    max-width: 38vw;
-    margin-left:10%;
+    width: 168px;
+    max-width: min(34vw, 168px);
+    height: auto;
+    margin-left: 10%;
 }
 .nav_side
 {
@@ -61,6 +69,29 @@ body
     text-align: center;
     
 }
+
+@media (min-width: 981px)
+{
+    .nav_side .nav_donate
+    {
+        margin-left: auto;
+        padding: 11px 20px;
+        border: 2px solid rgb(79, 255, 88);
+        border-radius: 999px;
+        background: rgba(79, 255, 88, 0.12);
+        color: rgb(79, 255, 88);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .nav_side .nav_donate:hover
+    {
+        color: #04110a;
+        background: rgb(79, 255, 88);
+        border-color: rgb(79, 255, 88);
+    }
+}
+
 .nav_side a:hover
 {
     color: rgb(79, 255, 88);
@@ -113,8 +144,8 @@ body
 
     .logo img
     {
-        width: 170px;
-        max-width: 56vw;
+        width: 150px;
+        max-width: 52vw;
         margin-left: 0;
     }
 
@@ -148,6 +179,27 @@ body
         padding: 12px 10px;
         border-radius: 8px;
         text-align: left;
+    }
+
+    .nav_side .nav_donate
+    {
+        margin-left: 0;
+        margin-top: 12px;
+        padding: 12px 10px;
+        border: 2px solid rgb(79, 255, 88);
+        border-radius: 8px;
+        background: rgba(79, 255, 88, 0.12);
+        color: rgb(79, 255, 88);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-align: center;
+    }
+
+    .nav_side .nav_donate:hover
+    {
+        color: #04110a;
+        background: rgb(79, 255, 88);
+        border-color: rgb(79, 255, 88);
     }
 
     .drawer-open .nav_side
@@ -841,7 +893,10 @@ footer
 }
 footer .aimg
 {
-    margin-top:21%;
+    display: block;
+    width: min(210px, 100%);
+    height: auto;
+    margin-top: 14%;
 }
 footer .pages
 {
