@@ -98,6 +98,97 @@ body
     transition: all 1s ease;
 }
 
+.nav_dropdown
+{
+    position: relative;
+}
+
+.nav_dropdown_toggle
+{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    color: white;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 15px;
+}
+
+.nav_dropdown_toggle:hover,
+.nav_dropdown.open .nav_dropdown_toggle
+{
+    color: rgb(79, 255, 88);
+    transition: all 1s ease;
+}
+
+.nav_dropdown_caret
+{
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform 0.25s ease;
+}
+
+.nav_dropdown.open .nav_dropdown_caret
+{
+    transform: rotate(-135deg);
+}
+
+.nav_dropdown_menu
+{
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    background: #0d0d0d;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 8px;
+    box-shadow: 0 24px 45px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    z-index: 11;
+}
+
+.nav_dropdown_menu a
+{
+    display: block;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.nav_dropdown_menu a:hover
+{
+    color: black;
+    background: rgb(79, 255, 88);
+}
+
+@media (min-width: 981px)
+{
+    .nav_dropdown:hover .nav_dropdown_menu,
+    .nav_dropdown.open .nav_dropdown_menu
+    {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+}
+
 .nav_toggle
 {
     display: none;
@@ -179,6 +270,42 @@ body
         padding: 12px 10px;
         border-radius: 8px;
         text-align: left;
+    }
+
+    .nav_dropdown_toggle
+    {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        font-size: 14px;
+        padding: 12px 10px;
+        border-radius: 8px;
+        text-align: left;
+    }
+
+    .nav_dropdown_menu
+    {
+        position: static;
+        display: none;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        margin: 4px 0 8px;
+        padding: 4px;
+    }
+
+    .nav_dropdown.open .nav_dropdown_menu
+    {
+        display: block;
+    }
+
+    .nav_dropdown_menu a
+    {
+        font-size: 13px;
+        padding: 10px 14px;
     }
 
     .nav_side .nav_donate
@@ -1655,5 +1782,125 @@ footer p
     padding:15px;
     font-size: 20px;
     line-height: 25px;
+}
+/*--------------------------------------------INVOLVE (VOLUNTEER / PARTNER)---------------------------------------*/
+.involve_page
+{
+    background: linear-gradient(180deg, rgba(4, 13, 10, 0.98) 0%, rgba(10, 24, 16, 1) 36%, rgba(0, 0, 0, 1) 100%);
+    color: white;
+    font-family: 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    padding-top: 160px;
+    padding-bottom: 90px;
+}
+.involve_hero_inner
+{
+    width: min(880px, 90%);
+    margin: 0 auto;
+    text-align: center;
+}
+.involve_eyebrow
+{
+    color: rgb(79, 255, 88);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 14px;
+    margin-bottom: 14px;
+}
+.involve_hero_inner h1
+{
+    font-size: 56px;
+    line-height: 1.08;
+    margin: 0 0 22px;
+    font-weight: bolder;
+}
+.involve_hero_bold
+{
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 18px;
+}
+.involve_lead
+{
+    font-size: 20px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.88);
+    margin-bottom: 34px;
+}
+.involve_actions
+{
+    display: flex;
+    justify-content: center;
+}
+.involve_primary_action
+{
+    text-decoration: none;
+    padding: 16px 34px;
+    border-radius: 999px;
+    border: 2px solid rgb(79, 255, 88);
+    color: white;
+    font-weight: bold;
+    letter-spacing: 0.04em;
+    transition: 0.4s;
+}
+.involve_primary_action:hover
+{
+    background: rgb(79, 255, 88);
+    color: black;
+}
+.involve_support_section
+{
+    width: min(880px, 90%);
+    margin: 70px auto 0;
+}
+.involve_support_card
+{
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+}
+.involve_support_card p
+{
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: rgb(79, 255, 88);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.involve_support_card a
+{
+    text-decoration: none;
+    padding: 14px 28px;
+    border-radius: 999px;
+    border: 2px solid rgb(79, 255, 88);
+    color: white;
+    font-weight: bold;
+    transition: 0.4s;
+}
+.involve_support_card a:hover
+{
+    background: rgb(79, 255, 88);
+    color: black;
+}
+@media (max-width: 640px)
+{
+    .involve_hero_inner h1
+    {
+        font-size: 36px;
+    }
+
+    .involve_lead,
+    .involve_hero_bold
+    {
+        font-size: 17px;
+    }
+
+    .involve_page
+    {
+        padding-top: 120px;
+    }
 }
 /*--------------------------------------------CATERING---------------------------------------*/
