@@ -1,11 +1,38 @@
+/*------------------------------------------------BRAND TOKENS----------------------------------------*/
+:root
+{
+    /* OMWI brand palette */
+    --color-primary: #785E94;
+    --color-secondary: #A44819;
+    --color-accent: #408C4C;
+    --color-on-accent: #ffffff;
+    --font-base: "Montserrat", "Segoe UI", Arial, sans-serif;
+
+    /* Theme tokens (dark, default) - drives the header/footer chrome + blog/contributors/login pages */
+    --color-bg: #000000;
+    --color-surface: rgba(0, 0, 0, 0.856);
+    --color-text: #ffffff;
+    --color-text-muted: rgba(255, 255, 255, 0.75);
+    --color-border: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="light"]
+{
+    --color-bg: #ffffff;
+    --color-surface: #f4f1f7;
+    --color-text: #1f1730;
+    --color-text-muted: rgba(31, 23, 48, 0.7);
+    --color-border: rgba(31, 23, 48, 0.15);
+}
+
 body
 {
-    background-color: black;
+    background-color: var(--color-bg);
 }
 /*------------------------------------------------NAVBAR----------------------------------------*/
 .nav
 {
-    background-color: rgba(0, 0, 0, 0.856);
+    background-color: var(--color-surface);
     z-index: 9;
     padding-left: 50px;
     padding-right: 50px;
@@ -41,6 +68,24 @@ body
     height: auto;
     margin-left: 10%;
 }
+.logo img.logo-compact
+{
+    display: none;
+    width: 48px;
+    max-width: 48px;
+    margin-left: 4%;
+}
+@media (max-width: 980px)
+{
+    .logo img.logo-desktop
+    {
+        display: none;
+    }
+    .logo img.logo-compact
+    {
+        display: block;
+    }
+}
 .nav_side
 {
     float:right;
@@ -59,9 +104,9 @@ body
     padding-top: 0;
     padding-left: 0;
     padding: 10px 12px;
-    color: white;
+    color: var(--color-text);
     font-weight: bold;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     font-size: 15px;
     justify-content: center;
     align-items: center;
@@ -76,25 +121,25 @@ body
     {
         margin-left: auto;
         padding: 11px 20px;
-        border: 2px solid rgb(79, 255, 88);
+        border: 2px solid var(--color-primary);
         border-radius: 999px;
-        background: rgba(79, 255, 88, 0.12);
-        color: rgb(79, 255, 88);
+        background: rgba(120, 94, 148, 0.15);
+        color: var(--color-primary);
         font-weight: 800;
         letter-spacing: 0.08em;
     }
 
     .nav_side .nav_donate:hover
     {
-        color: #04110a;
-        background: rgb(79, 255, 88);
-        border-color: rgb(79, 255, 88);
+        color: var(--color-on-accent);
+        background: var(--color-primary);
+        border-color: var(--color-primary);
     }
 }
 
 .nav_side a:hover
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     transition: all 1s ease;
 }
 
@@ -112,16 +157,16 @@ body
     border: none;
     cursor: pointer;
     padding: 10px 12px;
-    color: white;
+    color: var(--color-text);
     font-weight: bold;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     font-size: 15px;
 }
 
 .nav_dropdown_toggle:hover,
 .nav_dropdown.open .nav_dropdown_toggle
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     transition: all 1s ease;
 }
 
@@ -147,8 +192,8 @@ body
     top: 100%;
     left: 0;
     min-width: 200px;
-    background: #0d0d0d;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     padding: 8px;
     box-shadow: 0 24px 45px rgba(0, 0, 0, 0.45);
@@ -163,9 +208,9 @@ body
 {
     display: block;
     text-decoration: none;
-    color: white;
+    color: var(--color-text);
     font-weight: bold;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     font-size: 14px;
     padding: 10px 12px;
     border-radius: 8px;
@@ -174,8 +219,8 @@ body
 
 .nav_dropdown_menu a:hover
 {
-    color: black;
-    background: rgb(79, 255, 88);
+    color: var(--color-on-accent);
+    background: var(--color-primary);
 }
 
 @media (min-width: 981px)
@@ -209,8 +254,30 @@ body
     display: block;
     width: 22px;
     height: 2px;
-    background: #ffffff;
+    background: var(--color-text);
     transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.theme_toggle
+{
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    border-radius: 50%;
+    color: var(--color-text);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s ease;
+}
+
+.theme_toggle:hover
+{
+    border-color: var(--color-primary);
 }
 
 .nav_overlay
@@ -252,7 +319,7 @@ body
         right: -290px;
         width: 280px;
         height: 100vh;
-        background: #0d0d0d;
+        background: var(--color-surface);
         z-index: 10;
         flex-direction: column;
         align-items: flex-start;
@@ -313,10 +380,10 @@ body
         margin-left: 0;
         margin-top: 12px;
         padding: 12px 10px;
-        border: 2px solid rgb(79, 255, 88);
+        border: 2px solid var(--color-primary);
         border-radius: 8px;
-        background: rgba(79, 255, 88, 0.12);
-        color: rgb(79, 255, 88);
+        background: rgba(120, 94, 148, 0.12);
+        color: var(--color-primary);
         font-weight: 800;
         letter-spacing: 0.08em;
         text-align: center;
@@ -325,8 +392,8 @@ body
     .nav_side .nav_donate:hover
     {
         color: #04110a;
-        background: rgb(79, 255, 88);
-        border-color: rgb(79, 255, 88);
+        background: var(--color-primary);
+        border-color: var(--color-primary);
     }
 
     .drawer-open .nav_side
@@ -349,7 +416,7 @@ body
 /*------------------------------------------------MAIN----------------------------------------*/
 .main
 {
-    background-image: url("images/back.jpeg");
+    background-image: url("images/image1.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -367,7 +434,7 @@ body
 {
     color: white;
     font-size: 350%;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     font-weight: bolder;
     text-align: left;
 }
@@ -393,7 +460,7 @@ body
     font-weight: bold;
     background-color: rgba(0, 0, 0, 0.856);
     color:white;
-    font-family: 'Trebuchet MS', sans-serif; 
+    font-family: var(--font-base); 
     text-align: center;
     border: 2px solid rgba(0, 0, 0, 0.856);
     transition: 0.5s;
@@ -410,12 +477,12 @@ body
 {
     background: linear-gradient(180deg, rgba(4, 13, 10, 0.98) 0%, rgba(10, 24, 16, 1) 36%, rgba(0, 0, 0, 1) 100%);
     color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
 }
 .home_hero
 {
     min-height: 100vh;
-    background-image: linear-gradient(118deg, rgba(0, 0, 0, 0.86) 8%, rgba(7, 36, 19, 0.68) 58%, rgba(0, 0, 0, 0.72) 100%), url("images/back.jpeg");
+    background-image: linear-gradient(118deg, rgba(0, 0, 0, 0.86) 8%, rgba(7, 36, 19, 0.68) 58%, rgba(0, 0, 0, 0.72) 100%), url("images/image1.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -436,7 +503,7 @@ body
 .home_section_label,
 .home_section_heading p
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 14px;
@@ -470,7 +537,7 @@ body
     text-decoration: none;
     padding: 14px 28px;
     border-radius: 999px;
-    border: 2px solid rgb(79, 255, 88);
+    border: 2px solid var(--color-primary);
     color: white;
     font-weight: bold;
     transition: 0.4s;
@@ -478,8 +545,8 @@ body
 .home_actions a:hover,
 .home_feature_actions a:hover
 {
-    background: rgb(79, 255, 88);
-    color: black;
+    background: var(--color-primary);
+    color: var(--color-on-accent);
 }
 .home_secondary_action
 {
@@ -581,7 +648,7 @@ body
 {
     font-size: 88px;
     line-height: 0.8;
-    color: rgba(79, 255, 88, 0.65);
+    color: rgba(120, 94, 148, 0.65);
     margin-bottom: 14px;
 }
 .home_intro_pullquote p
@@ -592,7 +659,7 @@ body
 }
 .home_intro_pullquote a
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: bold;
 }
@@ -631,7 +698,7 @@ body
 .home_program_card h3,
 .home_value_card h3
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     font-size: 26px;
     margin-top: 0;
     margin-bottom: 14px;
@@ -676,7 +743,7 @@ body
 {
     padding: 48px;
     text-align: center;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(79, 255, 88, 0.12) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(120, 94, 148, 0.12) 100%);
 }
 .home_actions_centered
 {
@@ -879,11 +946,11 @@ body
 /*------------------------------------------------SIDE----------------------------------------*/
 .side 
 {
-    background-color: rgba(0, 0, 0, 0.966);
+    background-color: var(--color-surface);
     display: flex;
     text-align: center;
-    color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    color: var(--color-text);
+    font-family: var(--font-base);
 }
 .side .left
 {
@@ -897,7 +964,7 @@ body
 }
 .side .right
 {
-    background-color: rgba(0, 0, 0, 0.966);
+    background-color: var(--color-surface);
     width:50%;
     float:right;
 }
@@ -924,19 +991,19 @@ body
     margin:32%;
     padding: 10px 20px;
     font-weight: bold;
-    color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    color: var(--color-text);
+    font-family: var(--font-base);
     text-align: center;
     border: 4px double whitesmoke;
     transition: 0.5s;
 }
 .side .right .side_btn a:hover
 {
-    background-color: rgb(79, 255, 88);
-    color: black;
+    background-color: var(--color-primary);
+    color: var(--color-on-accent);
     font-weight:bolder;
     border: none;
-    border: 4px solid green;
+    border: 4px solid var(--color-accent);
     transition:0.5s;
 }
 
@@ -944,14 +1011,14 @@ body
 .product
 {
     float:left;
-    background-image: url("images/poor.jpg");
+    background-image: url("images/image3.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     padding-bottom: 50px;
     height: 100vh;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     color: white;
 }
 .product h2
@@ -999,7 +1066,7 @@ body
 {
     font-size: 25px;
     line-height: 2px;
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     font-weight: bolder;
 }
 .product .product_container .item .item_content p
@@ -1013,17 +1080,17 @@ body
 /*--------------------------------------------FOOTER----------------------------------------*/
 footer
 {
-    background-color: black;
-    padding:50px;
+    background-color: var(--color-bg);
+    padding: 26px 40px;
     display: inline-block;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
 }
 footer .aimg
 {
     display: block;
-    width: min(210px, 100%);
+    width: min(96px, 100%);
     height: auto;
-    margin-top: 14%;
+    margin-top: 4%;
 }
 footer .pages
 {
@@ -1034,9 +1101,9 @@ footer .pages
 
 footer .pages p
 {
-    padding-top: 5%;
+    padding-top: 3%;
     text-align: left;
-    color:rgba(255, 226, 243, 0.808);
+    color:var(--color-secondary);
     width:90%;
     padding-left:12%;
 }
@@ -1044,7 +1111,7 @@ footer .pages a
 {
     text-decoration: none;
     margin:10px;
-    color: rgba(255, 226, 243, 0.808);
+    color: var(--color-secondary);
     font-size: 30px;
 }
 footer .pages a:hover
@@ -1056,22 +1123,23 @@ footer .doc
     width:25%;
     text-align: center;
     display: inline-block;
-    padding-bottom: 5%;
+    padding-bottom: 2%;
 }
 footer .doc h3
 {
-    color: rgb(255, 226, 243);
+    color: var(--color-secondary);
     font-size: 30px;
     padding: 5px;
     font-weight: bold;
-    line-height: 130px;
+    line-height: 1.4;
+    margin-bottom: 10px;
 }
 footer .doc a
 {
     display: block;
     text-decoration: none;
-    margin:10px;
-    color: rgba(255, 226, 243, 0.808);
+    margin:8px;
+    color: var(--color-secondary);
     font-size: 25px;
 }
 footer .doc a:hover
@@ -1086,11 +1154,12 @@ footer .social
 }
 footer .social h3
 {
-    color: rgb(255, 226, 243);
+    color: var(--color-secondary);
     font-size: 30px;
     padding: 5px;
     font-weight: bold;
-    line-height: 130px;
+    line-height: 1.4;
+    margin-bottom: 10px;
 }
 footer .contact
 {
@@ -1100,21 +1169,22 @@ footer .contact
 }
 footer .contact h3
 {
-    color: rgb(255, 226, 243);
+    color: var(--color-secondary);
     font-size: 30px;
     padding: 5px;
     font-weight: bold;
-    line-height: 130px;
+    line-height: 1.4;
+    margin-bottom: 10px;
 }
 footer .social p
 {
-    padding-top: 5%;
+    padding-top: 3%;
     text-align: left;
-    color:rgba(255, 226, 243, 0.808);
+    color:var(--color-secondary);
     width:90%;
     padding-left:12%;
     font-size: large;
-    margin-bottom: 18%;
+    margin-bottom: 6%;
 }
 .side .right .side_btn
 {
@@ -1127,17 +1197,17 @@ footer .side_btn a
     padding: 10px 20px;
     font-weight: bold;
     color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     border: 2px double whitesmoke;
     transition: 0.5s;
 }
 footer .side_btn a:hover
 {
-    background-color: rgb(79, 255, 88);
-    color: black;
+    background-color: var(--color-primary);
+    color: var(--color-on-accent);
     font-weight:bolder;
     border: none;
-    border: 4px solid green;
+    border: 4px solid var(--color-accent);
     transition:0.5s;
 }
 footer .contact
@@ -1150,7 +1220,7 @@ footer .contact a
     font-size: 20px;
     line-height: 38px;
     text-decoration: none;;
-    color:rgba(247, 193, 224, 0.904);
+    color:var(--color-secondary);
     margin:10px;
 }
 footer .contact a:hover
@@ -1159,15 +1229,15 @@ footer .contact a:hover
 }
 footer p
 {
-    color:rgba(247, 178, 217, 0.726);
+    color:var(--color-secondary);
     text-align: center;
     font-size: 110%;
 }
 /*------------------------------------------------MAIN_ABOUT----------------------------------------*/
 .main_about
 {
-    font-family: 'Trebuchet MS', sans-serif;
-    background-image: url("images/about.jpg");
+    font-family: var(--font-base);
+    background-image: url("images/image1.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -1179,7 +1249,7 @@ footer p
 {
     color: white;
     font-size: 390%;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     font-weight: bolder;
     text-align: center;
     padding:20%;
@@ -1187,21 +1257,21 @@ footer p
 .product_about
 {
     float:left;
-    background-image: url("images/about_back.jpg");
+    background-image: url("images/image2.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     padding-bottom: 50px;
     height: 100vh;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     color: white;
 }
 .about_page
 {
     background: linear-gradient(180deg, rgba(4, 15, 10, 0.98) 0%, rgba(10, 27, 18, 0.98) 36%, rgba(0, 0, 0, 0.98) 100%);
     color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
 }
 .about_hero_panel
 {
@@ -1233,7 +1303,7 @@ footer p
     letter-spacing: 3px;
     text-transform: uppercase;
     font-size: 14px;
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     margin-bottom: 18px;
 }
 .about_intro_shell h1
@@ -1271,7 +1341,7 @@ footer p
 }
 .about_section_heading p
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 14px;
@@ -1334,7 +1404,7 @@ footer p
 .about_value_card h3,
 .about_story_block h3
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     margin-top: 0;
     margin-bottom: 16px;
     font-size: 28px;
@@ -1369,7 +1439,7 @@ footer p
 {
     font-size: 86px;
     line-height: 0.85;
-    color: rgba(79, 255, 88, 0.65);
+    color: rgba(120, 94, 148, 0.65);
     margin-bottom: 12px;
 }
 .about_quote_card strong
@@ -1388,13 +1458,13 @@ footer p
 }
 .about_card_note
 {
-    color: rgb(79, 255, 88) !important;
+    color: var(--color-primary) !important;
 }
 .about_slogan_banner
 {
     padding: 30px 34px;
-    background: linear-gradient(90deg, rgba(79, 255, 88, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
-    border: 1px solid rgba(79, 255, 88, 0.22);
+    background: linear-gradient(90deg, rgba(120, 94, 148, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
+    border: 1px solid rgba(120, 94, 148, 0.22);
     border-radius: 24px;
 }
 .about_slogan_banner h3
@@ -1425,7 +1495,7 @@ footer p
 {
     text-align: center;
     padding: 46px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(79, 255, 88, 0.12) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(120, 94, 148, 0.12) 100%);
 }
 .about_actions
 {
@@ -1440,15 +1510,15 @@ footer p
     text-decoration: none;
     padding: 14px 28px;
     border-radius: 999px;
-    border: 2px solid rgb(79, 255, 88);
+    border: 2px solid var(--color-primary);
     color: white;
     font-weight: bold;
     transition: 0.4s;
 }
 .about_actions a:hover
 {
-    background: rgb(79, 255, 88);
-    color: black;
+    background: var(--color-primary);
+    color: var(--color-on-accent);
 }
 .about_actions .about_secondary_action
 {
@@ -1649,8 +1719,8 @@ footer p
 /*--------------------------------------------DONATE----------------------------------------*/
 .donate
 {
-    font-family: 'Trebuchet MS', sans-serif;
-    background-image: url("images/donate_back.jpg");
+    font-family: var(--font-base);
+    background-image: url("images/image3.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -1671,7 +1741,7 @@ footer p
 }
 .donate .donate_container h1
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     line-height: 100px;
 }
 .donate .donate_container p
@@ -1713,7 +1783,7 @@ footer p
     padding: 10px 20px;
     font-weight: bold;
     color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     border: 2px double whitesmoke;
     background: transparent;
     transition: 0.5s;
@@ -1724,7 +1794,7 @@ footer p
     color: black;
     font-weight:bolder;
     border: none;
-    border: 4px solid green;
+    border: 4px solid var(--color-accent);
     transition:0.5s;
 }
 .donate .side_btn a
@@ -1734,7 +1804,7 @@ footer p
     padding: 10px 20px;
     font-weight: bold;
     color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     border: 2px double whitesmoke;
     transition: 0.5s;
 }
@@ -1744,15 +1814,15 @@ footer p
     color: black;
     font-weight:bolder;
     border: none;
-    border: 4px solid green;
+    border: 4px solid var(--color-accent);
     transition:0.5s;
 }
 /*--------------------------------------------CONTACT---------------------------------------*/
 .contact_container
 {
     padding: 100px;
-    font-family: 'Trebuchet MS', sans-serif;
-    background-image: url("images/about_back.jpg");
+    font-family: var(--font-base);
+    background-image: url("images/image2.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -1763,10 +1833,10 @@ footer p
 }
 .contact_container h2
 {
-    font-family: Avantgarde, TeX Gyre Adventor, URW Gothic L, sans-serif;
+    font-family: var(--font-base);
     font-size: 33px;
     text-align: center;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
 }
 .contact_container .g_map
 {
@@ -1775,7 +1845,7 @@ footer p
 .contact_container .contact_content
 {
     padding:20px;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
 }
 .contact_container .contact_content p
 {
@@ -1788,7 +1858,7 @@ footer p
 {
     background: linear-gradient(180deg, rgba(4, 13, 10, 0.98) 0%, rgba(10, 24, 16, 1) 36%, rgba(0, 0, 0, 1) 100%);
     color: white;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: var(--font-base);
     min-height: 100vh;
     padding-top: 160px;
     padding-bottom: 90px;
@@ -1801,7 +1871,7 @@ footer p
 }
 .involve_eyebrow
 {
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 14px;
@@ -1837,7 +1907,7 @@ footer p
     text-decoration: none;
     padding: 16px 34px;
     border-radius: 999px;
-    border: 2px solid rgb(79, 255, 88);
+    border: 2px solid var(--color-primary);
     color: white;
     font-weight: bold;
     letter-spacing: 0.04em;
@@ -1845,8 +1915,8 @@ footer p
 }
 .involve_primary_action:hover
 {
-    background: rgb(79, 255, 88);
-    color: black;
+    background: var(--color-primary);
+    color: var(--color-on-accent);
 }
 .involve_support_section
 {
@@ -1866,7 +1936,7 @@ footer p
     font-size: 20px;
     font-weight: bold;
     margin-bottom: 20px;
-    color: rgb(79, 255, 88);
+    color: var(--color-primary);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -1875,15 +1945,15 @@ footer p
     text-decoration: none;
     padding: 14px 28px;
     border-radius: 999px;
-    border: 2px solid rgb(79, 255, 88);
+    border: 2px solid var(--color-primary);
     color: white;
     font-weight: bold;
     transition: 0.4s;
 }
 .involve_support_card a:hover
 {
-    background: rgb(79, 255, 88);
-    color: black;
+    background: var(--color-primary);
+    color: var(--color-on-accent);
 }
 @media (max-width: 640px)
 {

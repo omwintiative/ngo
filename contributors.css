@@ -4,19 +4,34 @@
     --contributors-border: rgba(148, 163, 184, 0.2);
     --contributors-text: #e5eef8;
     --contributors-muted: #97adbf;
-    --contributors-accent: #1d8bff;
-    --contributors-success: #16a34a;
+    --contributors-accent: var(--color-primary);
+    --contributors-success: var(--color-accent);
     --contributors-danger: #dc2626;
+}
+
+[data-theme="light"] {
+    --contributors-bg: #f7f5fa;
+    --contributors-panel: rgba(255, 255, 255, 0.94);
+    --contributors-border: rgba(120, 94, 148, 0.25);
+    --contributors-text: #1f1730;
+    --contributors-muted: rgba(31, 23, 48, 0.65);
 }
 
 body.contributors-body {
     min-height: 100vh;
     background:
-        radial-gradient(circle at 12% 12%, rgba(14, 165, 233, 0.18), transparent 32%),
-        radial-gradient(circle at 86% 82%, rgba(37, 99, 235, 0.14), transparent 34%),
+        radial-gradient(circle at 12% 12%, rgba(120, 94, 148, 0.18), transparent 32%),
+        radial-gradient(circle at 86% 82%, rgba(164, 72, 25, 0.14), transparent 34%),
         linear-gradient(150deg, #07101b, #0f1d31);
     color: var(--contributors-text);
-    font-family: "Manrope", "Trebuchet MS", sans-serif;
+    font-family: var(--font-base);
+}
+
+[data-theme="light"] body.contributors-body {
+    background:
+        radial-gradient(circle at 12% 12%, rgba(120, 94, 148, 0.12), transparent 32%),
+        radial-gradient(circle at 86% 82%, rgba(164, 72, 25, 0.1), transparent 34%),
+        var(--contributors-bg);
 }
 
 .contributors-page {
@@ -82,7 +97,7 @@ body.contributors-body {
     font-weight: 700;
     cursor: pointer;
     color: #f8fafc;
-    background: linear-gradient(135deg, var(--contributors-accent), #0b63c9);
+    background: linear-gradient(135deg, var(--contributors-accent), var(--color-secondary));
 }
 
 .manual-action-btn.delete {

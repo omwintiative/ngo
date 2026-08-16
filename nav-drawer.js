@@ -20,6 +20,42 @@ document.addEventListener("DOMContentLoaded", () => {
   nav.insertBefore(toggleBtn, navSide);
   document.body.appendChild(overlay);
 
+  // Light/dark theme toggle - persisted in localStorage, defaults to dark.
+  const THEME_KEY = "omwi-theme";
+  const themeToggle = document.createElement("button");
+  themeToggle.type = "button";
+  themeToggle.className = "theme_toggle";
+  themeToggle.setAttribute("aria-label", "Toggle light/dark theme");
+
+  const applyThemeIcon = (theme) => {
+    themeToggle.textContent =
+      theme === "light" ? "\u{1F319}" : "\u{2600}\uFE0F";
+    themeToggle.setAttribute("aria-pressed", String(theme === "light"));
+  };
+
+  const getCurrentTheme = () =>
+    document.documentElement.getAttribute("data-theme") === "light"
+      ? "light"
+      : "dark";
+
+  applyThemeIcon(getCurrentTheme());
+  navSide.appendChild(themeToggle);
+
+  themeToggle.addEventListener("click", () => {
+    const nextTheme = getCurrentTheme() === "light" ? "dark" : "light";
+    if (nextTheme === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    try {
+      localStorage.setItem(THEME_KEY, nextTheme);
+    } catch (error) {
+      /* localStorage unavailable (e.g. private browsing) - theme just won't persist */
+    }
+    applyThemeIcon(nextTheme);
+  });
+
   const setOpen = (isOpen) => {
     document.body.classList.toggle("drawer-open", isOpen);
     toggleBtn.setAttribute("aria-expanded", String(isOpen));

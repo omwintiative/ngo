@@ -4,10 +4,18 @@
   --card-border: rgba(148, 163, 184, 0.24);
   --text-main: #e6edf7;
   --text-muted: #9bb2ca;
-  --accent: #1e90ff;
-  --accent-strong: #0f66c2;
-  --success: #1f9d6a;
+  --accent: var(--color-primary);
+  --accent-strong: var(--color-secondary);
+  --success: var(--color-accent);
   --danger: #d14343;
+}
+
+[data-theme="light"] {
+  --page-bg: #f7f5fa;
+  --card-bg: rgba(255, 255, 255, 0.94);
+  --card-border: rgba(120, 94, 148, 0.25);
+  --text-main: #1f1730;
+  --text-muted: rgba(31, 23, 48, 0.65);
 }
 
 * {
@@ -17,12 +25,19 @@
 body.blog-body {
   margin: 0;
   color: var(--text-main);
-  font-family: "Manrope", "Trebuchet MS", sans-serif;
+  font-family: var(--font-base);
   background:
-    radial-gradient(circle at 15% 10%, rgba(14, 165, 233, 0.24), transparent 36%),
-    radial-gradient(circle at 82% 80%, rgba(59, 130, 246, 0.2), transparent 34%),
+    radial-gradient(circle at 15% 10%, rgba(120, 94, 148, 0.24), transparent 36%),
+    radial-gradient(circle at 82% 80%, rgba(164, 72, 25, 0.18), transparent 34%),
     linear-gradient(145deg, #060d18, #111d32);
   min-height: 100vh;
+}
+
+[data-theme="light"] body.blog-body {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(120, 94, 148, 0.14), transparent 36%),
+    radial-gradient(circle at 82% 80%, rgba(164, 72, 25, 0.1), transparent 34%),
+    var(--page-bg);
 }
 
 .blog-page {

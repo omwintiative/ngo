@@ -5,20 +5,29 @@
     --auth-border: rgba(147, 197, 253, 0.25);
     --auth-text: #e5eef8;
     --auth-muted: #9fb4c8;
-    --auth-primary: #1f8bff;
-    --auth-primary-strong: #0b66cc;
-    --auth-success: #1f9d6a;
+    --auth-primary: var(--color-primary);
+    --auth-primary-strong: var(--color-secondary);
+    --auth-success: var(--color-accent);
     --auth-danger: #f97373;
+}
+
+[data-theme="light"] {
+    --auth-bg-1: #f7f5fa;
+    --auth-bg-2: #efe9f2;
+    --auth-panel: rgba(255, 255, 255, 0.94);
+    --auth-border: rgba(120, 94, 148, 0.25);
+    --auth-text: #1f1730;
+    --auth-muted: rgba(31, 23, 48, 0.65);
 }
 
 body.auth-body {
     min-height: 100vh;
     background:
-        radial-gradient(circle at 18% 14%, rgba(56, 189, 248, 0.2), transparent 33%),
-        radial-gradient(circle at 80% 85%, rgba(59, 130, 246, 0.17), transparent 38%),
+        radial-gradient(circle at 18% 14%, rgba(120, 94, 148, 0.2), transparent 33%),
+        radial-gradient(circle at 80% 85%, rgba(164, 72, 25, 0.17), transparent 38%),
         linear-gradient(150deg, var(--auth-bg-1), var(--auth-bg-2));
     color: var(--auth-text);
-    font-family: "Sora", "Trebuchet MS", sans-serif;
+    font-family: var(--font-base);
 }
 
 .auth-shell {
@@ -168,7 +177,7 @@ body.auth-body {
 }
 
 .auth-submit.register {
-    background: linear-gradient(120deg, var(--auth-success), #16885d);
+    background: linear-gradient(120deg, var(--auth-success), #2f6b3a);
 }
 
 .auth-submit:hover {
