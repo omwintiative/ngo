@@ -1,6 +1,6 @@
-# Charity-Jet--Donation-Website
+# OMWI Donation Website
 
-Young Heart NGO is a donation website with a static frontend and an Express plus MongoDB API. Payments are initialized through Paystack and blog media is stored in Cloudinary.
+The Ọmụgwọ Maternal Welfare Initiative (OMWI) site is a donation website with a static frontend and an Express plus MongoDB API. Payments are initialized through Paystack and blog media is stored in Cloudinary.
 
 ## Recommended Deployment Split
 
@@ -21,7 +21,7 @@ The frontend now reads its API location from `frontend-config.js`.
 - Production defaults to the current site origin
 - For a direct frontend-to-API setup, set `window.__API_ORIGIN__` before `frontend-config.js` loads
 
-The repository also includes `vercel.json` with rewrites for `/api/*` and `/uploads/*`.
+The repository also includes `vercel.json` with rewrites for `/api/*` and `/uploads/*`. The `/uploads/*` rewrite is legacy: blog images are now stored in Cloudinary, and it only remains so older posts with local image paths keep loading.
 
 Before deploying to Vercel:
 

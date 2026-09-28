@@ -1,11 +1,14 @@
 const express = require("express");
 const auth = require("../middleware/auth");
+const adminOnly = require("../middleware/admin");
 
 const router = express.Router();
 
 const requiredVars = ["PAYSTACK_SECRET_KEY", "PAYSTACK_CALLBACK_URL"];
+const PAYSTACK_PAGE_SIZE = 100;
+const PAYSTACK_MAX_PAGES = 50;
 
-router.get("/paystack/transactions", auth, async (req, res) => {
+router.get("/paystack/transactions", auth, adminOnly, async (req, res) => {
   try {
     if (!process.env.PAYSTACK_SECRET_KEY) {
       return res.status(500).json({
@@ -13,23 +16,36 @@ router.get("/paystack/transactions", auth, async (req, res) => {
       });
     }
 
-    const response = await fetch("https://api.paystack.co/transaction", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const allTransactions = [];
+    let page = 1;
+    let pageCount = 1;
 
-    const data = await response.json();
+    do {
+      const response = await fetch(
+        `https://api.paystack.co/transaction?status=success&perPage=${PAYSTACK_PAGE_SIZE}&page=${page}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-    if (!response.ok || !data.status) {
-      return res.status(response.status || 500).json({
-        message: data.message || "Unable to fetch Paystack transactions.",
-      });
-    }
+      const data = await response.json();
 
-    const successfulTransactions = (data.data || [])
+      if (!response.ok || !data.status) {
+        return res.status(response.status || 500).json({
+          message: data.message || "Unable to fetch Paystack transactions.",
+        });
+      }
+
+      allTransactions.push(...(data.data || []));
+      pageCount = Number(data.meta?.pageCount) || 1;
+      page += 1;
+    } while (page <= pageCount && page <= PAYSTACK_MAX_PAGES);
+
+    const successfulTransactions = allTransactions
       .filter((transaction) => transaction.status === "success")
       .map((transaction) => ({
         id: transaction.id,

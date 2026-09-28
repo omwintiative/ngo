@@ -17,7 +17,7 @@ router.get("/dashboard", auth, (req, res) => {
   });
 });
 
-router.get("/manual-payments", auth, async (req, res) => {
+router.get("/manual-payments", auth, adminOnly, async (req, res) => {
   try {
     const contributions = await ManualContribution.find()
       .sort({ transferDate: -1, createdAt: -1 })

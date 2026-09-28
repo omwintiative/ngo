@@ -61,7 +61,7 @@ if (shouldServeStaticFrontend) {
 } else {
   app.get("/", (req, res) => {
     return res.json({
-      name: "young-heart-ngo-api",
+      name: "omwi-ngo-api",
       status: "ok",
     });
   });

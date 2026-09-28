@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OMWI NGO | Blog</title>
-    <script>(function(){try{if(localStorage.getItem('omwi-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,7 +37,7 @@
     <main class="blog-page">
         <section class="blog-hero">
             <div class="blog-header">
-                <p class="eyebrow">Young Heart NGO Journal</p>
+                <p class="eyebrow">OMWI Journal</p>
                 <h1>Stories, Updates, and Field Impact</h1>
                 <p class="hero-subtitle">Everyone can read posts. Only admins can create, edit, and delete blog entries.</p>
             </div>
@@ -138,6 +137,9 @@
         const isAdmin = () => getUser() && getUser().role === "admin";
         const resolveImageUrl = (img) => window.APP_CONFIG.assetUrl(img);
 
+        const escapeHtml = (value) =>
+            String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+
         const setStatus = (message, variant = "info") => {
             blogStatus.textContent = message;
             blogStatus.className = `blog-status ${variant}`;
@@ -170,7 +172,7 @@
                 return;
             }
 
-            detailImageFrame.innerHTML = `<img src="${images[safeIndex]}" alt="${activeBlog.title}">`;
+            detailImageFrame.innerHTML = `<img src="${escapeHtml(images[safeIndex])}" alt="${escapeHtml(activeBlog.title)}">`;
             detailDots.innerHTML = images
                 .map((_, index) => `<button type="button" class="detail-dot ${index === safeIndex ? "active" : ""}" onclick="goToSlide(${index})" aria-label="View image ${index + 1}"></button>`)
                 .join("");
@@ -239,7 +241,7 @@
             blogList.innerHTML = blogs
                 .map((blog) => {
                     const imageMarkup = (blog.images || [])
-                        .map((img) => `<img src="${resolveImageUrl(img)}" alt="${blog.title}">`)
+                        .map((img) => `<img src="${escapeHtml(resolveImageUrl(img))}" alt="${escapeHtml(blog.title)}">`)
                         .join("");
 
                     const adminActions = isAdmin()
@@ -252,8 +254,8 @@
                     return `<article class="blog-card" role="button" tabindex="0" onclick="openBlogPost('${blog._id}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openBlogPost('${blog._id}'); }">
                                 <div class="blog-images">${imageMarkup || "<p>No images</p>"}</div>
                                 <div class="blog-content">
-                                    <h3>${blog.title}</h3>
-                                    <p>${blog.description.length > 160 ? `${blog.description.slice(0, 160)}...` : blog.description}</p>
+                                    <h3>${escapeHtml(blog.title)}</h3>
+                                    <p>${escapeHtml(blog.description.length > 160 ? `${blog.description.slice(0, 160)}...` : blog.description)}</p>
                                     <span class="read-more-hint">Click to read full story</span>
                                     ${adminActions}
                                 </div>

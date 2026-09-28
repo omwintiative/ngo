@@ -1,7 +1,7 @@
 {
-  "name": "young-heart-ngo-server",
+  "name": "omwi-ngo-server",
   "version": "1.0.0",
-  "description": "Express and MongoDB backend for Young Heart NGO",
+  "description": "Express and MongoDB backend for the Omugwo Maternal Welfare Initiative (OMWI)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

@@ -53,8 +53,9 @@
     toast.className = `ui-toast ${type}`;
     toast.innerHTML = `
             <div class="ui-toast-icon">${type === "success" ? "✓" : "!"}</div>
-            <div class="ui-toast-message">${message}</div>
+            <div class="ui-toast-message"></div>
         `;
+    toast.querySelector(".ui-toast-message").textContent = message;
 
     state.toastStack.appendChild(toast);
     window.setTimeout(() => {

@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OMWI NGO | Contributors</title>
-    <script>(function(){try{if(localStorage.getItem('omwi-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -154,6 +153,9 @@
 
         const isAdmin = () => currentUser && currentUser.role === "admin";
 
+        const escapeHtml = (value) =>
+            String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+
         const formatCurrency = (amount) =>
             new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(Number(amount || 0));
 
@@ -192,8 +194,8 @@
                 .map((transaction) => `
                     <tr>
                         <td>
-                            <strong>${transaction.contributorName}</strong><br>
-                            <span>${transaction.contributorEmail}</span>
+                            <strong>${escapeHtml(transaction.contributorName)}</strong><br>
+                            <span>${escapeHtml(transaction.contributorEmail)}</span>
                         </td>
                         <td>${formatCurrency(transaction.amount)}</td>
                         <td>${formatDate(transaction.transferDate)}</td>
@@ -210,8 +212,8 @@
                 .map((entry) => `
                     <tr>
                         <td>
-                            <strong>${entry.contributorName}</strong><br>
-                            <span>${entry.contributorEmail}</span>
+                            <strong>${escapeHtml(entry.contributorName)}</strong><br>
+                            <span>${escapeHtml(entry.contributorEmail)}</span>
                         </td>
                         <td>${formatCurrency(entry.amount)}</td>
                         <td>${formatDate(entry.transferDate)}</td>
@@ -294,12 +296,18 @@
                     return;
                 }
 
-                statusEl.style.display = "none";
-                contentEl.classList.remove("contrib-hidden");
                 currentUser = data.user;
                 setAdminState();
                 welcomeEl.textContent = `Welcome, ${data.user.name} (${data.user.role}).`;
                 AppFeedback.showSuccess("Access granted.");
+
+                if (!isAdmin()) {
+                    statusEl.textContent = "Contribution records are visible to administrators only.";
+                    return;
+                }
+
+                statusEl.style.display = "none";
+                contentEl.classList.remove("contrib-hidden");
                 await loadContributorDashboard();
             } catch (error) {
                 AppFeedback.hideLoading();
