@@ -39,7 +39,9 @@ We are rebuilding the site from a new Figma design.
   - Forms: Input `45:187`, Checkbox `45:212`, Chip `45:201`, Amount chip `45:194`, Category tabs `84:365`; Loader `118:693`
   - Icons: Phosphor, Regular weight
 - Build from `get_design_context` output, adapted to this project. Do not copy absolute positioning. Use the design's SVG assets (logo, icons) as they are; do not redraw them.
-- The Admin page in Figma is an outdated WordPress-style admin. Do not build from it; it will be redesigned.
+- Admin page (`1:5`): the custom admin is the row of sections named `Admin · …` at the top. Screens: Sign in, Forgot password, Check your email, Set a new password, Dashboard, Donations, Donation details, Record a bank transfer, Blog posts, Edit post, Gallery, Messages, Message, Settings (Account settings), Page not found, plus `Admin · Menus and dialogs` (tablet/mobile menus, delete dialogs). Each section's note explains behaviour and API needs.
+- One admin account (no staff roles), password reset by email link, Contributors names shown automatically (the admin can hide one).
+- The WordPress-style screens lower on the Admin page are archived. Do not build from them.
 
 ## Code rules (`web/`)
 
@@ -79,5 +81,5 @@ We are rebuilding the site from a new Figma design.
 4. Header, footer, logo, buttons
 5. API upgrades: store donations, Paystack verify and webhook, public contributors list, blog fields, contact endpoint, gallery, remove public sign-up
 6. Rebuild the 15 public pages
-7. Admin redesign in Figma, then build
+7. Admin: redesigned in Figma (18 Oct 2026); build after the API upgrades
 8. Preview and launch

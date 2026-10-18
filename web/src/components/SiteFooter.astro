@@ -64,18 +64,12 @@ const year = new Date().getFullYear();
 </footer>
 
 <style>
-  /*
-    Figma values with no token yet (listed in the step 4 report):
-    top padding 56 (mobile) and 80 (desktop), content width 1200, brand gap 20,
-    link gap 14, brand text width 360 (desktop), divider white at 14%.
-  */
   .site-footer {
-    --content-max: 1200px;
-
     display: flex;
     flex-direction: column;
     gap: var(--space-32);
-    padding: 56px max(var(--layout-page-padding), calc((100% - var(--content-max)) / 2))
+    padding: var(--layout-footer-padding-top)
+      max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2))
       var(--space-32);
     background: var(--bg-darkest);
     color: var(--text-on-dark);
@@ -96,13 +90,13 @@ const year = new Date().getFullYear();
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 20px;
+    gap: var(--space-20);
   }
 
   .site-footer__column {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: var(--space-14);
   }
 
   .site-footer__heading {
@@ -113,7 +107,7 @@ const year = new Date().getFullYear();
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: var(--space-14);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -129,7 +123,7 @@ const year = new Date().getFullYear();
   /* Not in Figma: an underline so the pointer has a hover cue */
   .site-footer__link:hover {
     text-decoration: underline;
-    text-underline-offset: 4px;
+    text-underline-offset: var(--space-4);
   }
 
   /* Divider line, then copyright and Privacy Policy */
@@ -139,14 +133,13 @@ const year = new Date().getFullYear();
     align-items: flex-start;
     gap: var(--space-8);
     padding-top: var(--space-32);
-    border-top: 1px solid color-mix(in srgb, var(--white) 14%, transparent);
+    border-top: 1px solid var(--border-on-dark-subtle);
   }
 
   /* Tablet: brand on top, three columns side by side */
   @media (min-width: 768px) {
     .site-footer {
       gap: var(--space-48);
-      padding-top: var(--space-64);
     }
     .site-footer__main {
       gap: var(--space-48);
@@ -168,15 +161,12 @@ const year = new Date().getFullYear();
 
   /* Desktop: brand and columns in one row */
   @media (min-width: 1200px) {
-    .site-footer {
-      padding-top: 80px;
-    }
     .site-footer__main {
       flex-direction: row;
       gap: var(--space-64);
     }
     .site-footer__about {
-      width: 360px;
+      width: var(--size-footer-about-width);
     }
     .site-footer__columns {
       flex: 1;

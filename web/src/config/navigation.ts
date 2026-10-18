@@ -2,8 +2,8 @@
   Every link in the site header and footer, in one place.
 
   Labels are copied exactly from the Figma file (Header 37:97, Footer 37:264).
-  Internal paths are PROPOSED: the final URL scheme is not decided yet, so
-  change them here only and every page follows.
+  Internal paths approved by Ifeanyi in step 4 (18 Oct 2026). To change one,
+  change it here only and every page follows.
 
   External links come from the Figma prototype links (read 18 Oct 2026).
 */
@@ -26,7 +26,7 @@ export function isGroup(item: NavItem): item is NavGroup {
   return 'children' in item;
 }
 
-/** Internal pages, named after the Hi-fi design pages. Proposed, not final. */
+/** Internal pages, named after the Hi-fi design pages. */
 export const paths = {
   home: '/',
   about: '/about',

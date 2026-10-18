@@ -109,6 +109,48 @@
   --radius-button: 12px; /* buttons and form fields */
   --radius-card: 8px;
 
+  /* ---------- Component values (NOT Figma variables yet) ----------
+     Read from the Figma components (Header 37:97, Nav dropdown 37:98,
+     Button 2:35, Icon button 36:119, Footer 37:264) on 18 Oct 2026, where
+     they are fixed numbers. Approved as tokens in step 4. To keep this file
+     a mirror of Figma, add them to the Figma variables too. */
+
+  /* Spacing in between the Figma scale steps */
+  --space-2: 2px; /* dropdown item gap */
+  --space-6: 6px; /* nav label to caret */
+  --space-10: 10px; /* button label to arrow; header actions */
+  --space-14: 14px; /* footer link gap; dropdown item side padding */
+  --space-20: 20px; /* footer brand gap; menu sub-link indent */
+  --space-28: 28px; /* menu panel bottom padding */
+
+  --radius-item: 10px; /* items inside a menu (Nav dropdown) */
+
+  --size-button-height: 52px;
+  --size-icon-button: 44px;
+  --size-logo-width: 129px; /* logo lockup, 129 x 48 */
+  --size-logo-width-compact: 105.78px; /* 105.78 x 39.36, tablet/mobile header */
+  --size-dropdown-width: 240px;
+  --size-footer-about-width: 360px; /* footer blurb on desktop */
+
+  --border-width-button: 1.5px; /* Outline and On dark buttons */
+
+  /* On dark surfaces (header glass, footer, dark sections) */
+  --bg-header: color-mix(in srgb, var(--plum-950) 75%, transparent);
+  --blur-header: 12px; /* Figma background blur 24 */
+  --bg-on-dark-hover: color-mix(in srgb, var(--white) 14%, transparent); /* On dark button */
+  --bg-icon-on-dark-hover: color-mix(in srgb, var(--white) 16%, transparent); /* Icon button */
+  --border-on-dark: color-mix(in srgb, var(--white) 70%, transparent); /* On dark button */
+  --border-on-dark-soft: color-mix(in srgb, var(--white) 40%, transparent); /* Icon button */
+  --border-on-dark-subtle: color-mix(in srgb, var(--white) 14%, transparent); /* footer divider */
+
+  /* States */
+  --focus-ring-width: 3px;
+  --focus-ring: color-mix(in srgb, var(--plum-500) 55%, transparent);
+  --focus-ring-on-dark: color-mix(in srgb, var(--white) 90%, transparent);
+  --opacity-disabled: 0.45;
+
+  --shadow-dropdown: 0 16px 40px -8px color-mix(in srgb, var(--plum-950) 16%, transparent);
+
   /* ---------- Typeface (Brand Guidelines) ---------- */
   --font-sans: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system,
     'Segoe UI', Roboto, Arial, sans-serif;
@@ -155,6 +197,12 @@
      one applies when the hero is built. */
   --layout-hero-height: 620px;
   --layout-banner-height: 260px;
+
+  /* Not Figma variables yet (step 4): read from the Header and Footer
+     components and the "Read me" (1200 content area). */
+  --layout-content-width: 1200px;
+  --layout-header-height: 72px;
+  --layout-footer-padding-top: 56px;
 }
 
 /* Tablet mode */
@@ -183,6 +231,7 @@
     --layout-split-gap: 40px;
     --layout-hero-height: 640px;
     --layout-banner-height: 300px;
+    --layout-footer-padding-top: 64px;
   }
 }
 
@@ -205,5 +254,7 @@
     --layout-split-gap: 72px;
     --layout-hero-height: 720px;
     --layout-banner-height: 340px;
+    --layout-header-height: 88px;
+    --layout-footer-padding-top: 80px;
   }
 }
