@@ -237,6 +237,15 @@
   /* Programmes page (93:2438 / 93:2762 / 93:3078) */
   --size-programme-photo-desktop: 420px; /* framed photo height */
   --size-number-badge: 64px; /* "01" tile on the photo */
+
+  /* Gallery page (93:3395) and lightbox (211:7675 / 211:7725) */
+  --size-gallery-photo-height: 128px; /* 248 tablet, 288 desktop */
+  --size-gallery-photo-height-tablet: 248px;
+  --size-gallery-photo-height-desktop: 288px;
+  --size-lightbox-width: 1008px;
+  --size-lightbox-photo-height: 600px; /* 300 on mobile */
+  --size-lightbox-photo-height-mobile: 300px;
+  --bg-backdrop: color-mix(in srgb, var(--plum-950) 80%, transparent); /* behind the lightbox: not in Figma */
   --shadow-principle: 0 8px 24px color-mix(in srgb, var(--plum-950) 8%, transparent);
   --shadow-caption: 0 8px 24px rgb(0 0 0 / 0.1);
   --media-fade-color: rgb(0 0 0 / 0.7); /* bottom fade on the "What guides us" photo */
