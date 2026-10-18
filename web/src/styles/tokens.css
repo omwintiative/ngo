@@ -1,0 +1,209 @@
+/*
+  OMWI design tokens.
+
+  Copied from the Figma file "OMWI Website Redesign" (local variables and text
+  styles, read 18 Oct 2026). The brand colours come from OMWI's Brand
+  Guidelines; the tints, shades and neutrals were derived from them in Figma.
+
+  Keep names in step with Figma: `plum/500` in Figma is `--plum-500` here,
+  `bg/page` is `--bg-page`, `type/h2/size` is `--type-h2-size`.
+  Pages and components use the SEMANTIC tokens (bg-*, text-*, border-*),
+  not the primitives, and never raw hex values.
+*/
+
+:root {
+  /* ---------- Primitives (Figma collection "Primitives") ---------- */
+  --plum-950: #1f1730;
+  --plum-900: #2b1d3d;
+  --plum-700: #634b7e;
+  --plum-500: #785e94; /* brand purple */
+  --plum-400: #8e76aa;
+  --plum-300: #cdb9e6;
+  --plum-200: #d9c8ec;
+  --plum-100: #f5f0fa;
+  --plum-50: #f3eef8;
+
+  --rust-900: #3a2318;
+  --rust-700: #8a3b13;
+  --rust-600: #a44819; /* brand rust */
+  --rust-300: #f0a77c;
+  --rust-200: #f3c9a8;
+  --rust-100: #f8e6da;
+
+  --green-600: #2f7a3b;
+  --green-500: #408c4c; /* brand green */
+  --green-300: #86d092;
+  --green-100: #edf7ef;
+
+  --red-600: #b3261e;
+  --red-100: #fbeae8;
+
+  --neutral-900: #1f1730;
+  --neutral-600: #5e5670;
+  --neutral-400: #8e86a0;
+  --neutral-300: #b8adc7;
+  --neutral-200: #e4deea;
+  --neutral-100: #f5f1f9;
+  --neutral-50: #fbf8f5;
+
+  --white: #ffffff;
+
+  /* ---------- Semantic colours (Figma collection "Semantic", mode Light) ---------- */
+  --bg-page: var(--neutral-50);
+  --bg-surface: var(--white);
+  --bg-soft: var(--plum-100);
+  --bg-tint: var(--plum-50);
+  --bg-dark: var(--plum-900);
+  --bg-darkest: var(--plum-950);
+  --bg-primary: var(--plum-500);
+  --bg-primary-hover: var(--plum-700);
+  --bg-accent: var(--rust-600);
+  --bg-accent-hover: var(--rust-700);
+  --bg-accent-soft: var(--rust-100);
+  --bg-secondary: var(--green-600);
+  --bg-brand-green: var(--green-500);
+  --bg-glass: var(--white);
+  --bg-field: var(--white);
+  --bg-success-soft: var(--green-100);
+  --bg-error-soft: var(--red-100);
+
+  --text-default: var(--neutral-900);
+  --text-muted: var(--neutral-600);
+  --text-on-dark: var(--white);
+  --text-primary: var(--plum-700);
+  --text-accent: var(--rust-600);
+  --text-secondary: var(--green-600);
+  --text-highlight: var(--rust-200);
+  --text-error: var(--red-600);
+
+  --border-default: var(--neutral-200);
+  --border-primary: var(--plum-700);
+  --border-field: var(--neutral-400);
+  --border-error: var(--red-600);
+
+  --logo-primary: var(--plum-500);
+  --logo-mother: var(--rust-600);
+  --logo-baby: var(--green-500);
+
+  /* Icon tone (Figma collection "Icon tone"): default / inverse / accent */
+  --icon-color: var(--text-primary);
+  --icon-color-inverse: var(--text-on-dark);
+  --icon-color-accent: var(--text-accent);
+
+  /* ---------- Spacing & radius (Figma collection "Spacing & Radius") ---------- */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --space-64: 64px;
+  --space-96: 96px;
+  --space-120: 120px;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+  --radius-button: 12px; /* buttons and form fields */
+  --radius-card: 8px;
+
+  /* ---------- Typeface (Brand Guidelines) ---------- */
+  --font-sans: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system,
+    'Segoe UI', Roboto, Arial, sans-serif;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------- Responsive values (Figma collection "Breakpoint") ----------
+     Figma has three modes, drawn at these frame widths:
+       Mobile 390px · Tablet 768px · Desktop 1440px.
+     Mobile values are the default here; the media queries below switch to
+     Tablet and Desktop. The switch points (768px, 1200px) are a code
+     decision: Figma only defines the three frame widths. */
+
+  --type-display-size: 34px;
+  --type-display-line: 42px;
+  --type-h1-size: 30px;
+  --type-h1-line: 38px;
+  --type-h2-size: 26px;
+  --type-h2-line: 34px;
+  --type-h3-size: 22px;
+  --type-h3-line: 30px;
+  --type-h4-size: 18px;
+  --type-h4-line: 26px;
+  --type-body-large-size: 16px;
+  --type-body-large-line: 26px;
+  --type-body-default-size: 16px;
+  --type-body-default-line: 26px;
+  --type-body-small-size: 14px;
+  --type-body-small-line: 22px;
+  --type-label-eyebrow-size: 12px;
+  --type-label-eyebrow-line: 18px;
+  --type-label-button-size: 15px;
+  --type-label-button-line: 20px;
+  --type-stat-size: 40px;
+  --type-stat-line: 46px;
+
+  --layout-page-padding: 20px;
+  --layout-section-padding: 64px;
+  --layout-gap: 16px;
+  --layout-split-gap: 32px;
+  /* Note: the Hero slider component in Figma is a fixed 816px (desktop) and
+     722px (mobile) tall, which differs from layout/hero-height. Confirm which
+     one applies when the hero is built. */
+  --layout-hero-height: 620px;
+  --layout-banner-height: 260px;
+}
+
+/* Tablet mode */
+@media (min-width: 768px) {
+  :root {
+    --type-display-size: 44px;
+    --type-display-line: 54px;
+    --type-h1-size: 38px;
+    --type-h1-line: 46px;
+    --type-h2-size: 30px;
+    --type-h2-line: 40px;
+    --type-h3-size: 24px;
+    --type-h3-line: 32px;
+    --type-h4-size: 20px;
+    --type-h4-line: 28px;
+    --type-body-large-size: 18px;
+    --type-body-large-line: 30px;
+    --type-label-eyebrow-size: 13px;
+    --type-label-eyebrow-line: 20px;
+    --type-stat-size: 44px;
+    --type-stat-line: 50px;
+
+    --layout-page-padding: 40px;
+    --layout-section-padding: 80px;
+    --layout-gap: 24px;
+    --layout-split-gap: 40px;
+    --layout-hero-height: 640px;
+    --layout-banner-height: 300px;
+  }
+}
+
+/* Desktop mode */
+@media (min-width: 1200px) {
+  :root {
+    --type-display-size: 56px;
+    --type-display-line: 66px;
+    --type-h1-size: 44px;
+    --type-h1-line: 54px;
+    --type-h2-size: 36px;
+    --type-h2-line: 46px;
+    --type-h3-size: 26px;
+    --type-h3-line: 34px;
+    --type-stat-size: 52px;
+    --type-stat-line: 58px;
+
+    --layout-page-padding: 120px;
+    --layout-section-padding: 120px;
+    --layout-split-gap: 72px;
+    --layout-hero-height: 720px;
+    --layout-banner-height: 340px;
+  }
+}

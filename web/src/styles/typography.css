@@ -1,0 +1,98 @@
+/*
+  Text styles, one class per Figma text style (read 18 Oct 2026).
+  Sizes and line heights come from tokens.css, so they switch between the
+  Mobile, Tablet and Desktop values automatically.
+
+  Headings get a sensible default below, but the visual style and the HTML
+  level are separate: use <h2 class="t-display"> when the design needs it.
+*/
+
+/* Display: Montserrat Bold, letter spacing -1 */
+.t-display {
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: -1px;
+}
+
+/* H1: Montserrat Bold, letter spacing -0.5 */
+.t-h1,
+h1 {
+  font-size: var(--type-h1-size);
+  line-height: var(--type-h1-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.5px;
+}
+
+/* H2: Montserrat Bold, letter spacing -0.5 */
+.t-h2,
+h2 {
+  font-size: var(--type-h2-size);
+  line-height: var(--type-h2-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.5px;
+}
+
+/* H3: Montserrat Bold */
+.t-h3,
+h3 {
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0;
+}
+
+/* H4: Montserrat SemiBold */
+.t-h4,
+h4 {
+  font-size: var(--type-h4-size);
+  line-height: var(--type-h4-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0;
+}
+
+/* Body/Large */
+.t-body-large {
+  font-size: var(--type-body-large-size);
+  line-height: var(--type-body-large-line);
+  font-weight: var(--weight-regular);
+}
+
+/* Body/Default (also the body default in global.css) */
+.t-body {
+  font-size: var(--type-body-default-size);
+  line-height: var(--type-body-default-line);
+  font-weight: var(--weight-regular);
+}
+
+/* Body/Small */
+.t-body-small {
+  font-size: var(--type-body-small-size);
+  line-height: var(--type-body-small-line);
+  font-weight: var(--weight-regular);
+}
+
+/* Label/Eyebrow: SemiBold, uppercase, letter spacing 1.2 */
+.t-eyebrow {
+  font-size: var(--type-label-eyebrow-size);
+  line-height: var(--type-label-eyebrow-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* Label/Button: SemiBold */
+.t-button {
+  font-size: var(--type-label-button-size);
+  line-height: var(--type-label-button-line);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0;
+}
+
+/* Stat: Bold, letter spacing -1 */
+.t-stat {
+  font-size: var(--type-stat-size);
+  line-height: var(--type-stat-line);
+  font-weight: var(--weight-bold);
+  letter-spacing: -1px;
+}

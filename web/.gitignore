@@ -1,0 +1,14 @@
+# Installed packages and build output: never commit these
+node_modules/
+dist/
+.astro/
+
+# Local settings and secrets
+.env
+.env.*
+!.env.example
+.vercel
+
+# OS files
+.DS_Store
+Thumbs.db
