@@ -1,0 +1,19 @@
+---
+/*
+  Gallery, from Figma Gallery (Desktop 93:3395, Tablet 93:3592,
+  Mobile 93:3782). Photos: src/data/gallery.ts.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import GalleryGrid from '../components/gallery/GalleryGrid.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+---
+
+<BaseLayout
+  title="Gallery"
+  description="Photos of mothers, babies and volunteers at OMWI outreaches."
+>
+  <PageBanner title="Gallery" crumbs={[{ label: 'Gallery' }]} />
+  <GalleryGrid />
+  <DonationCallout />
+</BaseLayout>

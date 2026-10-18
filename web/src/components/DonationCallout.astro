@@ -1,0 +1,118 @@
+---
+/*
+  Donation call-out, from Figma Donation call-out (37:313). Used near the
+  bottom of most pages. Photo and text side by side on tablet and desktop,
+  stacked on mobile (buttons full width).
+
+  The photo is marked "AI placeholder" in Figma: replace it when OMWI
+  supplies a real one.
+*/
+import { Image } from 'astro:assets';
+import Eyebrow from './Eyebrow.astro';
+import Button from './Button.astro';
+import { paths } from '../config/navigation';
+import photo from '../assets/photos/ai-placeholder-mother-newborn.jpg';
+---
+
+<section class="callout" aria-labelledby="callout-title" data-reveal>
+  <div class="callout__photo">
+    <Image
+      src={photo}
+      alt="A mother holding her sleeping newborn by a window"
+      widths={[400, 700, 1100]}
+      sizes="(min-width: 1200px) 564px, (min-width: 768px) 300px, 100vw"
+    />
+    <span class="callout__fade" aria-hidden="true"></span>
+  </div>
+  <div class="callout__text">
+    <Eyebrow tone="on-dark">Support Our Mission</Eyebrow>
+    <h2 class="t-h2" id="callout-title">
+      Help us make the journey to motherhood safe for all women and eradicate period poverty.
+    </h2>
+    <div class="callout__buttons">
+      <Button href={paths.donate} arrow>Donate Now</Button>
+      <Button href={paths.volunteer} variant="on-dark" arrow>Volunteer With Us</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .callout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-28);
+    padding: var(--space-56) var(--layout-page-padding);
+    background: var(--bg-dark);
+    color: var(--text-on-dark);
+  }
+  .callout :global(.btn) {
+    --btn-ring: var(--focus-ring-on-dark);
+  }
+  .callout :focus-visible {
+    outline-color: var(--text-on-dark);
+  }
+
+  .callout__photo {
+    position: relative;
+    flex: none;
+    height: var(--size-callout-photo-mobile);
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+  .callout__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .callout__fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(270deg, var(--callout-fade-color) 0%, transparent 70%);
+  }
+
+  .callout__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+  .callout__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    width: 100%;
+    padding-top: var(--space-8);
+  }
+
+  @media (min-width: 768px) {
+    .callout {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-32);
+      padding-block: var(--space-64);
+    }
+    .callout__photo {
+      width: var(--size-callout-photo-tablet);
+      height: var(--size-callout-photo-tablet);
+    }
+    .callout__text {
+      flex: 1;
+      min-width: 0;
+    }
+    .callout__buttons {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .callout {
+      gap: var(--layout-split-gap);
+      padding: var(--space-96) max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2));
+    }
+    .callout__photo {
+      width: var(--size-callout-photo-width);
+      height: var(--size-callout-photo-height);
+    }
+  }
+</style>

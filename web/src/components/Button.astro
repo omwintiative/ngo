@@ -60,23 +60,15 @@ const arrowIcon = variant === 'outline' ? arrowPlum : arrowWhite;
 }
 
 <style>
-  /*
-    Figma values with no token yet (listed in the step 4 report):
-    button height 52, label-to-arrow gap 10, outline width 1.5,
-    focus ring 3px of plum/500 at 55% (white at 90% on dark),
-    disabled opacity 45%, On dark border white 70% and hover fill white 14%.
-  */
   .btn {
-    --btn-height: 52px;
-    --btn-gap: 10px;
-    --btn-stroke: 1.5px;
-    --btn-ring: color-mix(in srgb, var(--plum-500) 55%, transparent);
+    /* Ring colour; a parent on a dark surface can set it to --focus-ring-on-dark */
+    --btn-ring: var(--focus-ring);
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: var(--btn-gap);
-    min-height: var(--btn-height);
+    gap: var(--space-10);
+    min-height: var(--size-button-height);
     padding: 0 var(--space-24);
     border: 0;
     border-radius: var(--radius-button);
@@ -97,7 +89,7 @@ const arrowIcon = variant === 'outline' ? arrowPlum : arrowWhite;
   /* Focus: Figma draws a 3px ring around the button, no outline */
   .btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px var(--btn-ring);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--btn-ring);
   }
 
   .btn--primary {
@@ -115,7 +107,7 @@ const arrowIcon = variant === 'outline' ? arrowPlum : arrowWhite;
   }
 
   .btn--outline {
-    border: var(--btn-stroke) solid var(--border-primary);
+    border: var(--border-width-button) solid var(--border-primary);
     color: var(--text-primary);
   }
   .btn--outline:hover {
@@ -123,17 +115,17 @@ const arrowIcon = variant === 'outline' ? arrowPlum : arrowWhite;
   }
 
   .btn--on-dark {
-    --btn-ring: color-mix(in srgb, var(--white) 90%, transparent);
-    border: var(--btn-stroke) solid color-mix(in srgb, var(--white) 70%, transparent);
+    --btn-ring: var(--focus-ring-on-dark);
+    border: var(--border-width-button) solid var(--border-on-dark);
   }
   .btn--on-dark:hover {
-    background: color-mix(in srgb, var(--white) 14%, transparent);
+    background: var(--bg-on-dark-hover);
   }
 
   /* Disabled: the Default look at 45% opacity, no hover */
   .btn:disabled,
   .btn[aria-disabled='true'] {
-    opacity: 0.45;
+    opacity: var(--opacity-disabled);
     cursor: not-allowed;
   }
   .btn--primary:disabled,

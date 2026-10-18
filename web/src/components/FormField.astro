@@ -1,0 +1,93 @@
+---
+/*
+  Form field, from Figma Input (45:187): label, field (Text or Textarea)
+  and an error line (Type=Error: red 2px border, red message). The error
+  shows when the form script sets `aria-invalid="true"` on the field and
+  fills the error line.
+*/
+interface Props {
+  name: string;
+  label: string;
+  type?: 'text' | 'email' | 'tel' | 'textarea';
+  placeholder?: string;
+  autocomplete?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const { name, label, type = 'text', placeholder, autocomplete, required = false, class: className } = Astro.props;
+const id = `field-${name}`;
+---
+
+<div class:list={['field', className]}>
+  <label class="t-button field__label" for={id}>{label}</label>
+  {
+    type === 'textarea' ? (
+      <textarea
+        class="t-body field__control field__control--area"
+        id={id}
+        name={name}
+        placeholder={placeholder}
+        aria-describedby={`${id}-error`}
+        aria-required={required ? 'true' : undefined}
+      />
+    ) : (
+      <input
+        class="t-body field__control"
+        id={id}
+        name={name}
+        type={type}
+        placeholder={placeholder}
+        autocomplete={autocomplete}
+        aria-describedby={`${id}-error`}
+        aria-required={required ? 'true' : undefined}
+      />
+    )
+  }
+  <p class="t-body-small field__error" id={`${id}-error`} data-error-for={name}></p>
+</div>
+
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+  .field__label {
+    color: var(--text-default);
+  }
+  .field__control {
+    width: 100%;
+    height: var(--size-button-height);
+    padding: 0 var(--space-16);
+    border: 1px solid var(--border-field);
+    border-radius: var(--radius-button);
+    background: var(--bg-field);
+    color: var(--text-default);
+  }
+  .field__control--area {
+    height: var(--size-textarea-height);
+    padding: var(--space-14) var(--space-16);
+    resize: vertical;
+  }
+  .field__control::placeholder {
+    color: var(--text-muted);
+  }
+  /* Not in Figma: focus uses the plum border and ring of the buttons */
+  .field__control:focus-visible {
+    outline: none;
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .field__control[aria-invalid='true'] {
+    border: var(--border-width-error) solid var(--border-error);
+    padding-inline: calc(var(--space-16) - 1px);
+  }
+  .field__error {
+    color: var(--text-error);
+  }
+  .field__error:empty {
+    display: none;
+  }
+</style>

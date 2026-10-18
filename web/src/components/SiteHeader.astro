@@ -143,17 +143,9 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
 </dialog>
 
 <style is:global>
-  /* Header height, so pages can leave room for it (and anchors land below it) */
-  :root {
-    --site-header-height: 72px;
-  }
-  @media (min-width: 1200px) {
-    :root {
-      --site-header-height: 88px;
-    }
-  }
+  /* In-page links land below the fixed header */
   html {
-    scroll-padding-top: var(--site-header-height);
+    scroll-padding-top: var(--layout-header-height);
   }
   /* The page must not scroll behind the open menu */
   html.menu-open {
@@ -162,24 +154,13 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
 </style>
 
 <style>
-  /*
-    Figma values with no token yet (listed in the step 4 report):
-    header heights 72 / 88, glass = plum/950 at 75% with blur 24 in Figma
-    (12px in CSS), content width 1200, small logo 105.78 x 39.36,
-    icon button 44 with 22 icon, white borders at 40% / hover 16%,
-    gaps 6 (caret) and 10 (actions), dropdown 240 wide with 2 gap,
-    14 item padding, 10 item radius and its shadow,
-    menu panel 28 bottom padding and 20 sub-link indent.
-  */
   .site-header {
-    --content-max: 1200px;
-
     position: fixed;
     inset: 0 0 auto;
     z-index: 100;
-    background: color-mix(in srgb, var(--bg-darkest) 75%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: var(--bg-header);
+    -webkit-backdrop-filter: blur(var(--blur-header));
+    backdrop-filter: blur(var(--blur-header));
     color: var(--text-on-dark);
   }
 
@@ -193,8 +174,8 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
     align-items: center;
     justify-content: space-between;
     gap: var(--space-16);
-    height: var(--site-header-height);
-    padding-inline: max(var(--layout-page-padding), calc((100% - var(--content-max)) / 2));
+    height: var(--layout-header-height);
+    padding-inline: max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2));
   }
 
   .site-header__logo {
@@ -204,13 +185,13 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
 
   /* Logo: 105.78 x 39.36 on tablet and mobile, 129 x 48 on desktop */
   .site-header__logo-img {
-    width: 105.78px;
+    width: var(--size-logo-width-compact);
   }
 
   .site-header__actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-10);
   }
 
   /* ----- Desktop links ----- */
@@ -235,7 +216,7 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
   .desktop-nav__link {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-6);
     padding: var(--space-12) 0;
     border: 0;
     background: none;
@@ -248,7 +229,7 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
   /* Not in Figma: an underline so the pointer has a hover cue */
   .desktop-nav__link:hover {
     text-decoration: underline;
-    text-underline-offset: 6px;
+    text-underline-offset: var(--space-6);
   }
 
   .caret {
@@ -269,15 +250,15 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
     top: calc(100% + var(--space-12));
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    width: 240px;
+    gap: var(--space-2);
+    width: var(--size-dropdown-width);
     margin: 0;
     padding: var(--space-8);
     list-style: none;
     background: var(--bg-surface);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-card);
-    box-shadow: 0 16px 40px -8px color-mix(in srgb, var(--plum-950) 16%, transparent);
+    box-shadow: var(--shadow-dropdown);
   }
   .dropdown[hidden] {
     display: none;
@@ -289,8 +270,8 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
 
   .dropdown__link {
     display: block;
-    padding: var(--space-12) 14px;
-    border-radius: 10px;
+    padding: var(--space-12) var(--space-14);
+    border-radius: var(--radius-item);
     color: var(--text-default);
     text-decoration: none;
   }
@@ -307,7 +288,7 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
 
   /* On the dark glass the focus ring is white, as on the On dark button */
   .donate {
-    --btn-ring: color-mix(in srgb, var(--white) 90%, transparent);
+    --btn-ring: var(--focus-ring-on-dark);
   }
 
   .icon-button {
@@ -315,8 +296,8 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
     flex: none;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: var(--size-icon-button);
+    height: var(--size-icon-button);
     padding: 0;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-button);
@@ -328,16 +309,16 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
   }
 
   .icon-button--on-dark {
-    border-color: color-mix(in srgb, var(--white) 40%, transparent);
+    border-color: var(--border-on-dark-soft);
     background: transparent;
   }
   .icon-button--on-dark:hover {
-    background: color-mix(in srgb, var(--white) 16%, transparent);
+    background: var(--bg-icon-on-dark-hover);
   }
 
   @media (min-width: 1200px) {
     .site-header__logo-img {
-      width: 129px;
+      width: var(--size-logo-width);
     }
     .desktop-nav {
       display: block;
@@ -367,7 +348,7 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
     height: 100%;
     max-height: none;
     margin: 0;
-    padding: 0 var(--layout-page-padding) 28px;
+    padding: 0 var(--layout-page-padding) var(--space-28);
     border: 0;
     background: var(--bg-surface);
     color: var(--text-default);
@@ -391,7 +372,8 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 72px;
+    /* the panel only shows below 1200px, where the header is 72 tall */
+    height: var(--layout-header-height);
   }
 
   .menu-panel__logo {
@@ -436,7 +418,7 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
 
   .menu-links__sublink {
     display: block;
-    padding: var(--space-12) 0 var(--space-12) 20px;
+    padding: var(--space-12) 0 var(--space-12) var(--space-20);
     color: var(--text-muted);
     text-decoration: none;
   }
@@ -445,7 +427,7 @@ const homeAlt = 'Ọmụgwọ Maternal Welfare Initiative, home';
   .menu-links__row:hover,
   .menu-links__sublink:hover {
     text-decoration: underline;
-    text-underline-offset: 6px;
+    text-underline-offset: var(--space-6);
   }
 
   .menu-panel__donate {

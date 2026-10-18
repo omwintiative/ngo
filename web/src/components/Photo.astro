@@ -1,0 +1,143 @@
+---
+/*
+  Photo slot, from Figma Photo (44:124): the picture with a soft-light brand
+  Tint, an optional dark Fade from one side, and a hover state (the picture
+  zooms to 110%, a plum Wash covers it and a round arrow appears).
+
+  The photo fills its box: size the box with the `class` you pass in.
+  Hover also triggers when a parent marked `data-hover-card` is hovered
+  (cards), so the whole card reacts.
+*/
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import arrow from '../assets/icons/arrow-up-right-plum-16.svg';
+
+interface Props {
+  src: ImageMetadata;
+  /** Describe the picture. Use "" only when it is purely decorative. */
+  alt: string;
+  fade?: 'left' | 'top' | 'bottom' | 'none';
+  /** Show the hover wash and arrow (Figma hover state). */
+  hover?: boolean;
+  widths?: number[];
+  sizes?: string;
+  priority?: boolean;
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const {
+  src,
+  alt,
+  fade = 'none',
+  hover = true,
+  widths = [400, 800, 1200],
+  sizes = '(min-width: 1200px) 600px, 100vw',
+  priority = false,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<div class:list={['photo', hover && 'photo--hover', className]} {...rest}>
+  <Image class="photo__img" src={src} alt={alt} widths={widths} sizes={sizes} priority={priority} />
+  <span class="photo__tint" aria-hidden="true"></span>
+  {fade !== 'none' && <span class:list={['photo__fade', `photo__fade--${fade}`]} aria-hidden="true" />}
+  {
+    hover && (
+      <>
+        <span class="photo__wash" aria-hidden="true" />
+        <span class="photo__icon" aria-hidden="true">
+          <img src={arrow.src} width={arrow.width} height={arrow.height} alt="" />
+        </span>
+      </>
+    )
+  }
+</div>
+
+<style>
+  .photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--plum-400);
+  }
+
+  .photo__img,
+  .photo__tint,
+  .photo__fade,
+  .photo__wash {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .photo__img {
+    object-fit: cover;
+    transition: transform 400ms ease;
+  }
+
+  .photo__tint {
+    background: var(--photo-tint);
+    mix-blend-mode: soft-light;
+  }
+
+  .photo__fade--left {
+    background: linear-gradient(90deg, var(--photo-fade-color) 0%, transparent 72%);
+  }
+  .photo__fade--top {
+    background: linear-gradient(180deg, var(--photo-fade-color) 0%, transparent 72%);
+  }
+  .photo__fade--bottom {
+    background: linear-gradient(0deg, var(--photo-fade-color) 0%, transparent 72%);
+  }
+
+  /* Hover: the wash grows down from the top edge, the arrow grows in */
+  .photo__wash {
+    background: var(--photo-wash);
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition:
+      transform 300ms ease,
+      opacity 300ms ease;
+  }
+
+  .photo__icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-photo-hover-icon);
+    height: var(--size-photo-hover-icon);
+    border-radius: var(--radius-photo-hover-icon);
+    background: var(--bg-surface);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.57);
+    transition:
+      transform 300ms ease,
+      opacity 300ms ease;
+  }
+  .photo__icon img {
+    width: var(--space-24);
+    height: var(--space-24);
+  }
+
+  .photo--hover:hover .photo__img,
+  :global([data-hover-card]:hover) .photo--hover .photo__img {
+    transform: scale(1.1);
+  }
+  .photo--hover:hover .photo__wash,
+  :global([data-hover-card]:hover) .photo--hover .photo__wash {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  .photo--hover:hover .photo__icon,
+  :global([data-hover-card]:hover) .photo--hover .photo__icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+</style>

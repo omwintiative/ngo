@@ -1,279 +1,60 @@
 ---
 /*
-  TEMPORARY setup check. Shows the design tokens copied from Figma so they can
-  be compared with the Figma Foundations page. Replaced by the real Home page
-  when the pages are built. (The hex values below are only for the contrast
-  numbers on this page; real pages use the CSS variables.)
+  Home, from Figma Home (Desktop 91:6522, Tablet 91:7024, Mobile 91:7517).
+  The header sits over the hero, so the page needs no top padding.
 */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Button from '../components/Button.astro';
+import HeroSlider from '../components/home/HeroSlider.astro';
+import WhoWeAre from '../components/home/WhoWeAre.astro';
+import WhatWeDo from '../components/home/WhatWeDo.astro';
+import OurMission from '../components/home/OurMission.astro';
+import FromTheField from '../components/home/FromTheField.astro';
+import OurTeam from '../components/OurTeam.astro';
+import Faq from '../components/Faq.astro';
+import LatestPosts from '../components/home/LatestPosts.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+import { paths } from '../config/navigation';
 
-// WCAG 2.x contrast ratio between two hex colours.
-function luminance(hex: string): number {
-  const channels = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
-  const [r, g, b] = channels.map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-function contrast(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
-function verdict(ratio: number): string {
-  if (ratio >= 4.5) return 'all text';
-  if (ratio >= 3) return '19px+ only';
-  return 'decorative only';
-}
-
-const WHITE = '#FFFFFF';
-const PAGE = '#FBF8F5';
-const brand = [
-  { name: 'plum/500', hex: '#785E94', role: 'Primary' },
-  { name: 'rust/600', hex: '#A44819', role: 'Accent' },
-  { name: 'green/500', hex: '#408C4C', role: 'Support' },
-];
-const derived = [
-  'plum/950 #1F1730', 'plum/900 #2B1D3D', 'plum/700 #634B7E', 'plum/400 #8E76AA', 'plum/300 #CDB9E6',
-  'plum/200 #D9C8EC', 'plum/100 #F5F0FA', 'plum/50 #F3EEF8', 'rust/900 #3A2318', 'rust/700 #8A3B13',
-  'rust/300 #F0A77C', 'rust/200 #F3C9A8', 'rust/100 #F8E6DA', 'green/600 #2F7A3B', 'green/300 #86D092',
-  'green/100 #EDF7EF', 'red/600 #B3261E', 'red/100 #FBEAE8', 'neutral/900 #1F1730', 'neutral/600 #5E5670',
-  'neutral/400 #8E86A0', 'neutral/300 #B8ADC7', 'neutral/200 #E4DEEA', 'neutral/100 #F5F1F9',
-  'neutral/50 #FBF8F5', 'white #FFFFFF',
-].map((s) => {
-  const [name, hex] = s.split(' ');
-  return { name, hex, cssVar: `--${name.replace('/', '-')}` };
-});
-const textPairs = [
-  { label: 'text/default on bg/page', fg: '#1F1730', bg: PAGE },
-  { label: 'text/muted on bg/page', fg: '#5E5670', bg: PAGE },
-  { label: 'text/primary on bg/page', fg: '#634B7E', bg: PAGE },
-  { label: 'text/accent on bg/page', fg: '#A44819', bg: PAGE },
-  { label: 'text/secondary on bg/page', fg: '#2F7A3B', bg: PAGE },
-  { label: 'text/on-dark on bg/dark', fg: WHITE, bg: '#2B1D3D' },
-  { label: 'text/highlight on bg/dark', fg: '#F3C9A8', bg: '#2B1D3D' },
-  { label: 'white on bg/brand-green', fg: WHITE, bg: '#408C4C' },
-].map((p) => ({ ...p, ratio: contrast(p.fg, p.bg) }));
-const styles = [
-  ['t-display', 'Display'], ['t-h1', 'H1'], ['t-h2', 'H2'], ['t-h3', 'H3'], ['t-h4', 'H4'],
-  ['t-body-large', 'Body/Large'], ['t-body', 'Body/Default'], ['t-body-small', 'Body/Small'],
-  ['t-eyebrow', 'Label/Eyebrow'], ['t-button', 'Label/Button'], ['t-stat', 'Stat'],
+// Home FAQ, exactly as in Figma (91:6838).
+const faqs = [
+  {
+    q: 'What is OMWI?',
+    a: 'The Ọmụgwọ Maternal Welfare Initiative exists to ensure that women, regardless of their socio-economic status and geographical location, have access to the reproductive healthcare and literacy that they need and deserve.',
+  },
+  {
+    q: 'What does “ọmụgwọ” mean?',
+    a: 'Ọmụgwọ is a traditional practice of the Igbo people in which a new mother is cared for in the early weeks after birth by her own mother or another woman in her family. That spirit of care is at the heart of our mission.',
+  },
+  {
+    q: 'What programmes does OMWI run?',
+    a: 'We facilitate programmes that promote maternal health literacy, newborn care, menstrual health literacy and access to period products, mental health and wellness, and access to primary reproductive healthcare through local care providers.',
+  },
+  {
+    q: 'How can I volunteer?',
+    a: 'Fill in the volunteer application form on our Join the Movement page. We offer a variety of volunteer roles.',
+  },
+  {
+    q: 'How do I donate?',
+    a: 'Go to the Donate page, choose an amount and pay securely online. Any donation, no matter how big or small, is deeply appreciated.',
+  },
 ];
 ---
 
 <BaseLayout
-  title="Setup check"
-  description="Temporary page that checks the OMWI site project and its design tokens."
-  noindex
+  title="Ọmụgwọ Maternal Welfare Initiative"
+  description="OMWI promotes health equity and reproductive health dignity by expanding access to reproductive healthcare and education, wellness resources, and compassionate support."
 >
-  <div class="wrap">
-    <p class="t-eyebrow eyebrow">OMWI website · build step 3</p>
-    <h1 class="t-display">Setup check</h1>
-    <p class="t-body-large lead">
-      Tokens copied from the Figma file. Compare this page with the Foundations page in Figma.
-      Resize the window: type sizes switch between the Mobile, Tablet and Desktop values. This
-      page is temporary.
-    </p>
-
-    <section>
-      <h2>Brand colours</h2>
-      <ul class="grid">
-        {
-          brand.map((c) => (
-            <li class="swatch">
-              <span class="chip" style={`background: var(--${c.name.replace('/', '-')})`} />
-              <strong>{c.name}</strong> · {c.role}
-              <br />
-              <code>{c.hex}</code> · white text {contrast(WHITE, c.hex).toFixed(2)}:1 ({verdict(contrast(WHITE, c.hex))})
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section>
-      <h2>Tints, shades and neutrals</h2>
-      <ul class="grid grid-small">
-        {
-          derived.map((c) => (
-            <li class="swatch">
-              <span class="chip" style={`background: var(${c.cssVar})`} />
-              <strong>{c.name}</strong>
-              <br />
-              <code>{c.hex}</code>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section>
-      <h2>Text contrast (rule: under 19px ≥ 4.5:1, 19px+ ≥ 3:1)</h2>
-      <ul class="pairs">
-        {
-          textPairs.map((p) => (
-            <li style={`color: ${p.fg}; background: ${p.bg}`}>
-              <span>{p.label}</span>
-              <span>
-                {p.ratio.toFixed(2)}:1 · {verdict(p.ratio)}
-              </span>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section>
-      <h2>Text styles</h2>
-      <ul class="styles">
-        {
-          styles.map(([cls, name]) => (
-            <li>
-              <span class="t-body-small style-name">{name}</span>
-              <span class={cls}>Ọmụgwọ Maternal Welfare</span>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section>
-      <h2>Buttons (step 4)</h2>
-      <p class="t-body-small lead">
-        Hover and tab to see the hover and focus states. The last of each row is disabled.
-      </p>
-      <div class="buttons">
-        <Button arrow>Donate Now</Button>
-        <Button href="#main" arrow>Link button</Button>
-        <Button arrow disabled>Donate Now</Button>
-      </div>
-      <div class="buttons">
-        <Button variant="secondary" arrow>Donate Now</Button>
-        <Button variant="secondary" arrow disabled>Donate Now</Button>
-      </div>
-      <div class="buttons">
-        <Button variant="outline" arrow>Donate Now</Button>
-        <Button variant="outline" arrow disabled>Donate Now</Button>
-      </div>
-      <div class="buttons buttons--dark">
-        <Button variant="on-dark" arrow>Donate Now</Button>
-        <Button variant="on-dark" arrow disabled>Donate Now</Button>
-      </div>
-    </section>
-
-    <section>
-      <h2>Corners</h2>
-      <div class="corners">
-        <div class="card-sample">Card · radius/card 8px</div>
-        <button type="button" class="t-button button-sample">Button · radius/button 12px</button>
-      </div>
-    </section>
-  </div>
+  <HeroSlider />
+  <WhoWeAre />
+  <WhatWeDo />
+  <OurMission />
+  <FromTheField />
+  <OurTeam />
+  <Faq
+    lead="Quick answers about who we are, what we do and how you can take part."
+    items={faqs}
+    link={{ label: 'Contact us', href: paths.contact }}
+  />
+  <LatestPosts />
+  <DonationCallout />
 </BaseLayout>
-
-<style>
-  .wrap {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: calc(var(--site-header-height) + var(--space-64)) var(--layout-page-padding) var(--space-64);
-    display: grid;
-    gap: var(--space-48);
-  }
-  section {
-    display: grid;
-    gap: var(--space-16);
-  }
-  .eyebrow {
-    color: var(--text-primary);
-  }
-  .lead {
-    color: var(--text-muted);
-    max-width: 760px;
-  }
-  .grid {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--layout-gap);
-  }
-  .grid-small {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  }
-  .swatch {
-    font-size: var(--type-body-small-size);
-    line-height: var(--type-body-small-line);
-  }
-  .chip {
-    display: block;
-    height: 72px;
-    margin-bottom: var(--space-8);
-    border-radius: var(--radius-card);
-    border: 1px solid var(--border-default);
-  }
-  .pairs,
-  .styles {
-    list-style: none;
-    padding: 0;
-    display: grid;
-    gap: var(--space-8);
-  }
-  .pairs li {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-8);
-    padding: var(--space-12) var(--space-16);
-    border-radius: var(--radius-card);
-    border: 1px solid var(--border-default);
-    font-weight: var(--weight-semibold);
-  }
-  .styles li {
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    align-items: baseline;
-    gap: var(--space-16);
-    padding-bottom: var(--space-8);
-    border-bottom: 1px solid var(--border-default);
-  }
-  .style-name {
-    color: var(--text-muted);
-  }
-  .corners {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-16);
-    align-items: center;
-  }
-  .buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-16);
-  }
-  .buttons--dark {
-    padding: var(--space-24);
-    border-radius: var(--radius-card);
-    background: var(--bg-dark);
-  }
-  .card-sample {
-    padding: var(--space-24);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-card);
-  }
-  .button-sample {
-    padding: var(--space-16) var(--space-24);
-    border: 0;
-    border-radius: var(--radius-button);
-    background: var(--bg-accent);
-    color: var(--text-on-dark);
-    cursor: pointer;
-  }
-  .button-sample:hover {
-    background: var(--bg-accent-hover);
-  }
-  @media (max-width: 600px) {
-    .styles li {
-      grid-template-columns: 1fr;
-      gap: var(--space-4);
-    }
-  }
-</style>

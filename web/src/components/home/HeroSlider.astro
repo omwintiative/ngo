@@ -1,0 +1,438 @@
+---
+/*
+  Home hero, from Figma Hero slider (86:467): three slides. Moves on every
+  8 seconds (Ifeanyi, 18 Oct 2026) and with the arrow buttons.
+
+  Desktop (1200px+): 816 tall, fact card on the right.
+  Tablet and mobile: 722 tall, no fact card (Figma "Device=Mobile").
+  Motion (Figma motion data): the photo drifts and zooms slowly; the text
+  rises in, 120ms apart. Both are off for visitors who ask for reduced motion.
+*/
+import { Image } from 'astro:assets';
+import Button from '../Button.astro';
+import Eyebrow from '../Eyebrow.astro';
+import { paths } from '../../config/navigation';
+import hero1 from '../../assets/photos/mother-and-child.jpg';
+import hero2 from '../../assets/photos/stock-hero-2.jpg';
+import hero3 from '../../assets/photos/stock-hero-3.jpg';
+import watermark from '../../assets/graphics/watermark.svg';
+import arrowLeft from '../../assets/icons/arrow-left-white.svg';
+import arrowRight from '../../assets/icons/arrow-right-white.svg';
+
+// Copy from Figma, slides 1 to 3. `highlight` is the part shown in rust/200.
+const slides = [
+  {
+    image: hero1,
+    eyebrow: 'Ọmụgwọ Maternal Welfare Initiative',
+    title: ['Health and wellness for ', 'all women', ' without borders.'],
+    text: 'OMWI promotes health equity and reproductive health dignity by expanding access to reproductive healthcare and education, wellness resources, and compassionate support.',
+    primary: { label: 'Donate Now', href: paths.donate },
+    secondary: { label: 'Get Involved', href: paths.volunteer },
+    fact: {
+      stat: '700+',
+      text: 'women died every day in 2023 from preventable causes related to pregnancy and childbirth.',
+      source: 'Source: World Health Organization, 2025',
+    },
+  },
+  {
+    image: hero2,
+    eyebrow: 'Our Mission',
+    title: ['', 'Safe motherhood', ' for all and dignified period equity.'],
+    text: 'We work to combat maternal mortality and period poverty by bringing primary reproductive healthcare and literacy to women in underserved communities.',
+    primary: { label: 'Explore Our Programmes', href: paths.programmes },
+    secondary: { label: 'Read Our Story', href: paths.about },
+    fact: {
+      stat: '993',
+      text: 'maternal deaths per 100,000 live births in Nigeria in 2023.',
+      source: 'Source: UN inter-agency estimates, 2025',
+    },
+  },
+  {
+    image: hero3,
+    eyebrow: 'Get Involved',
+    title: ['Partner with us to create a ', 'lasting impact', '.'],
+    text: 'We offer a variety of volunteer roles, and we welcome partners and sponsors. Explore our available opportunities to get involved.',
+    primary: { label: 'Volunteer With Us', href: paths.volunteer },
+    secondary: { label: 'Partner / Sponsor', href: paths.partner },
+    fact: {
+      heading: 'Our Standard',
+      text: 'Person-Centered Interventions. Uncompromising Integrity. True Health Equity.',
+    },
+  },
+];
+const total = String(slides.length).padStart(2, '0');
+---
+
+<section class="hero" aria-roledescription="carousel" aria-label="Introduction" data-hero>
+  <div class="hero__backgrounds" aria-hidden="true">
+    {
+      slides.map((slide, i) => (
+        <div class:list={['hero__bg', i === 0 && 'is-active']} data-hero-bg>
+          <Image
+            class="hero__img"
+            src={slide.image}
+            alt=""
+            widths={[640, 960, 1280, 1920, 2560]}
+            sizes="100vw"
+            priority={i === 0}
+          />
+          <span class="hero__tint" />
+          <span class="hero__overlay" />
+        </div>
+      ))
+    }
+    <img class="hero__watermark" src={watermark.src} width={watermark.width} height={watermark.height} alt="" />
+  </div>
+
+  <div class="hero__stage" id="hero-slides" aria-live="off" data-hero-stage>
+    {
+      slides.map((slide, i) => (
+        <div
+          class:list={['hero__slide', i === 0 && 'is-active']}
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${i + 1} of ${slides.length}`}
+          inert={i !== 0}
+          id={`hero-slide-${i + 1}`}
+          data-hero-slide
+        >
+          <div class="hero__content">
+            <Eyebrow tone="on-dark" class="hero__anim">
+              {slide.eyebrow}
+            </Eyebrow>
+            {i === 0 ? (
+              <h1 class="t-display hero__title hero__anim">
+                {slide.title[0]}
+                <span class="hero__highlight">{slide.title[1]}</span>
+                {slide.title[2]}
+              </h1>
+            ) : (
+              <h2 class="t-display hero__title hero__anim">
+                {slide.title[0]}
+                <span class="hero__highlight">{slide.title[1]}</span>
+                {slide.title[2]}
+              </h2>
+            )}
+            <p class="t-body-large hero__text hero__anim">{slide.text}</p>
+            <div class="hero__buttons hero__anim">
+              <Button href={slide.primary.href} arrow>
+                {slide.primary.label}
+              </Button>
+              <Button href={slide.secondary.href} variant="on-dark" arrow>
+                {slide.secondary.label}
+              </Button>
+            </div>
+          </div>
+
+          <aside class="hero__fact hero__anim">
+            {slide.fact.stat && <p class="t-stat hero__stat">{slide.fact.stat}</p>}
+            {slide.fact.heading && <p class="t-h3 hero__stat">{slide.fact.heading}</p>}
+            <p class="t-body">{slide.fact.text}</p>
+            {slide.fact.source && <p class="t-body-small">{slide.fact.source}</p>}
+          </aside>
+        </div>
+      ))
+    }
+  </div>
+
+  <div class="hero__controls">
+    <div class="hero__progress">
+      <p class="t-button" aria-hidden="true">
+        <span data-hero-count>01</span> / {total}
+      </p>
+      {slides.map((_, i) => <span class:list={['hero__bar', i === 0 && 'is-active']} data-hero-bar />)}
+    </div>
+    <div class="hero__arrows">
+      <button type="button" class="hero__arrow" aria-controls="hero-slides" data-hero-prev>
+        <img src={arrowLeft.src} width={arrowLeft.width} height={arrowLeft.height} alt="" />
+        <span class="visually-hidden">Previous slide</span>
+      </button>
+      <button type="button" class="hero__arrow" aria-controls="hero-slides" data-hero-next>
+        <img src={arrowRight.src} width={arrowRight.width} height={arrowRight.height} alt="" />
+        <span class="visually-hidden">Next slide</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: var(--space-20);
+    min-height: var(--layout-hero-slider-height);
+    padding: var(--layout-hero-padding-top) var(--layout-page-padding) var(--space-28);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--bg-darkest);
+    color: var(--text-on-dark);
+  }
+
+  /* ----- Backgrounds (one per slide, cross-fade) ----- */
+  .hero__backgrounds,
+  .hero__bg,
+  .hero__tint,
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+  }
+  /* Backgrounds sit behind the content; the fact card positions against .hero */
+  .hero__backgrounds {
+    z-index: -1;
+  }
+  .hero__bg {
+    opacity: 0;
+    transition: opacity 600ms ease;
+  }
+  .hero__bg.is-active {
+    opacity: 1;
+  }
+  .hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.08);
+  }
+  .hero__bg.is-active .hero__img {
+    animation: hero-drift 4s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+  }
+  .hero__tint {
+    background: var(--hero-tint);
+    mix-blend-mode: soft-light;
+  }
+  .hero__overlay {
+    background: var(--hero-overlay-mobile);
+  }
+  .hero__watermark {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: var(--size-watermark-mobile);
+    height: auto;
+    transform: translate(40%, 34%);
+  }
+
+  /* ----- Slide content ----- */
+  .hero__stage {
+    display: grid;
+  }
+  .hero__slide {
+    grid-area: 1 / 1;
+    align-self: end;
+    visibility: hidden;
+  }
+  .hero__slide.is-active {
+    visibility: visible;
+  }
+
+  .hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+  .hero__title {
+    max-width: var(--size-hero-title-max);
+  }
+  .hero__highlight {
+    color: var(--text-highlight);
+  }
+  .hero__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+
+  /* Entrance: each part rises in, 120ms after the one before */
+  .hero__slide.is-active .hero__anim {
+    animation: hero-rise 1050ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero__slide.is-active .hero__title {
+    animation-delay: 120ms;
+  }
+  .hero__slide.is-active .hero__text {
+    animation-delay: 240ms;
+  }
+  .hero__slide.is-active .hero__buttons {
+    animation-delay: 360ms;
+  }
+  .hero__slide.is-active .hero__fact {
+    animation-delay: 480ms;
+  }
+
+  /* Fact card: desktop only */
+  .hero__fact {
+    display: none;
+  }
+
+  /* ----- Controls ----- */
+  .hero__controls {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-16);
+  }
+  .hero__progress {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+  }
+  .hero__bar {
+    width: var(--size-hero-bar-mobile);
+    height: var(--size-hero-bar-height);
+    border-radius: var(--radius-hero-bar);
+    background: var(--bg-on-dark-track);
+    transition: background-color 300ms ease;
+  }
+  .hero__bar.is-active {
+    background: var(--white);
+  }
+  .hero__arrows {
+    display: flex;
+    gap: var(--space-10);
+  }
+  .hero__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-button);
+    height: var(--size-icon-button);
+    padding: 0;
+    border: 1px solid var(--border-on-dark-soft);
+    border-radius: var(--radius-button);
+    background: transparent;
+    cursor: pointer;
+  }
+  .hero__arrow:hover {
+    background: var(--bg-icon-on-dark-hover);
+  }
+  .hero :focus-visible {
+    outline-color: var(--text-on-dark);
+  }
+  .hero :global(.btn) {
+    --btn-ring: var(--focus-ring-on-dark);
+  }
+
+  @media (min-width: 1200px) {
+    .hero {
+      gap: var(--space-28);
+      padding-bottom: var(--space-40);
+    }
+    .hero__overlay {
+      background: var(--hero-overlay);
+    }
+    .hero__watermark {
+      width: var(--size-watermark);
+      transform: translate(25%, 30%);
+    }
+    .hero__content {
+      gap: var(--space-28);
+    }
+    .hero__text {
+      max-width: var(--size-hero-text-max);
+    }
+    .hero__fact {
+      position: absolute;
+      top: calc(50% + var(--space-8));
+      right: max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2));
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+      width: var(--size-fact-card-width);
+      padding: var(--space-28);
+      border: 1px solid var(--border-on-dark-faint);
+      border-radius: var(--radius-card);
+      background: var(--bg-fact-card);
+      -webkit-backdrop-filter: blur(var(--blur-fact-card));
+      backdrop-filter: blur(var(--blur-fact-card));
+      translate: 0 -50%;
+    }
+    .hero__stat {
+      color: var(--text-highlight);
+    }
+    .hero__controls {
+      margin-top: var(--space-40);
+    }
+    .hero__bar {
+      width: var(--size-hero-bar);
+    }
+  }
+
+  @keyframes hero-drift {
+    from {
+      transform: scale(1.08) translate(0, 0);
+    }
+    to {
+      transform: scale(1.1) translate(-32px, -15px);
+    }
+  }
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translate(28px, 18px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  if (hero) {
+    const slides = [...hero.querySelectorAll<HTMLElement>('[data-hero-slide]')];
+    const backgrounds = [...hero.querySelectorAll<HTMLElement>('[data-hero-bg]')];
+    const bars = [...hero.querySelectorAll<HTMLElement>('[data-hero-bar]')];
+    const count = hero.querySelector('[data-hero-count]');
+    let current = 0;
+
+    const show = (index: number) => {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, i) => {
+        const active = i === current;
+        slide.classList.toggle('is-active', active);
+        slide.inert = !active;
+      });
+      backgrounds.forEach((bg, i) => bg.classList.toggle('is-active', i === current));
+      bars.forEach((bar, i) => bar.classList.toggle('is-active', i === current));
+      if (count) count.textContent = String(current + 1).padStart(2, '0');
+    };
+
+    // Autoplay every 8s (the length of Figma's slide animation). Pauses while
+    // the pointer or keyboard focus is in the hero or the tab is hidden; off
+    // for reduced motion. The arrows restart the timer.
+    const INTERVAL_MS = 8000;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let paused = false;
+    let timer: number | undefined;
+    const restart = () => {
+      window.clearInterval(timer);
+      timer = window.setInterval(() => {
+        if (!paused && !document.hidden && !reduced.matches) show(current + 1);
+      }, INTERVAL_MS);
+    };
+    hero.addEventListener('mouseenter', () => (paused = true));
+    hero.addEventListener('mouseleave', () => (paused = false));
+    hero.addEventListener('focusin', () => (paused = true));
+    hero.addEventListener('focusout', (event) => {
+      if (!hero.contains(event.relatedTarget as Node | null)) paused = false;
+    });
+
+    // Screen readers announce slides changed with the arrows, not autoplay.
+    const stage = hero.querySelector('[data-hero-stage]');
+    const go = (delta: number) => {
+      stage?.setAttribute('aria-live', 'polite');
+      show(current + delta);
+      restart();
+    };
+    hero.querySelector('[data-hero-prev]')?.addEventListener('click', () => go(-1));
+    hero.querySelector('[data-hero-next]')?.addEventListener('click', () => go(1));
+    restart();
+  }
+</script>

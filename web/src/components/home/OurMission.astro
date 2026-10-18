@@ -1,0 +1,110 @@
+---
+/*
+  Home "Our mission", from Figma Section / Our mission (91:6677).
+  Dark section: mission text on the left, two figures on the right (stacked
+  on tablet and mobile). The figures count up from 0 when they come into
+  view (Figma animation); without JavaScript they simply show.
+*/
+import SectionHeading from '../SectionHeading.astro';
+
+// Figures and sources exactly as in Figma.
+const stats = [
+  {
+    value: 700,
+    suffix: '+',
+    text: 'women died every day in 2023 from preventable causes related to pregnancy and childbirth.',
+    source: 'Source: World Health Organization, 2025',
+  },
+  {
+    value: 993,
+    suffix: '',
+    text: 'maternal deaths per 100,000 live births in Nigeria in 2023.',
+    source: 'Source: UN inter-agency estimates, 2025',
+  },
+];
+---
+
+<section class="section mission" aria-labelledby="mission-title" data-reveal>
+  <div class="mission__split">
+    <div class="mission__text">
+      <SectionHeading
+        id="mission-title"
+        eyebrow="Our Mission"
+        title="Safe motherhood for all and dignified period equity."
+        tone="on-dark"
+      />
+      <p class="t-body">
+        Rooted in empathy and integrity, our mission is to combat maternal mortality and period
+        poverty through the delivery of comprehensive primary reproductive healthcare and literacy to
+        women in underserved communities, ensuring safe motherhood for all and dignified period
+        equity.
+      </p>
+    </div>
+    <ul class="mission__stats">
+      {
+        stats.map((stat) => (
+          <li class="mission__stat">
+            <p
+              class="t-stat mission__value"
+              data-count-to={stat.value}
+              data-count-suffix={stat.suffix}
+            >
+              {stat.value}
+              {stat.suffix}
+            </p>
+            <p class="t-body">{stat.text}</p>
+            <p class="t-body-small">{stat.source}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .mission {
+    background: var(--bg-mission);
+    color: var(--text-on-dark);
+  }
+  .mission__split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .mission__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+  }
+  .mission__stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-40);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .mission__stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-4) 0 var(--space-4) var(--space-24);
+    border-left: var(--border-width-stat) solid var(--text-highlight);
+  }
+  .mission__value {
+    color: var(--text-highlight);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 1200px) {
+    .mission__split {
+      flex-direction: row;
+      align-items: center;
+    }
+    .mission__text,
+    .mission__stats {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>

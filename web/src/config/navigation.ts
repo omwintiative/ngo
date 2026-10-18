@@ -2,8 +2,8 @@
   Every link in the site header and footer, in one place.
 
   Labels are copied exactly from the Figma file (Header 37:97, Footer 37:264).
-  Internal paths are PROPOSED: the final URL scheme is not decided yet, so
-  change them here only and every page follows.
+  Internal paths approved by Ifeanyi in step 4 (18 Oct 2026). To change one,
+  change it here only and every page follows.
 
   External links come from the Figma prototype links (read 18 Oct 2026).
 */
@@ -26,7 +26,7 @@ export function isGroup(item: NavItem): item is NavGroup {
   return 'children' in item;
 }
 
-/** Internal pages, named after the Hi-fi design pages. Proposed, not final. */
+/** Internal pages, named after the Hi-fi design pages. */
 export const paths = {
   home: '/',
   about: '/about',
@@ -69,9 +69,11 @@ const getInvolvedLinks: NavLink[] = [
   { label: 'Partner / Sponsor', href: paths.partner },
 ];
 
-/** Header links, in Figma order. */
+/**
+  Header links, in Figma order. "Home" is left out on purpose (Ifeanyi,
+  18 Oct 2026): the logo already links to the home page.
+*/
 export const mainNav: NavItem[] = [
-  { label: 'Home', href: paths.home },
   { label: 'About Us', href: paths.about },
   { label: 'Programmes', href: paths.programmes },
   { label: 'Gallery', href: paths.gallery },
@@ -106,6 +108,16 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
 ];
 
 export const legalLinks: NavLink[] = [{ label: 'Privacy Policy', href: paths.privacy }];
+
+/**
+  Address of one blog post. Posts come from the API at run time, so the
+  static site uses one page that reads the id from the address.
+  (Decide with the Blog page in step 6: per-post pages would need a rebuild
+  whenever a post is published.)
+*/
+export function postHref(id: string): string {
+  return `${paths.blog}/post?id=${encodeURIComponent(id)}`;
+}
 
 /** True when `href` is the page at `pathname` (ignores a trailing slash). */
 export function isCurrent(href: string, pathname: string): boolean {

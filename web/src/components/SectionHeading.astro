@@ -1,0 +1,54 @@
+---
+/*
+  Section heading, from Figma Section heading (44:164): eyebrow, H2 and an
+  optional lead paragraph. Centred (max 760 wide) or left-aligned.
+*/
+import Eyebrow from './Eyebrow.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  align?: 'left' | 'center';
+  tone?: 'default' | 'on-dark';
+  /** id for the <h2>, so the section can use aria-labelledby. */
+  id?: string;
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const { eyebrow, title, lead, align = 'left', tone = 'default', id, class: className, ...rest } = Astro.props;
+---
+
+<div
+  class:list={['section-heading', `section-heading--${align}`, `section-heading--${tone}`, className]}
+  {...rest}
+>
+  <Eyebrow tone={tone}>{eyebrow}</Eyebrow>
+  <h2 class="t-h2" id={id}>{title}</h2>
+  {lead && <p class="t-body-large section-heading__lead">{lead}</p>}
+</div>
+
+<style>
+  .section-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+  .section-heading--center {
+    align-items: center;
+    max-width: var(--size-heading-max);
+    margin-inline: auto;
+    text-align: center;
+  }
+  .section-heading--on-dark {
+    color: var(--text-on-dark);
+  }
+  .section-heading__lead {
+    color: var(--text-muted);
+  }
+  .section-heading--on-dark .section-heading__lead {
+    color: var(--text-on-dark);
+  }
+</style>

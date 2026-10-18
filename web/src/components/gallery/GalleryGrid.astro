@@ -1,0 +1,267 @@
+---
+/*
+  Outreach gallery, from Figma Section / Outreach gallery (93:3409) and the
+  Gallery lightbox overlays (211:7675 desktop, 211:7725 mobile).
+
+  Grid: 3 columns on desktop, 2 on tablet and mobile. Each photo is a
+  button that opens the lightbox (a modal <dialog>): "Photo n of N", close,
+  previous and next. Arrow keys move between photos, Escape closes, and
+  focus returns to the photo that was opened.
+
+  The lightbox shows the whole photo (Figma crops it to fill the frame).
+  "Load More Photos" appears only when there are more than 12 photos.
+*/
+import { getImage } from 'astro:assets';
+import SectionHeading from '../SectionHeading.astro';
+import Photo from '../Photo.astro';
+import Button from '../Button.astro';
+import { galleryPhotos } from '../../data/gallery';
+import close from '../../assets/icons/x-white.svg';
+import prev from '../../assets/icons/arrow-left-white.svg';
+import next from '../../assets/icons/arrow-right-white.svg';
+
+const PAGE_SIZE = 12;
+// Large versions for the lightbox, made at build time.
+const large = await Promise.all(
+  galleryPhotos.map((p) => getImage({ src: p.src, width: Math.min(p.src.width, 1920) })),
+);
+const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
+---
+
+<section class="section" aria-labelledby="gallery-title" data-gallery>
+  <SectionHeading
+    id="gallery-title"
+    eyebrow="From the Field"
+    title="Our outreach gallery"
+    lead="Photos of mothers, babies and volunteers at OMWI outreaches."
+    align="center"
+    data-reveal
+  />
+
+  <ul class="gallery__grid">
+    {
+      items.map((photo, i) => (
+        <li hidden={i >= PAGE_SIZE} data-gallery-item>
+          <button
+            type="button"
+            class="gallery__open"
+            data-index={i}
+            data-src={photo.large}
+            data-alt={photo.alt}
+            aria-label={`Open photo ${i + 1} of ${items.length}: ${photo.alt}`}
+          >
+            <Photo
+              class="gallery__photo"
+              src={photo.src}
+              alt=""
+              fade={i % 2 === 0 ? 'left' : 'top'}
+              widths={[200, 400, 800]}
+              sizes="(min-width: 1200px) 384px, 50vw"
+            />
+          </button>
+        </li>
+      ))
+    }
+  </ul>
+
+  {
+    items.length > PAGE_SIZE && (
+      <div class="gallery__actions">
+        <Button variant="outline" class="gallery__more" data-gallery-more>
+          Load More Photos
+        </Button>
+      </div>
+    )
+  }
+
+  <dialog class="lightbox" aria-label="Photo viewer" data-lightbox>
+    <div class="lightbox__top">
+      <p class="t-body-small" aria-live="polite" data-lightbox-count></p>
+      <button type="button" class="lightbox__button" data-lightbox-close autofocus>
+        <img src={close.src} width={close.width} height={close.height} alt="" />
+        <span class="visually-hidden">Close</span>
+      </button>
+    </div>
+    <div class="lightbox__frame">
+      <img class="lightbox__img" alt="" data-lightbox-img />
+    </div>
+    <div class="lightbox__controls">
+      <button type="button" class="lightbox__button" data-lightbox-prev>
+        <img src={prev.src} width={prev.width} height={prev.height} alt="" />
+        <span class="visually-hidden">Previous photo</span>
+      </button>
+      <button type="button" class="lightbox__button" data-lightbox-next>
+        <img src={next.src} width={next.width} height={next.height} alt="" />
+        <span class="visually-hidden">Next photo</span>
+      </button>
+    </div>
+  </dialog>
+</section>
+
+<style>
+  .gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--layout-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .gallery__open {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-card);
+    background: none;
+    cursor: zoom-in;
+  }
+  .gallery__open :global(.gallery__photo) {
+    height: var(--size-gallery-photo-height);
+  }
+  .gallery__actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ----- Lightbox ----- */
+  .lightbox {
+    width: min(var(--size-lightbox-width), calc(100% - 2 * var(--layout-page-padding)));
+    max-width: none;
+    max-height: calc(100dvh - 2 * var(--space-16));
+    /* global.css resets margins; a modal dialog needs auto margins to centre */
+    margin: auto;
+    padding: var(--space-16);
+    border: 0;
+    border-radius: var(--radius-card);
+    background: var(--bg-darkest);
+    color: var(--text-on-dark);
+    overflow: auto;
+  }
+  .lightbox[open] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  .lightbox::backdrop {
+    background: var(--bg-backdrop);
+  }
+  .lightbox :focus-visible {
+    outline-color: var(--text-on-dark);
+  }
+  .lightbox__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lightbox__frame {
+    position: relative;
+    height: var(--size-lightbox-photo-height-mobile);
+    overflow: hidden;
+    border-radius: var(--radius-card);
+  }
+  /* Figma Photo Tint (soft-light brand blend) over the photo */
+  .lightbox__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--photo-tint);
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+  }
+  .lightbox__img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .lightbox__controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-12);
+  }
+  .lightbox__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-button);
+    height: var(--size-icon-button);
+    padding: 0;
+    border: 1px solid var(--border-on-dark-soft);
+    border-radius: var(--radius-button);
+    background: transparent;
+    cursor: pointer;
+  }
+  .lightbox__button:hover {
+    background: var(--bg-icon-on-dark-hover);
+  }
+
+  @media (min-width: 768px) {
+    .gallery__open :global(.gallery__photo) {
+      height: var(--size-gallery-photo-height-tablet);
+    }
+    .lightbox {
+      padding: var(--space-24);
+    }
+  }
+  @media (min-width: 1200px) {
+    .gallery__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .gallery__open :global(.gallery__photo) {
+      height: var(--size-gallery-photo-height-desktop);
+    }
+    .lightbox__frame {
+      height: var(--size-lightbox-photo-height);
+    }
+  }
+</style>
+
+<script>
+  const PAGE_SIZE = 12;
+  const root = document.querySelector<HTMLElement>('[data-gallery]');
+  const dialog = root?.querySelector<HTMLDialogElement>('[data-lightbox]');
+
+  if (root && dialog) {
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.gallery__open')];
+    const img = dialog.querySelector<HTMLImageElement>('[data-lightbox-img]')!;
+    const count = dialog.querySelector('[data-lightbox-count]')!;
+    let current = 0;
+    let opener: HTMLButtonElement | null = null;
+
+    const show = (index: number) => {
+      current = (index + buttons.length) % buttons.length;
+      const button = buttons[current];
+      img.src = button.dataset.src ?? '';
+      img.alt = button.dataset.alt ?? '';
+      count.textContent = `Photo ${current + 1} of ${buttons.length}`;
+    };
+
+    buttons.forEach((button, i) =>
+      button.addEventListener('click', () => {
+        opener = button;
+        show(i);
+        dialog.showModal();
+      }),
+    );
+
+    dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => show(current - 1));
+    dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', () => show(current + 1));
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'ArrowRight') show(current + 1);
+    });
+    // Click on the dark backdrop closes it too.
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', () => opener?.focus());
+
+    // Load more: show the next 12 hidden photos.
+    root.querySelector('[data-gallery-more]')?.addEventListener('click', (event) => {
+      const hidden = [...root.querySelectorAll<HTMLElement>('[data-gallery-item][hidden]')];
+      hidden.slice(0, PAGE_SIZE).forEach((item) => (item.hidden = false));
+      if (hidden.length <= PAGE_SIZE) (event.currentTarget as HTMLElement).hidden = true;
+    });
+  }
+</script>

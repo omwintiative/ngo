@@ -1,0 +1,30 @@
+---
+/*
+  "Meet the team" (Home and About), from Figma Section / Our team (91:6781).
+  2 columns on mobile and tablet, 4 on desktop. People come from
+  src/data/team.ts.
+*/
+import SectionHeading from './SectionHeading.astro';
+import TeamCard from './TeamCard.astro';
+import { team } from '../data/team';
+---
+
+<section class="section section--tint" aria-labelledby="team-title">
+  <SectionHeading id="team-title" eyebrow="Our Team" title="Meet the team" align="center" data-reveal />
+  <div class="team__grid">
+    {team.map((member, i) => <TeamCard member={member} data-reveal style={`--reveal-index: ${i}`} />)}
+  </div>
+</section>
+
+<style>
+  .team__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--layout-gap);
+  }
+  @media (min-width: 1200px) {
+    .team__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

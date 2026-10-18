@@ -1,0 +1,74 @@
+---
+/*
+  About "Our story", from Figma Section / Our story (93:1521).
+  Copy as in Figma. Figma note: the edits to this text are waiting for
+  client approval.
+*/
+import FramedPhoto from '../FramedPhoto.astro';
+import SectionHeading from '../SectionHeading.astro';
+import hug from '../../assets/photos/stock-health-workers-hug.jpg';
+import smiling from '../../assets/photos/stock-health-worker-smiling.jpg';
+---
+
+<section class="section story" aria-labelledby="story-title" data-reveal>
+  <div class="story__split">
+    <FramedPhoto
+      main={{ src: hug, alt: 'Four health workers in white coats hugging and smiling', fade: 'top' }}
+      inset={{ src: smiling, alt: 'A smiling health worker holding the hands of a woman' }}
+      desktopHeight="var(--size-story-photo-desktop)"
+    />
+    <div class="story__text">
+      <SectionHeading id="story-title" eyebrow="Our Story" title="How OMWI began" />
+      <p class="t-body">
+        Born out of the strong belief that all women, regardless of where they come from, deserve
+        safe and quality healthcare, Ọmụgwọ Maternal Welfare Initiative (OMWI) was created to stand
+        in the gap between women in underserved communities and the care they need.
+      </p>
+      <p class="t-body">
+        OMWI saw a gap in Nigeria’s women’s health landscape. Period poverty is widespread, and the
+        country’s maternal mortality ratio is among the highest in the world. Leading causes of
+        maternal illness and death in Nigeria include infection, postpartum haemorrhage and
+        hypertensive disorders, which are largely preventable or treatable. With the right resources
+        and advocacy, OMWI works to combat these causes and help bring maternal deaths down.
+      </p>
+      <p class="t-body">
+        The spirit of ọmụgwọ is at the heart of our mission. Ọmụgwọ is a traditional practice of the
+        Igbo people in which a new mother is herself mothered in the early weeks after birth by her
+        own mother or another woman in her family. Respecting this traditional knowledge and care,
+        OMWI extends the essence of ọmụgwọ through empowering health education and by facilitating
+        access to quality healthcare.
+      </p>
+      <p class="t-body">
+        Ultimately, with dedication to our vision we strive to achieve health and wellness for all
+        women without borders.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .story__split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .story__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+  }
+  .story__text p {
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 1200px) {
+    .story__split {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    .story__split > :global(*) {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>

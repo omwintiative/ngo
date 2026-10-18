@@ -1,0 +1,53 @@
+---
+/*
+  Home "Latest from the blog", from Figma Section / Latest from the blog
+  (91:6883). The three newest posts from GET /api/blogs. The section stays
+  hidden until at least one post arrives, so the page never shows samples.
+*/
+import SectionHeading from '../SectionHeading.astro';
+import Button from '../Button.astro';
+import PostCardTemplate from '../PostCardTemplate.astro';
+import PostGrid from '../PostGrid.astro';
+import { paths } from '../../config/navigation';
+---
+
+<section class="section section--tint" aria-labelledby="posts-title" hidden data-latest-posts>
+  <SectionHeading id="posts-title" eyebrow="Stories and Insights" title="Latest from the blog" align="center" />
+  <PostGrid data-latest-list />
+  <div class="posts__actions">
+    <Button href={paths.blog} variant="outline" arrow class="posts__button">View All Posts</Button>
+  </div>
+  <PostCardTemplate />
+</section>
+
+<style>
+  .posts__actions {
+    display: flex;
+    justify-content: center;
+  }
+  .posts__actions :global(.posts__button) {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .posts__actions :global(.posts__button) {
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  import { fetchPosts, renderPostCard } from '../../lib/posts';
+
+  const section = document.querySelector<HTMLElement>('[data-latest-posts]');
+  const list = section?.querySelector<HTMLElement>('[data-latest-list]');
+
+  fetchPosts()
+    .then((posts) => {
+      if (!section || !list || !Array.isArray(posts) || posts.length === 0) return;
+      posts.slice(0, 3).forEach((post) => list.append(renderPostCard(post)));
+      section.hidden = false;
+    })
+    .catch(() => {
+      // API not reachable: the section stays hidden
+    });
+</script>

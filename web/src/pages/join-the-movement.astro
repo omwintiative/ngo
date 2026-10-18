@@ -1,0 +1,35 @@
+---
+/*
+  Join the Movement (Volunteer with Us), from Figma Join the Movement
+  (Desktop 94:4205, Tablet 94:4350, Mobile 94:4488). The button opens the
+  client's Google Form in a new tab (Figma prototype link).
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import GetInvolvedSplit from '../components/GetInvolvedSplit.astro';
+import HowItWorks from '../components/volunteer/HowItWorks.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+import { externalLinks } from '../config/navigation';
+import volunteer from '../assets/photos/stock-volunteer-heart.jpg';
+import volunteerSmiling from '../assets/photos/stock-volunteer-smiling.jpg';
+---
+
+<BaseLayout
+  title="Volunteer with Us"
+  description="We offer a variety of volunteer roles for those interested in partnering with us to ensure safe motherhood for all and the eradication of period poverty."
+>
+  <PageBanner title="Join the Movement" crumbs={[{ label: 'Get Involved' }, { label: 'Volunteer with Us' }]} />
+  <GetInvolvedSplit
+    id="volunteer"
+    eyebrow="Volunteer"
+    title="Volunteer with OMWI"
+    text="We offer a variety of volunteer roles for those interested in partnering with us to ensure safe motherhood for all and the eradication of period poverty. Explore our available opportunities to get involved."
+    buttonLabel="Volunteer With Us"
+    href={externalLinks.volunteerForm}
+    note="Opens our application form in a new tab."
+    main={{ src: volunteer, alt: 'A smiling volunteer in a “Volunteer” T-shirt making a heart with her hands', fade: 'top' }}
+    inset={{ src: volunteerSmiling, alt: 'A smiling volunteer sorting bottled water at a table' }}
+  />
+  <HowItWorks />
+  <DonationCallout />
+</BaseLayout>

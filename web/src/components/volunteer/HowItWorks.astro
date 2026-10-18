@@ -1,0 +1,80 @@
+---
+/*
+  "How volunteering works", from Figma Section / How volunteering works
+  (94:4253) and Card/Step (108:488). Three steps: one row on desktop,
+  stacked on tablet and mobile. Figma note: steps 2 and 3 need the client
+  to confirm them.
+*/
+import SectionHeading from '../SectionHeading.astro';
+
+const steps = [
+  { title: 'Apply', text: 'Fill in the short application form.' },
+  { title: 'Hear from us', text: 'Our team reviews your application and contacts you.' },
+  { title: 'Get started', text: 'Join an outreach or support our work remotely.' },
+];
+---
+
+<section class="section section--tint" aria-labelledby="steps-title">
+  <SectionHeading id="steps-title" eyebrow="How It Works" title="How volunteering works" align="center" data-reveal />
+  <ol class="steps">
+    {
+      steps.map((step, i) => (
+        <li class="step" data-reveal style={`--reveal-index: ${i}`}>
+          <span class="t-h4 step__badge" aria-hidden="true">
+            {i + 1}
+          </span>
+          <div class="step__body">
+            <h3 class="t-h4">
+              <span class="visually-hidden">Step {i + 1}: </span>
+              {step.title}
+            </h3>
+            <p class="t-body step__text">{step.text}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--layout-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+    padding: var(--space-32);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+  }
+  .step__badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile-small);
+    height: var(--size-icon-tile-small);
+    border-radius: var(--radius-lg);
+    background: var(--bg-primary);
+    color: var(--text-on-dark);
+  }
+  .step__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .step__text {
+    color: var(--text-muted);
+  }
+  @media (min-width: 1200px) {
+    .steps {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

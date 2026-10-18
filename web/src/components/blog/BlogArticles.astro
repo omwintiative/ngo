@@ -1,0 +1,276 @@
+---
+/*
+  Blog "All articles", from Figma Section / Articles (93:3987), Input
+  (45:187, Search), Category tabs (84:365) and Empty / Blog search (128:7434).
+
+  Posts come from GET /api/blogs when the page opens; 6 show at first and
+  "Load More Articles" adds 6 more. The search filters by title and text as
+  you type. Category tabs are built from the categories the posts actually
+  have (posts get a category field in step 5), so they stay hidden until
+  then. The tabs scroll sideways on narrow screens (Figma note).
+*/
+import PostCardTemplate from '../PostCardTemplate.astro';
+import PostGrid from '../PostGrid.astro';
+import Button from '../Button.astro';
+import search from '../../assets/icons/search-plum-20.svg';
+import searchLarge from '../../assets/icons/search-plum.svg';
+---
+
+<section class="section articles" aria-labelledby="articles-title" data-articles>
+  <div class="articles__toolbar">
+    <div class="articles__titles">
+      <h2 class="t-h3" id="articles-title">All articles</h2>
+      <p class="t-body articles__intro">
+        Stories from our work and practical health information for mothers and families.
+      </p>
+    </div>
+    <div class="search" role="search">
+      <label class="visually-hidden" for="article-search">Search articles</label>
+      <img src={search.src} width={search.width} height={search.height} alt="" />
+      <input
+        class="t-body"
+        id="article-search"
+        type="search"
+        placeholder="Search articles"
+        autocomplete="off"
+        data-articles-search
+      />
+    </div>
+  </div>
+
+  <div class="tabs" role="group" aria-label="Filter by category" hidden data-articles-tabs></div>
+
+  <p class="visually-hidden" aria-live="polite" data-articles-status></p>
+  <PostGrid data-articles-list />
+
+  <div class="empty" hidden data-articles-empty>
+    <span class="empty__tile" aria-hidden="true">
+      <img src={searchLarge.src} width="28" height="28" alt="" />
+    </span>
+    <p class="t-h4">No articles found</p>
+    <p class="t-body empty__hint" data-articles-hint>Try a different word, or choose another category.</p>
+  </div>
+
+  <div class="articles__more" hidden data-articles-more>
+    <Button variant="outline" class="articles__more-button">Load More Articles</Button>
+  </div>
+
+  <PostCardTemplate />
+</section>
+
+<style>
+  /* Figma: 24 / 28 / 32 between the parts of this section */
+  .articles {
+    gap: var(--space-24);
+  }
+
+  .articles__toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  .articles__titles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .articles__intro {
+    max-width: var(--size-toolbar-text-max);
+    color: var(--text-muted);
+  }
+
+  /* Search field (Figma Input, Type=Search) */
+  .search {
+    display: flex;
+    align-items: center;
+    gap: var(--space-10);
+    height: var(--size-button-height);
+    padding: 0 var(--space-16);
+    border: 1px solid var(--border-field);
+    border-radius: var(--radius-button);
+    background: var(--bg-field);
+  }
+  .search:focus-within {
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    color: var(--text-default);
+    outline: none;
+  }
+  .search input::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Category tabs: scroll sideways when they do not fit */
+  .tabs {
+    display: flex;
+    gap: var(--space-32);
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border-default);
+    scrollbar-width: none;
+  }
+  .tabs :global(button) {
+    flex: none;
+    padding: var(--space-12) 2px var(--space-14);
+    border: 0;
+    border-bottom: var(--border-width-tab) solid transparent;
+    background: none;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: var(--type-label-button-size);
+    line-height: var(--type-label-button-line);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .tabs :global(button[aria-pressed='true']) {
+    border-bottom-color: var(--bg-accent);
+    color: var(--text-default);
+  }
+  .tabs :global(button:hover) {
+    color: var(--text-default);
+  }
+
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-40);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    text-align: center;
+  }
+  .empty__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile);
+    height: var(--size-icon-tile);
+    border-radius: var(--radius-photo-hover-icon);
+    background: var(--bg-soft);
+  }
+  .empty__hint {
+    color: var(--text-muted);
+  }
+
+  .articles__more {
+    display: flex;
+    justify-content: center;
+  }
+  .articles__more :global(.articles__more-button) {
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .articles {
+      gap: var(--space-28);
+    }
+    .articles__toolbar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search {
+      flex: none;
+      width: var(--size-search-width);
+    }
+    .articles__more :global(.articles__more-button) {
+      width: auto;
+    }
+  }
+  @media (min-width: 1200px) {
+    .articles {
+      gap: var(--space-32);
+    }
+    .search {
+      width: var(--size-search-width-desktop);
+    }
+  }
+</style>
+
+<script>
+  import { fetchPosts, renderPostCard, type Post } from '../../lib/posts';
+
+  const PAGE_SIZE = 6;
+  const root = document.querySelector<HTMLElement>('[data-articles]');
+
+  if (root) {
+    const list = root.querySelector<HTMLElement>('[data-articles-list]')!;
+    const input = root.querySelector<HTMLInputElement>('[data-articles-search]')!;
+    const tabs = root.querySelector<HTMLElement>('[data-articles-tabs]')!;
+    const empty = root.querySelector<HTMLElement>('[data-articles-empty]')!;
+    const hint = root.querySelector<HTMLElement>('[data-articles-hint]')!;
+    const more = root.querySelector<HTMLElement>('[data-articles-more]')!;
+    const status = root.querySelector<HTMLElement>('[data-articles-status]')!;
+
+    let posts: Post[] = [];
+    let category = '';
+    let shown = PAGE_SIZE;
+
+    const matches = (post: Post) => {
+      const q = input.value.trim().toLowerCase();
+      const inCategory = !category || post.category === category;
+      const inText = !q || `${post.title} ${post.description}`.toLowerCase().includes(q);
+      return inCategory && inText;
+    };
+
+    const render = () => {
+      const found = posts.filter(matches);
+      list.replaceChildren(...found.slice(0, shown).map(renderPostCard));
+      empty.hidden = found.length > 0;
+      // With no posts at all, the "try another word" hint does not apply.
+      hint.hidden = posts.length === 0;
+      more.hidden = found.length <= shown;
+      status.textContent =
+        input.value || category ? `${found.length} article${found.length === 1 ? '' : 's'} found` : '';
+    };
+
+    const buildTabs = () => {
+      const names = [...new Set(posts.map((p) => p.category).filter((c): c is string => !!c))];
+      if (names.length === 0) return;
+      tabs.replaceChildren(
+        ...['All', ...names].map((name) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = name;
+          button.setAttribute('aria-pressed', String(name === 'All'));
+          button.addEventListener('click', () => {
+            category = name === 'All' ? '' : name;
+            shown = PAGE_SIZE;
+            tabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+            render();
+          });
+          return button;
+        }),
+      );
+      tabs.hidden = false;
+    };
+
+    input.addEventListener('input', () => {
+      shown = PAGE_SIZE;
+      render();
+    });
+    more.querySelector('button')?.addEventListener('click', () => {
+      shown += PAGE_SIZE;
+      render();
+    });
+
+    fetchPosts()
+      .then((data) => {
+        posts = Array.isArray(data) ? data : [];
+        buildTabs();
+        render();
+      })
+      .catch(() => {
+        posts = [];
+        render();
+      });
+  }
+</script>

@@ -1,0 +1,24 @@
+---
+/*
+  Programmes, from Figma Programmes (Desktop 93:2438, Tablet 93:2762,
+  Mobile 93:3078). See src/data/programmes.ts for the content notes.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import ProgrammesIntro from '../components/programmes/ProgrammesIntro.astro';
+import ProgrammeSection from '../components/programmes/ProgrammeSection.astro';
+import OurStandard from '../components/OurStandard.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+import { programmes } from '../data/programmes';
+---
+
+<BaseLayout
+  title="Programmes"
+  description="OMWI’s women’s health programmes bring evidence-based education and compassionate support to women in underserved communities."
+>
+  <PageBanner title="Our Programmes" crumbs={[{ label: 'Programmes' }]} />
+  <ProgrammesIntro />
+  {programmes.map((programme, index) => <ProgrammeSection programme={programme} index={index} />)}
+  <OurStandard />
+  <DonationCallout />
+</BaseLayout>

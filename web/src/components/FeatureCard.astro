@@ -1,0 +1,133 @@
+---
+/*
+  Feature card, from Figma Card/Feature (44:199). Icon tile, title, text and
+  an optional link. With a link, the whole card is clickable (the link
+  stretches over it). The About page uses the cards without links.
+  Hover: plum border, deeper shadow, the icon tile turns plum with a white
+  icon, the link arrow moves.
+
+  The icon SVG is drawn through a CSS mask so its colour can change on hover
+  without editing the file.
+*/
+import type { ImageMetadata } from 'astro';
+import TextLink from './TextLink.astro';
+
+interface Props {
+  icon: ImageMetadata;
+  title: string;
+  text: string;
+  linkLabel?: string;
+  href?: string;
+  /** Direction of the faint plum glow (Figma Fade=Left / Fade=Top). */
+  glow?: 'left' | 'top';
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const { icon, title, text, linkLabel, href, glow = 'left', class: className, ...rest } = Astro.props;
+---
+
+<article class:list={['feature', `feature--${glow}`, className]} data-hover-card {...rest}>
+  <div class="feature__top">
+    <span class="feature__tile" aria-hidden="true">
+      <span class="feature__icon" style={`--icon: url("${icon.src}")`}></span>
+    </span>
+    <div class="feature__body">
+      <h3 class="t-h4">{title}</h3>
+      <p class="t-body feature__text">{text}</p>
+    </div>
+  </div>
+  {
+    href && linkLabel && (
+      <div class="feature__bottom">
+        <TextLink href={href} class="feature__link">
+          {linkLabel}
+        </TextLink>
+      </div>
+    )
+  }
+</article>
+
+<style>
+  .feature {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: var(--space-32);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+  .feature--left {
+    background:
+      linear-gradient(90deg, var(--card-glow) 0%, transparent 75%),
+      var(--bg-surface);
+  }
+  .feature--top {
+    background:
+      linear-gradient(180deg, var(--card-glow) 0%, transparent 75%),
+      var(--bg-surface);
+  }
+
+  .feature__top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+  }
+  .feature__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile);
+    height: var(--size-icon-tile);
+    border-radius: var(--radius-card);
+    background: var(--bg-soft);
+    transition: background-color 200ms ease;
+  }
+  .feature__icon {
+    width: var(--space-28);
+    height: var(--space-28);
+    background: var(--icon-color);
+    -webkit-mask: var(--icon) center / contain no-repeat;
+    mask: var(--icon) center / contain no-repeat;
+    transition: background-color 200ms ease;
+  }
+  .feature__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .feature__text {
+    color: var(--text-muted);
+  }
+  .feature__bottom {
+    padding-top: var(--space-8);
+  }
+
+  /* The link covers the whole card */
+  .feature :global(.feature__link)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-card);
+  }
+
+  .feature:hover,
+  .feature:focus-within {
+    border-color: var(--border-primary);
+    box-shadow: var(--shadow-card-hover);
+  }
+  .feature:hover .feature__tile,
+  .feature:focus-within .feature__tile {
+    background: var(--bg-primary);
+  }
+  .feature:hover .feature__icon,
+  .feature:focus-within .feature__icon {
+    background: var(--icon-color-inverse);
+  }
+</style>

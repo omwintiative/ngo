@@ -1,0 +1,20 @@
+---
+/*
+  Blog, from Figma Blog (Desktop 93:3973, Tablet 93:4207, Mobile 93:4432).
+  Figma note: all six posts, dates and category names are samples; no
+  posts exist yet; categories need client approval.
+*/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import BlogArticles from '../../components/blog/BlogArticles.astro';
+import DonationCallout from '../../components/DonationCallout.astro';
+---
+
+<BaseLayout
+  title="Blog"
+  description="Stories from our work and practical health information for mothers and families."
+>
+  <PageBanner title="Stories and Insights" crumbs={[{ label: 'Blog' }]} />
+  <BlogArticles />
+  <DonationCallout />
+</BaseLayout>

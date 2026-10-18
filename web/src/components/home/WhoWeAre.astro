@@ -1,0 +1,104 @@
+---
+/*
+  Home "Who we are", from Figma Section / Who we are (91:6564).
+  Desktop: framed photo left, text right. Tablet and mobile: stacked.
+*/
+import FramedPhoto from '../FramedPhoto.astro';
+import SectionHeading from '../SectionHeading.astro';
+import Button from '../Button.astro';
+import { paths } from '../../config/navigation';
+import fourWomen from '../../assets/photos/stock-four-women.jpg';
+import healthWorker from '../../assets/photos/stock-health-worker.jpg';
+---
+
+<section class="section who" aria-labelledby="who-title" data-reveal>
+  <div class="who__split">
+    <FramedPhoto
+      main={{
+        src: fourWomen,
+        alt: 'Four smiling women standing together outdoors with their arms around each other',
+        fade: 'left',
+      }}
+      inset={{ src: healthWorker, alt: 'A health worker in a headscarf attending to a woman' }}
+      desktopHeight="var(--size-who-photo-desktop)"
+    />
+
+    <div class="who__text">
+      <SectionHeading
+        id="who-title"
+        eyebrow="Who We Are"
+        title="Standing in the gap for women in underserved communities"
+      />
+      <p class="t-body">
+        The Ọmụgwọ Maternal Welfare Initiative exists to ensure that women regardless of their
+        socio-economic status and geographical location have access to the reproductive healthcare
+        and literacy that they need and deserve.
+      </p>
+      <dl class="who__details">
+        <div>
+          <dt class="t-eyebrow">Our Focus</dt>
+          <dd class="t-body">
+            Reproductive Health Literacy, Menstrual Health Equity, Maternal Health and Wellness
+          </dd>
+        </div>
+        <div>
+          <dt class="t-eyebrow">Our Standard</dt>
+          <dd class="t-body">
+            Person-Centered Interventions. Uncompromising Integrity. True Health Equity.
+          </dd>
+        </div>
+      </dl>
+      <Button href={paths.about} arrow class="who__button">Read Our Story</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .who__split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .who__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+  .who__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  .who__details div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .who__details dt {
+    color: var(--text-accent);
+  }
+  .who__details dd {
+    margin: 0;
+  }
+  .who__button {
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .who__button {
+      width: auto;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .who__split {
+      flex-direction: row;
+      align-items: center;
+    }
+    .who__split > :global(*) {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>

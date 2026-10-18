@@ -1,0 +1,67 @@
+---
+/*
+  "Our standard" (Programmes and Partner / Sponsor), from Figma Section / Our standard (93:2664): a centred
+  H2 and three pillars (icon tile and title). One row on desktop, stacked
+  on tablet and mobile.
+*/
+import user from '../assets/icons/user-plum.svg';
+import shield from '../assets/icons/shield-check-plum-pillar.svg';
+import heart from '../assets/icons/heart-plum-pillar.svg';
+
+const pillars = [
+  { icon: user, title: 'Person-Centered Interventions' },
+  { icon: shield, title: 'Uncompromising Integrity' },
+  { icon: heart, title: 'True Health Equity' },
+];
+---
+
+<section class="section section--tint" aria-labelledby="standard-title" data-reveal>
+  <h2 class="t-h2 standard__title" id="standard-title">Our standard</h2>
+  <ul class="standard__grid">
+    {
+      pillars.map((pillar) => (
+        <li class="pillar">
+          <span class="pillar__tile" aria-hidden="true">
+            <img src={pillar.icon.src} width="28" height="28" alt="" />
+          </span>
+          <span class="t-h4">{pillar.title}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .standard__title {
+    text-align: center;
+  }
+  .standard__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--layout-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .pillar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+  }
+  .pillar__tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile);
+    height: var(--size-icon-tile);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+  }
+  @media (min-width: 1200px) {
+    .standard__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

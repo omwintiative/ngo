@@ -1,0 +1,87 @@
+---
+/*
+  One programme, from Figma Programme / Maternal Health (93:2511) and its
+  siblings. Desktop: text and framed photo side by side, the photo on the
+  right for 01, 03, 05 and on the left for 02, 04; tint background on the
+  odd ones. Tablet and mobile: photo first, then text.
+*/
+import FramedPhoto from '../FramedPhoto.astro';
+import TextLink from '../TextLink.astro';
+import { paths } from '../../config/navigation';
+import type { Programme } from '../../data/programmes';
+
+interface Props {
+  programme: Programme;
+  /** Position in the list, from 0. */
+  index: number;
+}
+
+const { programme: p, index } = Astro.props;
+const photoFirst = index % 2 === 1;
+---
+
+<section
+  class:list={['section', 'programme', index % 2 === 0 && 'section--tint', photoFirst && 'programme--photo-first']}
+  id={p.id}
+  aria-labelledby={`${p.id}-title`}
+  data-reveal
+>
+  <div class="programme__split">
+    <div class="programme__media">
+      <FramedPhoto
+        main={{ src: p.photo, alt: p.photoAlt, fade: p.fade }}
+        badge={p.number}
+        desktopHeight="var(--size-programme-photo-desktop)"
+      />
+    </div>
+    <div class="programme__text">
+      <span class="programme__tile" aria-hidden="true">
+        <img src={p.icon.src} width="28" height="28" alt="" />
+      </span>
+      <h2 class="t-h2" id={`${p.id}-title`}>{p.title}</h2>
+      <p class="t-body programme__body">{p.text}</p>
+      <TextLink href={paths.donate}>Support this programme</TextLink>
+    </div>
+  </div>
+</section>
+
+<style>
+  .programme__split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .programme__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+  .programme__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile);
+    height: var(--size-icon-tile);
+    border-radius: var(--radius-card);
+    background: var(--bg-soft);
+  }
+  .programme__body {
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 1200px) {
+    .programme__split {
+      flex-direction: row-reverse;
+      align-items: center;
+    }
+    .programme--photo-first .programme__split {
+      flex-direction: row;
+    }
+    .programme__media,
+    .programme__text {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>
