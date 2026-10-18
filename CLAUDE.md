@@ -23,6 +23,29 @@ We are rebuilding the site from a new Figma design.
 - Copy comes from the Figma design, or from content Ifeanyi gives you. Do not write new marketing copy. Keep wording plain and human.
 - Keep all OMWI work off Ifeanyi's company (Reliance) accounts.
 - Secrets: never open, print or commit `.env` files, API keys or passwords.
+- After each new page or feature, end the report by reminding Ifeanyi to push: list the files changed and suggest a commit message.
+
+## Engineering standard (build and review)
+
+Senior-level judgment and restraint, for both `web/` and `server/`.
+
+**When building**
+- Choose the simplest design that fully meets the requirement. If two designs are both correct, pick the simpler one.
+- Reuse what exists (`lib/api.ts`, `BaseLayout`, the components, the Express auth middleware, Mongoose models) before adding anything parallel.
+- No speculative features, flags, config or "for later" extensibility. No manager / factory / adapter / wrapper layers.
+- Do not create a helper or component that is used once unless it clearly makes the code easier to read.
+- Keep the number of files and moving parts low; do not split code too finely.
+- Comments only for what is not obvious: a business rule, a security constraint, a lifecycle rule, a subtle decision. Never restate the code.
+- Handle the failure cases that matter (API down, empty data, invalid input, unauthorised user). Validate on the server; never trust the client.
+- `server/` changes: give a short design note first (model changes, endpoints, auth), then build the whole flow end to end, with focused tests. The server has no tests yet: agree the test setup with Ifeanyi before the first API change (Node's built-in `node --test` needs no new package; the database to test against is the open question).
+
+**Before reporting, review your own work as a blocking reviewer**
+- Is it correct (business rules, edge cases, state)? Is it secure (server-side checks, auth scope, secrets, user input)?
+- Is it under-designed, about right, or over-engineered? Could it have been done more directly? Remove what is not needed.
+- Do the checks or tests prove the important behaviour, not just the happy path?
+- Say so plainly in the report, including anything you are unsure about.
+
+**Report format** (keep it short): what was built, files changed, model/API changes, assumptions, how it was checked or tested, known gaps and follow-ups.
 
 ## Design source of truth: Figma
 
@@ -78,8 +101,8 @@ We are rebuilding the site from a new Figma design.
 1. Access to services: done
 2. Frontend approach (Astro): done
 3. Project setup and design tokens: done (commit `3b07533`)
-4. Header, footer, logo, buttons
+4. Header, footer, logo, buttons: done (commit `a02fab7`)
 5. API upgrades: store donations, Paystack verify and webhook, public contributors list, blog fields, contact endpoint, gallery, remove public sign-up
-6. Rebuild the 15 public pages
+6. Rebuild the 15 public pages (in progress, Home first; Ifeanyi asked to build pages before the API work)
 7. Admin: redesigned in Figma (18 Oct 2026); build after the API upgrades
 8. Preview and launch

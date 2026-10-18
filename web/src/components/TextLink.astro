@@ -1,0 +1,39 @@
+---
+/*
+  Text link with an arrow, from Figma Link (44:135), Tone=Default.
+  Hover: the arrow moves away from the label (gap 8 to 14).
+*/
+import arrow from '../assets/icons/arrow-right-plum.svg';
+
+interface Props {
+  href: string;
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const { href, class: className, ...rest } = Astro.props;
+---
+
+<a class:list={['text-link', 't-button', className]} href={href} {...rest}>
+  <slot />
+  <img src={arrow.src} width={arrow.width} height={arrow.height} alt="" />
+</a>
+
+<style>
+  .text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-12) 0;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: gap 200ms ease;
+  }
+  .text-link img {
+    flex: none;
+  }
+  .text-link:hover,
+  :global([data-hover-card]:hover) .text-link {
+    gap: var(--space-14);
+  }
+</style>

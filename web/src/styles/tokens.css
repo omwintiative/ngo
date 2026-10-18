@@ -151,6 +151,79 @@
 
   --shadow-dropdown: 0 16px 40px -8px color-mix(in srgb, var(--plum-950) 16%, transparent);
 
+  /* Home page components (step 6, read 18 Oct 2026): Eyebrow 36:94,
+     Card/Feature 44:199, Card/Post 108:436, Card/Team 108:467,
+     Photo 44:124, Hero slider 86:467, FAQ item 44:252 */
+  --space-7: 7px; /* eyebrow top/bottom padding */
+  --size-eyebrow-dot: 7px;
+  --size-icon-tile: 56px; /* feature card icon tile */
+  --size-photo-hover-icon: 56px; /* round arrow shown on photo hover */
+  --radius-photo-hover-icon: 28px;
+  --border-on-dark-medium: color-mix(in srgb, var(--white) 45%, transparent); /* eyebrow on dark */
+  --border-on-dark-faint: color-mix(in srgb, var(--white) 20%, transparent); /* hero fact card */
+  --bg-on-dark-track: color-mix(in srgb, var(--white) 35%, transparent); /* hero progress bars */
+
+  --shadow-card: 0 18px 44px -6px color-mix(in srgb, var(--plum-500) 14%, transparent);
+  --shadow-card-hover: 0 24px 48px -8px color-mix(in srgb, var(--plum-500) 28%, transparent);
+  --shadow-inset-photo: 0 18px 44px 0 color-mix(in srgb, var(--plum-500) 14%, transparent);
+
+  /* Photo layers: Tint (soft-light brand blend), Fade, Wash (hover) */
+  --photo-tint: linear-gradient(
+    143.3deg,
+    color-mix(in srgb, var(--plum-500) 75%, transparent) 0%,
+    color-mix(in srgb, var(--rust-600) 55%, transparent) 71.43%
+  );
+  --photo-fade-color: color-mix(in srgb, var(--plum-950) 60%, transparent);
+  --photo-wash: color-mix(in srgb, var(--plum-500) 62%, transparent);
+  --callout-fade-color: color-mix(in srgb, var(--plum-950) 85%, transparent); /* donation call-out photo */
+  --card-glow: color-mix(in srgb, var(--plum-500) 12%, transparent); /* feature card gradient */
+
+  /* Hero slider overlays (desktop; mobile uses the flat one) */
+  --hero-tint: linear-gradient(
+    149.3deg,
+    color-mix(in srgb, var(--plum-500) 80%, transparent) 0%,
+    color-mix(in srgb, var(--rust-600) 50%, transparent) 71.43%
+  );
+  --hero-overlay:
+    linear-gradient(180deg, color-mix(in srgb, var(--plum-950) 50%, transparent) 0%, transparent 32%),
+    linear-gradient(90deg, color-mix(in srgb, var(--plum-950) 60%, transparent) 0%, transparent 85%),
+    linear-gradient(color-mix(in srgb, var(--plum-950) 58%, transparent), color-mix(in srgb, var(--plum-950) 58%, transparent));
+  --hero-overlay-mobile: color-mix(in srgb, var(--plum-950) 70%, transparent);
+  --bg-fact-card: color-mix(in srgb, var(--plum-950) 50%, transparent);
+  --blur-fact-card: 10px; /* Figma background blur 20 */
+  --size-fact-card-width: 360px;
+  --size-hero-bar: 56px; /* progress bar length; 32 on mobile */
+  --size-hero-bar-mobile: 32px;
+  --size-hero-bar-height: 3px;
+  --radius-hero-bar: 2px;
+  --size-hero-text-max: 580px;
+  --size-hero-title-max: 720px;
+  --size-watermark: 560px; /* OMWI mark behind the hero; 300 on mobile */
+  --size-watermark-mobile: 300px;
+  --space-40: 40px; /* hero: space above the slide controls (desktop) */
+  --space-56: 56px; /* donation call-out top/bottom padding, mobile */
+  --bg-mission:
+    linear-gradient(90deg, color-mix(in srgb, var(--plum-500) 40%, transparent) 0%, transparent 85%),
+    var(--bg-dark);
+  --border-width-stat: 3px;
+
+  /* Fixed sizes from the Home frames (91:6522 / 91:7024 / 91:7517) */
+  --size-heading-max: 760px; /* centred section heading */
+  --size-faq-intro: 400px; /* FAQ intro column, desktop */
+  --size-answer-max: 800px; /* FAQ answer text */
+  --size-who-photo-tablet: 400px; /* "Who we are" photo height */
+  --size-who-photo-desktop: 480px;
+  --border-width-frame: 2px; /* offset rust frame behind that photo */
+  --size-inset-photo-width: 200px;
+  --size-inset-photo-height: 150px;
+  --size-team-photo-height: 320px;
+  --size-post-photo-height: 220px;
+  --size-strip-height: 300px; /* gallery strip */
+  --size-callout-photo-width: 564px; /* donation call-out, desktop */
+  --size-callout-photo-height: 340px;
+  --size-callout-photo-tablet: 300px; /* square */
+  --size-callout-photo-mobile: 200px; /* height */
+
   /* ---------- Typeface (Brand Guidelines) ---------- */
   --font-sans: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system,
     'Segoe UI', Roboto, Arial, sans-serif;
@@ -203,6 +276,9 @@
   --layout-content-width: 1200px;
   --layout-header-height: 72px;
   --layout-footer-padding-top: 56px;
+  --layout-section-gap: 36px; /* section heading to content */
+  --layout-hero-slider-height: 722px; /* Hero slider component; see note on hero-height above */
+  --layout-hero-padding-top: 128px;
 }
 
 /* Tablet mode */
@@ -232,6 +308,7 @@
     --layout-hero-height: 640px;
     --layout-banner-height: 300px;
     --layout-footer-padding-top: 64px;
+    --layout-section-gap: 48px;
   }
 }
 
@@ -256,5 +333,8 @@
     --layout-banner-height: 340px;
     --layout-header-height: 88px;
     --layout-footer-padding-top: 80px;
+    --layout-section-gap: 56px;
+    --layout-hero-slider-height: 816px;
+    --layout-hero-padding-top: 176px;
   }
 }

@@ -1,0 +1,82 @@
+---
+/*
+  Home "From the field", from Figma Section / From the field (91:6696).
+  Heading, a full-width moving strip of OMWI outreach photos, and a link to
+  the Gallery page.
+*/
+import SectionHeading from '../SectionHeading.astro';
+import GalleryStrip from '../GalleryStrip.astro';
+import Button from '../Button.astro';
+import { paths } from '../../config/navigation';
+import outreach1 from '../../assets/photos/outreach-1.jpg';
+import outreach2 from '../../assets/photos/outreach-2.jpg';
+import outreach3 from '../../assets/photos/outreach-3.jpg';
+import outreach4 from '../../assets/photos/outreach-4.jpg';
+import motherAndChild from '../../assets/photos/mother-and-child.jpg';
+
+// Order and widths as in Figma. The client's own outreach photos.
+const photos = [
+  {
+    src: outreach1,
+    alt: 'Women with babies at an OMWI outreach while a volunteer hands out items',
+    width: 'square',
+  },
+  {
+    src: outreach2,
+    alt: 'Women seated on benches in a large hall during an OMWI outreach',
+    width: 'wide',
+  },
+  {
+    src: outreach4,
+    alt: 'Mothers holding babies, seated along a bench at an outreach',
+    width: 'narrow',
+  },
+  {
+    src: motherAndChild,
+    alt: 'A smiling mother holding her young child, in black and white',
+    width: 'wide',
+  },
+  {
+    src: outreach3,
+    alt: 'A volunteer speaking with mothers and children seated on benches',
+    width: 'square',
+  },
+] as const;
+---
+
+<section class="section field" aria-labelledby="field-title" data-reveal>
+  <SectionHeading
+    id="field-title"
+    eyebrow="From the Field"
+    title="Our work in the community"
+    lead="Photos from OMWI outreaches."
+    align="center"
+  />
+  <GalleryStrip photos={[...photos]} />
+  <div class="field__actions">
+    <Button href={paths.gallery} variant="outline" arrow class="field__button">See All Photos</Button>
+  </div>
+</section>
+
+<style>
+  /* The strip runs edge to edge: no side padding on this section */
+  .field {
+    padding-inline: 0;
+  }
+  .field :global(.section-heading) {
+    padding-inline: var(--layout-page-padding);
+  }
+  .field__actions {
+    display: flex;
+    justify-content: center;
+    padding-inline: var(--layout-page-padding);
+  }
+  .field__actions :global(.field__button) {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .field__actions :global(.field__button) {
+      width: auto;
+    }
+  }
+</style>

@@ -46,6 +46,8 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta name="generator" content={Astro.generator} />
+    <!-- Marks that JavaScript runs, so scroll reveals start hidden only then -->
+    <script is:inline>document.documentElement.classList.add('js');</script>
     <slot name="head" />
   </head>
   <body>
@@ -55,5 +57,44 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
       <slot />
     </main>
     <SiteFooter />
+
+    <script>
+      // Scroll reveal: [data-reveal] elements fade up once as they come into
+      // view. [data-count-to] numbers count up from 0 at the same moment
+      // (Figma Our mission). Reduced motion: shown at once, no counting.
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const items = document.querySelectorAll<HTMLElement>('[data-reveal], [data-count-to]');
+
+      const countUp = (el: HTMLElement) => {
+        const target = Number(el.dataset.countTo);
+        const suffix = el.dataset.countSuffix ?? '';
+        const start = performance.now();
+        const step = (now: number) => {
+          const t = Math.min((now - start) / 1200, 1);
+          const eased = 1 - (1 - t) ** 3;
+          el.textContent = `${Math.round(target * eased).toLocaleString('en-GB')}${t === 1 ? suffix : ''}`;
+          if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      };
+
+      if (reduced || !('IntersectionObserver' in window)) {
+        items.forEach((el) => el.classList.add('is-visible'));
+      } else {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              const el = entry.target as HTMLElement;
+              el.classList.add('is-visible');
+              if (el.dataset.countTo) countUp(el);
+              observer.unobserve(el);
+            });
+          },
+          { rootMargin: '0px 0px -10% 0px' },
+        );
+        items.forEach((el) => observer.observe(el));
+      }
+    </script>
   </body>
 </html>

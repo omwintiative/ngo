@@ -107,6 +107,16 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
 
 export const legalLinks: NavLink[] = [{ label: 'Privacy Policy', href: paths.privacy }];
 
+/**
+  Address of one blog post. Posts come from the API at run time, so the
+  static site uses one page that reads the id from the address.
+  (Decide with the Blog page in step 6: per-post pages would need a rebuild
+  whenever a post is published.)
+*/
+export function postHref(id: string): string {
+  return `${paths.blog}/post?id=${encodeURIComponent(id)}`;
+}
+
 /** True when `href` is the page at `pathname` (ignores a trailing slash). */
 export function isCurrent(href: string, pathname: string): boolean {
   const clean = (p: string) => (p.length > 1 ? p.replace(/\/+$/, '') : p);

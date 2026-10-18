@@ -1,0 +1,45 @@
+---
+/*
+  Eyebrow, from Figma Eyebrow (36:94): a small pill with a rust dot and an
+  uppercase label above a section heading. "on-dark" for dark sections.
+*/
+import dot from '../assets/graphics/eyebrow-dot.svg';
+
+interface Props {
+  tone?: 'default' | 'on-dark';
+  class?: string;
+}
+
+const { tone = 'default', class: className } = Astro.props;
+---
+
+<p class:list={['eyebrow', `eyebrow--${tone}`, className]}>
+  <img src={dot.src} width={dot.width} height={dot.height} alt="" />
+  <span class="t-eyebrow"><slot /></span>
+</p>
+
+<style>
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    width: fit-content;
+    padding: var(--space-7) var(--space-16);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-pill);
+    color: var(--text-primary);
+  }
+  /* One line, as in Figma (the hero's long label runs into the side padding on 390) */
+  .eyebrow span {
+    white-space: nowrap;
+  }
+  .eyebrow img {
+    flex: none;
+    width: var(--size-eyebrow-dot);
+    height: var(--size-eyebrow-dot);
+  }
+  .eyebrow--on-dark {
+    border-color: var(--border-on-dark-medium);
+    color: var(--text-on-dark);
+  }
+</style>

@@ -1,0 +1,82 @@
+---
+/*
+  Home "What we do", from Figma Section / What we do (91:6604).
+  Four feature cards: 1 column on mobile, 2 on tablet, 4 on desktop.
+*/
+import SectionHeading from '../SectionHeading.astro';
+import FeatureCard from '../FeatureCard.astro';
+import { paths } from '../../config/navigation';
+import maternal from '../../assets/icons/feature-maternal.svg';
+import newborn from '../../assets/icons/feature-newborn.svg';
+import menstrual from '../../assets/icons/feature-menstrual.svg';
+import access from '../../assets/icons/feature-access.svg';
+
+// Copy from Figma. All four links go to the Programmes page (Figma prototype).
+const cards = [
+  {
+    icon: maternal,
+    title: 'Maternal Health Literacy',
+    text: 'We bridge traditional wisdom and evidence-based practice through prenatal and postnatal education.',
+    linkLabel: 'About maternal health',
+  },
+  {
+    icon: newborn,
+    title: 'Newborn Care',
+    text: 'We equip mothers and families with practical guidance on caring for a newborn in the first weeks of life.',
+    linkLabel: 'About newborn care',
+  },
+  {
+    icon: menstrual,
+    title: 'Menstrual Health Literacy',
+    text: 'We promote menstrual health literacy and access to period products.',
+    linkLabel: 'About menstrual health',
+  },
+  {
+    icon: access,
+    title: 'Healthcare Access',
+    text: 'We bridge the gap of the lack of access by partnering with local care providers to ensure primary reproductive healthcare is accessible and attainable.',
+    linkLabel: 'About healthcare access',
+  },
+] as const;
+---
+
+<section class="section section--tint" aria-labelledby="what-title">
+  <SectionHeading
+    id="what-title"
+    eyebrow="What We Do"
+    title="We facilitate programmes that promote"
+    align="center"
+    data-reveal
+  />
+  <div class="what__grid">
+    {
+      cards.map((card, i) => (
+        <FeatureCard
+          {...card}
+          href={paths.programmes}
+          glow={i % 2 === 0 ? 'left' : 'top'}
+          data-reveal
+          style={`--reveal-index: ${i}`}
+        />
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .what__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--layout-gap);
+  }
+  @media (min-width: 768px) {
+    .what__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1200px) {
+    .what__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

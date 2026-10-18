@@ -1,0 +1,148 @@
+---
+/*
+  Home FAQ, from Figma Section / FAQ (91:6838) and FAQ item (44:252).
+  Intro on the left (400 wide on desktop), questions on the right; stacked
+  on tablet and mobile. Each question is a native <details>, so it opens
+  with a click, Enter or Space and needs no script. The first starts open,
+  as in Figma.
+*/
+import SectionHeading from '../SectionHeading.astro';
+import TextLink from '../TextLink.astro';
+import { paths } from '../../config/navigation';
+import plus from '../../assets/icons/plus-plum.svg';
+import minus from '../../assets/icons/minus-plum.svg';
+
+// Questions and answers exactly as in Figma.
+const faqs = [
+  {
+    q: 'What is OMWI?',
+    a: 'The Ọmụgwọ Maternal Welfare Initiative exists to ensure that women, regardless of their socio-economic status and geographical location, have access to the reproductive healthcare and literacy that they need and deserve.',
+  },
+  {
+    q: 'What does “ọmụgwọ” mean?',
+    a: 'Ọmụgwọ is a traditional practice of the Igbo people in which a new mother is cared for in the early weeks after birth by her own mother or another woman in her family. That spirit of care is at the heart of our mission.',
+  },
+  {
+    q: 'What programmes does OMWI run?',
+    a: 'We facilitate programmes that promote maternal health literacy, newborn care, menstrual health literacy and access to period products, mental health and wellness, and access to primary reproductive healthcare through local care providers.',
+  },
+  {
+    q: 'How can I volunteer?',
+    a: 'Fill in the volunteer application form on our Join the Movement page. We offer a variety of volunteer roles.',
+  },
+  {
+    q: 'How do I donate?',
+    a: 'Go to the Donate page, choose an amount and pay securely online. Any donation, no matter how big or small, is deeply appreciated.',
+  },
+];
+---
+
+<section class="section" aria-labelledby="faq-title" data-reveal>
+  <div class="faq">
+    <div class="faq__intro">
+      <SectionHeading
+        id="faq-title"
+        eyebrow="FAQ"
+        title="Frequently asked questions"
+        lead="Quick answers about who we are, what we do and how you can take part."
+      />
+      <TextLink href={paths.contact}>Contact us</TextLink>
+    </div>
+
+    <div class="faq__list">
+      {
+        faqs.map((item, i) => (
+          <details class="faq__item" open={i === 0}>
+            <summary class="faq__question">
+              <h3 class="t-h4">{item.q}</h3>
+              <span class="faq__toggle" aria-hidden="true">
+                <img class="faq__plus" src={plus.src} width="22" height="22" alt="" />
+                <img class="faq__minus" src={minus.src} width="22" height="22" alt="" />
+              </span>
+            </summary>
+            <p class="t-body faq__answer">{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .faq__intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+
+  .faq__item {
+    border-bottom: 1px solid var(--border-default);
+  }
+  .faq__question {
+    display: flex;
+    align-items: center;
+    gap: var(--space-24);
+    padding: var(--space-24) 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq__question::-webkit-details-marker {
+    display: none;
+  }
+  .faq__question h3 {
+    flex: 1;
+  }
+  .faq__toggle {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-button);
+    height: var(--size-icon-button);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-button);
+    background: var(--bg-surface);
+    transition: background-color 150ms ease;
+  }
+  .faq__question:hover .faq__toggle {
+    background: var(--bg-soft);
+  }
+  .faq__minus,
+  .faq__item[open] .faq__plus {
+    display: none;
+  }
+  .faq__item[open] .faq__minus {
+    display: block;
+  }
+
+  /* Open: answer 12px under the question */
+  .faq__item[open] .faq__question {
+    padding-bottom: var(--space-12);
+  }
+  .faq__answer {
+    max-width: var(--size-answer-max);
+    padding-bottom: var(--space-24);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 1200px) {
+    .faq {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+    .faq__intro {
+      flex: none;
+      width: var(--size-faq-intro);
+    }
+    .faq__list {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+</style>
