@@ -1,9 +1,10 @@
 /*
-  OMWI team, shown on Home ("Meet the team") and later on About.
+  OMWI team, shown on Home ("Meet the team") and About.
 
-  Only people confirmed in the Figma file are listed. Figma has three more
-  cards reading "Full name / Role": add them here when OMWI supplies the
-  names, roles and portraits.
+  Four cards, as in the Figma design. Only the first person is real: Figma
+  shows the other three as "Full name / Role" placeholders (its note calls
+  them sample content). Replace them with real names, roles and portraits
+  before launch.
 
   `photo`: import a portrait from src/assets/photos and set it here. Without
   one, the card shows the plum placeholder from the Figma design.
@@ -21,4 +22,8 @@ export interface TeamMember {
 export const team: TeamMember[] = [
   // TODO: portrait not supplied yet.
   { name: 'Chiamaka Osuji, BScN, RN', role: 'Founder' },
+  // TODO before launch: Figma placeholders, waiting for real team members.
+  { name: 'Full name', role: 'Role' },
+  { name: 'Full name', role: 'Role' },
+  { name: 'Full name', role: 'Role' },
 ];

@@ -1,8 +1,9 @@
 ---
 /*
-  Framed photo, from the Home "Who we are" and About "Our story" sections:
-  a photo with a rust frame offset 16px right and down, and a small inset
-  photo on a white mat at the bottom right (hidden on mobile, as in Figma).
+  Framed photo: a photo with a rust frame offset 16px right and down.
+  Used by Home "Who we are", About "Our story" and the Programmes sections.
+  Optional: a small inset photo on a white mat at the bottom right (hidden
+  on mobile, as in Figma), or a rust number badge at the top left.
 
   Height: 260/334 ratio on mobile, 400 on tablet, `desktopHeight` on desktop.
 */
@@ -17,12 +18,14 @@ interface PhotoProps {
 
 interface Props {
   main: PhotoProps;
-  inset: PhotoProps;
+  inset?: PhotoProps;
+  /** Number shown on a rust tile at the top left, e.g. "01". */
+  badge?: string;
   /** CSS length for the photo height on desktop, e.g. var(--size-who-photo-desktop). */
   desktopHeight: string;
 }
 
-const { main, inset, desktopHeight } = Astro.props;
+const { main, inset, badge, desktopHeight } = Astro.props;
 ---
 
 <div class="framed" style={`--framed-desktop-height: ${desktopHeight}`}>
@@ -35,9 +38,14 @@ const { main, inset, desktopHeight } = Astro.props;
     widths={[400, 700, 1100]}
     sizes="(min-width: 1200px) 564px, (min-width: 768px) 688px, 100vw"
   />
-  <div class="framed__inset">
-    <Photo class="framed__inset-photo" src={inset.src} alt={inset.alt} fade={inset.fade ?? 'none'} widths={[200, 400]} sizes="200px" />
-  </div>
+  {badge && <span class="framed__badge t-h3" aria-hidden="true">{badge}</span>}
+  {
+    inset && (
+      <div class="framed__inset">
+        <Photo class="framed__inset-photo" src={inset.src} alt={inset.alt} fade={inset.fade ?? 'none'} widths={[200, 400]} sizes="200px" />
+      </div>
+    )
+  }
 </div>
 
 <style>
@@ -54,6 +62,19 @@ const { main, inset, desktopHeight } = Astro.props;
   .framed :global(.framed__photo) {
     position: relative;
     aspect-ratio: 334 / 260;
+  }
+  .framed__badge {
+    position: absolute;
+    top: var(--space-20);
+    left: var(--space-20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-number-badge);
+    height: var(--size-number-badge);
+    border-radius: var(--radius-card);
+    background: var(--bg-accent);
+    color: var(--text-on-dark);
   }
   .framed__inset {
     display: none;

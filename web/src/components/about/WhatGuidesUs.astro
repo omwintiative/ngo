@@ -4,9 +4,8 @@
   A photo with a caption and four principle cards. Photo beside the cards
   on tablet and desktop, above them on mobile.
 
-  Icons: the desktop frame uses the heart on all four cards; the mobile
-  frame gives each card its own icon. The distinct icons are used at every
-  size (to confirm with Ifeanyi).
+  Icons exactly as Figma draws them: a 24px heart on every card on tablet
+  and desktop; each card's own 28px icon on mobile.
 */
 import { Image } from 'astro:assets';
 import SectionHeading from '../SectionHeading.astro';
@@ -68,7 +67,8 @@ const principles = [
         principles.map((item, i) => (
           <li class="principle" data-reveal style={`--reveal-index: ${i}`}>
             <span class="principle__tile" aria-hidden="true">
-              <img src={item.icon.src} width="24" height="24" alt="" />
+              <img class="principle__icon-mobile" src={item.icon.src} width="28" height="28" alt="" />
+              <img class="principle__icon-wide" src={heart.src} width="24" height="24" alt="" />
             </span>
             <h3 class="t-h4">{item.title}</h3>
             <p class="t-body principle__text">{item.text}</p>
@@ -182,6 +182,9 @@ const principles = [
   .principle__text {
     color: var(--text-muted);
   }
+  .principle__icon-wide {
+    display: none;
+  }
 
   @media (min-width: 768px) {
     .guides {
@@ -209,6 +212,12 @@ const principles = [
     .guides__stack {
       flex: 1;
       min-width: 0;
+    }
+    .principle__icon-mobile {
+      display: none;
+    }
+    .principle__icon-wide {
+      display: block;
     }
   }
 

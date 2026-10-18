@@ -1,8 +1,7 @@
 ---
 /*
-  Home hero, from Figma Hero slider (86:467): three slides, changed with the
-  arrow buttons. Figma "Read me": the arrows change the slide. It does not
-  move on its own.
+  Home hero, from Figma Hero slider (86:467): three slides. Moves on every
+  8 seconds (Ifeanyi, 18 Oct 2026) and with the arrow buttons.
 
   Desktop (1200px+): 816 tall, fact card on the right.
   Tablet and mobile: 722 tall, no fact card (Figma "Device=Mobile").
@@ -85,7 +84,7 @@ const total = String(slides.length).padStart(2, '0');
     <img class="hero__watermark" src={watermark.src} width={watermark.width} height={watermark.height} alt="" />
   </div>
 
-  <div class="hero__stage" id="hero-slides" aria-live="polite" data-hero-stage>
+  <div class="hero__stage" id="hero-slides" aria-live="off" data-hero-stage>
     {
       slides.map((slide, i) => (
         <div
@@ -405,7 +404,35 @@ const total = String(slides.length).padStart(2, '0');
       if (count) count.textContent = String(current + 1).padStart(2, '0');
     };
 
-    hero.querySelector('[data-hero-prev]')?.addEventListener('click', () => show(current - 1));
-    hero.querySelector('[data-hero-next]')?.addEventListener('click', () => show(current + 1));
+    // Autoplay every 8s (the length of Figma's slide animation). Pauses while
+    // the pointer or keyboard focus is in the hero or the tab is hidden; off
+    // for reduced motion. The arrows restart the timer.
+    const INTERVAL_MS = 8000;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let paused = false;
+    let timer: number | undefined;
+    const restart = () => {
+      window.clearInterval(timer);
+      timer = window.setInterval(() => {
+        if (!paused && !document.hidden && !reduced.matches) show(current + 1);
+      }, INTERVAL_MS);
+    };
+    hero.addEventListener('mouseenter', () => (paused = true));
+    hero.addEventListener('mouseleave', () => (paused = false));
+    hero.addEventListener('focusin', () => (paused = true));
+    hero.addEventListener('focusout', (event) => {
+      if (!hero.contains(event.relatedTarget as Node | null)) paused = false;
+    });
+
+    // Screen readers announce slides changed with the arrows, not autoplay.
+    const stage = hero.querySelector('[data-hero-stage]');
+    const go = (delta: number) => {
+      stage?.setAttribute('aria-live', 'polite');
+      show(current + delta);
+      restart();
+    };
+    hero.querySelector('[data-hero-prev]')?.addEventListener('click', () => go(-1));
+    hero.querySelector('[data-hero-next]')?.addEventListener('click', () => go(1));
+    restart();
   }
 </script>

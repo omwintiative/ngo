@@ -1,0 +1,119 @@
+---
+/*
+  Programmes intro, from Figma Section / Programmes intro (93:2452):
+  heading and text, plus an index card that links down to each programme.
+  Side by side on desktop, stacked on tablet and mobile.
+*/
+import SectionHeading from '../SectionHeading.astro';
+import { programmes } from '../../data/programmes';
+import arrow from '../../assets/icons/arrow-right-plum-20.svg';
+---
+
+<section class="section" aria-labelledby="programmes-title" data-reveal>
+  <div class="intro">
+    <div class="intro__text">
+      <SectionHeading id="programmes-title" eyebrow="What We Do" title="Five areas of work" />
+      <p class="t-body intro__lead">
+        OMWI’s women’s health programmes bring evidence-based education and compassionate support to
+        women in underserved communities.
+      </p>
+    </div>
+
+    <nav class="index" aria-label="Programmes on this page">
+      <ol>
+        {
+          programmes.map((p) => (
+            <li>
+              <a class="index__row" href={`#${p.id}`}>
+                <span class="t-h4 index__number">{p.number}</span>
+                <span class="index__tile" aria-hidden="true">
+                  <img src={p.icon.src} width="24" height="24" alt="" />
+                </span>
+                <span class="t-h4 index__title">{p.title}</span>
+                <img class="index__arrow" src={arrow.src} width={arrow.width} height={arrow.height} alt="" />
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+  </div>
+</section>
+
+<style>
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .intro__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-20);
+  }
+  .intro__lead {
+    color: var(--text-muted);
+  }
+
+  .index {
+    padding: var(--space-8) var(--space-24);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-card);
+  }
+  .index ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .index li + li {
+    border-top: 1px solid var(--border-default);
+  }
+  .index__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-14) 0;
+    color: var(--text-default);
+    text-decoration: none;
+  }
+  .index__number {
+    color: var(--text-accent);
+  }
+  .index__tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile-small);
+    height: var(--size-icon-tile-small);
+    border-radius: var(--radius-card);
+    background: var(--bg-soft);
+  }
+  .index__title {
+    flex: 1;
+    min-width: 0;
+  }
+  .index__arrow {
+    flex: none;
+    transition: transform 200ms ease;
+  }
+  .index__row:hover .index__title {
+    color: var(--text-primary);
+  }
+  .index__row:hover .index__arrow {
+    transform: translateX(var(--space-6));
+  }
+
+  @media (min-width: 1200px) {
+    .intro {
+      flex-direction: row;
+      align-items: center;
+    }
+    .intro > * {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>

@@ -29,9 +29,12 @@ const { tone = 'default', class: className } = Astro.props;
     border-radius: var(--radius-pill);
     color: var(--text-primary);
   }
-  /* One line, as in Figma (the hero's long label runs into the side padding on 390) */
-  .eyebrow span {
-    white-space: nowrap;
+  /* One line, as in Figma (the hero's long label runs into the side padding
+     on 390). On phones narrower than that it may wrap instead of being cut. */
+  @media (min-width: 375px) {
+    .eyebrow span {
+      white-space: nowrap;
+    }
   }
   .eyebrow img {
     flex: none;

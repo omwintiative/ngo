@@ -87,23 +87,27 @@ const { photos } = Astro.props;
     strip.addEventListener('focusin', pause);
     strip.addEventListener('focusout', resume);
 
-    // Move left by one photo, then put that photo at the end of the row.
+    // Move left by one photo (Figma: 0.7s ease-in-out every 2.5s), then put
+    // that photo at the end of the row. The photos' own hover transitions
+    // bubble up to the track, so only the track's transform ends the step.
+    let moving = false;
     const step = () => {
-      if (paused || document.hidden || reduced.matches) return;
+      if (moving || paused || document.hidden || reduced.matches) return;
       const first = track.firstElementChild as HTMLElement | null;
       if (!first) return;
       const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-      track.style.transition = `transform ${MOVE_MS}ms ease`;
+      moving = true;
+      track.style.transition = `transform ${MOVE_MS}ms ease-in-out`;
       track.style.transform = `translateX(${-(first.offsetWidth + gap)}px)`;
-      track.addEventListener(
-        'transitionend',
-        () => {
-          track.style.transition = 'none';
-          track.append(first);
-          track.style.transform = 'none';
-        },
-        { once: true },
-      );
+      const done = (event: TransitionEvent) => {
+        if (event.target !== track || event.propertyName !== 'transform') return;
+        track.removeEventListener('transitionend', done);
+        track.style.transition = 'none';
+        track.append(first);
+        track.style.transform = 'none';
+        moving = false;
+      };
+      track.addEventListener('transitionend', done);
     };
 
     setInterval(step, STEP_MS);

@@ -233,6 +233,10 @@
   --size-guides-media-height-tablet: 560px;
   --size-guides-media-height-mobile: 420px;
   --size-banner-watermark: 360px;
+
+  /* Programmes page (93:2438 / 93:2762 / 93:3078) */
+  --size-programme-photo-desktop: 420px; /* framed photo height */
+  --size-number-badge: 64px; /* "01" tile on the photo */
   --shadow-principle: 0 8px 24px color-mix(in srgb, var(--plum-950) 8%, transparent);
   --shadow-caption: 0 8px 24px rgb(0 0 0 / 0.1);
   --media-fade-color: rgb(0 0 0 / 0.7); /* bottom fade on the "What guides us" photo */
