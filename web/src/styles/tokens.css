@@ -248,6 +248,12 @@
   --size-article-photo-height-desktop: 420px;
   --border-width-tab: 3px; /* active category tab underline */
 
+  /* Contact (94:5017), Input (45:187), Message sent overlay (110:11111) */
+  --size-textarea-height: 140px;
+  --border-width-error: 2px; /* field in error */
+  --size-overlay-width: 480px; /* 350 on mobile */
+  --shadow-overlay: 0 24px 64px color-mix(in srgb, var(--plum-950) 35%, transparent);
+
   /* Gallery page (93:3395) and lightbox (211:7675 / 211:7725) */
   --size-gallery-photo-height: 128px; /* 248 tablet, 288 desktop */
   --size-gallery-photo-height-tablet: 248px;

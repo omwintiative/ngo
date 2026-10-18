@@ -1,0 +1,58 @@
+---
+/*
+  Contact Us, from Figma Contact (Desktop 94:5017, Tablet 94:5225, Mobile
+  94:5423). Figma note: no map until the client gives a full address; no
+  social links until the client supplies them.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import ContactSection from '../components/contact/ContactSection.astro';
+import Faq from '../components/Faq.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+
+// Contact FAQ, exactly as in Figma (94:5096).
+const faqs = [
+  {
+    q: 'What is OMWI?',
+    a: 'The Ọmụgwọ Maternal Welfare Initiative exists to ensure that women, regardless of their socio-economic status and geographical location, have access to the reproductive healthcare and literacy that they need and deserve.',
+  },
+  {
+    q: 'What does “ọmụgwọ” mean?',
+    a: 'Ọmụgwọ is a traditional practice of the Igbo people in which a new mother is cared for in the early weeks after birth by her own mother or another woman in her family. That spirit of care is at the heart of our mission.',
+  },
+  {
+    q: 'What programmes does OMWI run?',
+    a: 'We facilitate programmes that promote maternal health literacy, newborn care, menstrual health literacy and access to period products, mental health and wellness, and access to primary reproductive healthcare through local care providers.',
+  },
+  {
+    q: 'Who does OMWI serve?',
+    a: 'Women in underserved communities who lack access to reproductive healthcare and health education.',
+  },
+  {
+    q: 'How can I volunteer?',
+    a: 'Fill in the volunteer application form on our Join the Movement page. We offer a variety of volunteer roles.',
+  },
+  {
+    q: 'How can my organisation partner with or sponsor OMWI?',
+    a: 'Fill out the brief interest form on our Partner / Sponsor page and we will explore how we can work together.',
+  },
+  {
+    q: 'How do I donate?',
+    a: 'Go to the Donate page, choose an amount and pay securely online. Any donation, no matter how big or small, is deeply appreciated.',
+  },
+  {
+    q: 'How can I contact OMWI?',
+    a: 'Call +234 905 684 9780 or email info@omwinitiative.org. You can also send a message from the Contact page.',
+  },
+];
+---
+
+<BaseLayout
+  title="Contact Us"
+  description="We want to hear from you. Send us a message and someone from our team will get back to you."
+>
+  <PageBanner title="Contact Us" crumbs={[{ label: 'Contact' }]} />
+  <ContactSection />
+  <Faq lead="Answers to the questions we hear most." items={faqs} />
+  <DonationCallout />
+</BaseLayout>

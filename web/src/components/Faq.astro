@@ -1,57 +1,36 @@
 ---
 /*
-  Home FAQ, from Figma Section / FAQ (91:6838) and FAQ item (44:252).
-  Intro on the left (400 wide on desktop), questions on the right; stacked
-  on tablet and mobile. Each question is a native <details>, so it opens
-  with a click, Enter or Space and needs no script. The first starts open,
-  as in Figma.
+  FAQ section, from Figma Section / FAQ (Home 91:6838, Contact 94:5096) and
+  FAQ item (44:252). Intro on the left (400 wide on desktop), questions on
+  the right; stacked on tablet and mobile. Each question is a native
+  <details>, so it opens with a click, Enter or Space and needs no script.
+  The first starts open, as in Figma.
 */
-import SectionHeading from '../SectionHeading.astro';
-import TextLink from '../TextLink.astro';
-import { paths } from '../../config/navigation';
-import plus from '../../assets/icons/plus-plum.svg';
-import minus from '../../assets/icons/minus-plum.svg';
+import SectionHeading from './SectionHeading.astro';
+import TextLink from './TextLink.astro';
+import plus from '../assets/icons/plus-plum.svg';
+import minus from '../assets/icons/minus-plum.svg';
 
-// Questions and answers exactly as in Figma.
-const faqs = [
-  {
-    q: 'What is OMWI?',
-    a: 'The Ọmụgwọ Maternal Welfare Initiative exists to ensure that women, regardless of their socio-economic status and geographical location, have access to the reproductive healthcare and literacy that they need and deserve.',
-  },
-  {
-    q: 'What does “ọmụgwọ” mean?',
-    a: 'Ọmụgwọ is a traditional practice of the Igbo people in which a new mother is cared for in the early weeks after birth by her own mother or another woman in her family. That spirit of care is at the heart of our mission.',
-  },
-  {
-    q: 'What programmes does OMWI run?',
-    a: 'We facilitate programmes that promote maternal health literacy, newborn care, menstrual health literacy and access to period products, mental health and wellness, and access to primary reproductive healthcare through local care providers.',
-  },
-  {
-    q: 'How can I volunteer?',
-    a: 'Fill in the volunteer application form on our Join the Movement page. We offer a variety of volunteer roles.',
-  },
-  {
-    q: 'How do I donate?',
-    a: 'Go to the Donate page, choose an amount and pay securely online. Any donation, no matter how big or small, is deeply appreciated.',
-  },
-];
+interface Props {
+  lead: string;
+  items: { q: string; a: string }[];
+  /** Optional link under the intro (Home has "Contact us"). */
+  link?: { label: string; href: string };
+}
+
+const { lead, items, link } = Astro.props;
 ---
 
 <section class="section" aria-labelledby="faq-title" data-reveal>
   <div class="faq">
     <div class="faq__intro">
-      <SectionHeading
-        id="faq-title"
-        eyebrow="FAQ"
-        title="Frequently asked questions"
-        lead="Quick answers about who we are, what we do and how you can take part."
-      />
-      <TextLink href={paths.contact}>Contact us</TextLink>
+      <SectionHeading id="faq-title" eyebrow="FAQ" title="Frequently asked questions" lead={lead} />
+      {link && <TextLink href={link.href}>{link.label}</TextLink>}
     </div>
 
     <div class="faq__list">
       {
-        faqs.map((item, i) => (
+        items.map((item, i) => (
           <details class="faq__item" open={i === 0}>
             <summary class="faq__question">
               <h3 class="t-h4">{item.q}</h3>
