@@ -1,0 +1,43 @@
+---
+/*
+  The OMWI logo lockup, from Figma Logo/Colour (2:14) and Logo/On dark (2:2).
+  The SVGs are the official vectors exported from Figma, unchanged.
+
+  Drawn at 129 × 48. To show it smaller, set the width on the `class` you pass
+  in (the height follows).
+*/
+import colour from '../assets/logo/omwi-colour.svg';
+import onDark from '../assets/logo/omwi-on-dark.svg';
+
+interface Props {
+  /** "colour" for light backgrounds, "on-dark" for dark ones. */
+  variant?: 'colour' | 'on-dark';
+  /** Alt text. Use alt="" only when the name is given next to the logo. */
+  alt?: string;
+  class?: string;
+}
+
+const {
+  variant = 'colour',
+  alt = 'Ọmụgwọ Maternal Welfare Initiative',
+  class: className,
+  ...rest
+} = Astro.props;
+const svg = variant === 'on-dark' ? onDark : colour;
+---
+
+<img
+  class:list={['logo', className]}
+  src={svg.src}
+  width={svg.width}
+  height={svg.height}
+  alt={alt}
+  {...rest}
+/>
+
+<style>
+  .logo {
+    display: block;
+    height: auto;
+  }
+</style>
