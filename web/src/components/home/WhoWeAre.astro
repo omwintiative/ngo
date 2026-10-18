@@ -1,10 +1,9 @@
 ---
 /*
   Home "Who we are", from Figma Section / Who we are (91:6564).
-  Desktop: framed photo left, text right. Tablet and mobile: stacked; the
-  small inset photo is hidden on mobile (as in Figma).
+  Desktop: framed photo left, text right. Tablet and mobile: stacked.
 */
-import Photo from '../Photo.astro';
+import FramedPhoto from '../FramedPhoto.astro';
 import SectionHeading from '../SectionHeading.astro';
 import Button from '../Button.astro';
 import { paths } from '../../config/navigation';
@@ -14,26 +13,15 @@ import healthWorker from '../../assets/photos/stock-health-worker.jpg';
 
 <section class="section who" aria-labelledby="who-title" data-reveal>
   <div class="who__split">
-    <div class="who__media">
-      <span class="who__frame" aria-hidden="true"></span>
-      <Photo
-        class="who__photo"
-        src={fourWomen}
-        alt="Four smiling women standing together outdoors with their arms around each other"
-        fade="left"
-        widths={[400, 700, 1100]}
-        sizes="(min-width: 1200px) 564px, (min-width: 768px) 688px, 100vw"
-      />
-      <div class="who__inset">
-        <Photo
-          class="who__inset-photo"
-          src={healthWorker}
-          alt="A health worker in a headscarf attending to a woman"
-          widths={[200, 400]}
-          sizes="200px"
-        />
-      </div>
-    </div>
+    <FramedPhoto
+      main={{
+        src: fourWomen,
+        alt: 'Four smiling women standing together outdoors with their arms around each other',
+        fade: 'left',
+      }}
+      inset={{ src: healthWorker, alt: 'A health worker in a headscarf attending to a woman' }}
+      desktopHeight="var(--size-who-photo-desktop)"
+    />
 
     <div class="who__text">
       <SectionHeading
@@ -71,26 +59,6 @@ import healthWorker from '../../assets/photos/stock-health-worker.jpg';
     flex-direction: column;
     gap: var(--layout-split-gap);
   }
-
-  /* Photo with an offset rust frame: frame 16px right and down */
-  .who__media {
-    position: relative;
-    padding: 0 var(--space-16) var(--space-16) 0;
-  }
-  .who__frame {
-    position: absolute;
-    inset: var(--space-16) 0 0 var(--space-16);
-    border: var(--border-width-frame) solid var(--bg-accent);
-    border-radius: var(--radius-card);
-  }
-  .who__photo {
-    position: relative;
-    aspect-ratio: 334 / 260;
-  }
-  .who__inset {
-    display: none;
-  }
-
   .who__text {
     display: flex;
     flex-direction: column;
@@ -118,24 +86,6 @@ import healthWorker from '../../assets/photos/stock-health-worker.jpg';
   }
 
   @media (min-width: 768px) {
-    .who__photo {
-      aspect-ratio: auto;
-      height: var(--size-who-photo-tablet);
-    }
-    .who__inset {
-      position: absolute;
-      right: 0;
-      bottom: calc(-1 * var(--space-12));
-      display: block;
-      padding: var(--space-6);
-      border-radius: var(--radius-card);
-      background: var(--bg-surface);
-      box-shadow: var(--shadow-inset-photo);
-    }
-    .who__inset-photo {
-      width: var(--size-inset-photo-width);
-      height: var(--size-inset-photo-height);
-    }
     .who__button {
       width: auto;
     }
@@ -146,13 +96,9 @@ import healthWorker from '../../assets/photos/stock-health-worker.jpg';
       flex-direction: row;
       align-items: center;
     }
-    .who__media,
-    .who__text {
+    .who__split > :global(*) {
       flex: 1 1 0;
       min-width: 0;
-    }
-    .who__photo {
-      height: var(--size-who-photo-desktop);
     }
   }
 </style>

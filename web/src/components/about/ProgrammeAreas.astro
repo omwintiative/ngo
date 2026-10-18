@@ -1,0 +1,81 @@
+---
+/*
+  About "Our programme areas", from Figma Section / What we do (93:1618).
+  Four feature cards without links, then one button to the Programmes page.
+  Figma note: the Newborn Care text is waiting for client approval.
+*/
+import SectionHeading from '../SectionHeading.astro';
+import FeatureCard from '../FeatureCard.astro';
+import Button from '../Button.astro';
+import { paths } from '../../config/navigation';
+import maternal from '../../assets/icons/feature-maternal.svg';
+import menstrual from '../../assets/icons/feature-menstrual.svg';
+import newborn from '../../assets/icons/feature-newborn.svg';
+import mental from '../../assets/icons/feature-mental.svg';
+
+// Copy as in Figma.
+const areas = [
+  {
+    icon: maternal,
+    title: 'Maternal Health',
+    text: 'Bridging traditional wisdom with evidence-based educational material and workshops to support prenatal and postnatal holistic care.',
+  },
+  {
+    icon: menstrual,
+    title: 'Menstrual Health',
+    text: 'Delivering essential health literacy for menstrual health and menopausal transitions with dignity and informed support.',
+  },
+  {
+    icon: newborn,
+    title: 'Newborn Care',
+    text: 'Practical guidance for mothers and families on caring for a newborn in the first weeks of life.',
+  },
+  {
+    icon: mental,
+    title: 'Mental Health and Wellness',
+    text: 'Creating space for maternal mental health resources and holistic wellness.',
+  },
+];
+---
+
+<section class="section" aria-labelledby="areas-title">
+  <SectionHeading id="areas-title" eyebrow="What We Do" title="Our programme areas" align="center" data-reveal />
+  <div class="areas__grid">
+    {
+      areas.map((area, i) => (
+        <FeatureCard {...area} glow={i % 2 === 0 ? 'left' : 'top'} data-reveal style={`--reveal-index: ${i}`} />
+      ))
+    }
+  </div>
+  <div class="areas__actions">
+    <Button href={paths.programmes} arrow class="areas__button">Explore Our Programmes</Button>
+  </div>
+</section>
+
+<style>
+  .areas__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--layout-gap);
+  }
+  .areas__actions {
+    display: flex;
+    justify-content: center;
+  }
+  .areas__actions :global(.areas__button) {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .areas__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .areas__actions :global(.areas__button) {
+      width: auto;
+    }
+  }
+  @media (min-width: 1200px) {
+    .areas__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

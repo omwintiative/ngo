@@ -1,0 +1,88 @@
+---
+/*
+  Framed photo, from the Home "Who we are" and About "Our story" sections:
+  a photo with a rust frame offset 16px right and down, and a small inset
+  photo on a white mat at the bottom right (hidden on mobile, as in Figma).
+
+  Height: 260/334 ratio on mobile, 400 on tablet, `desktopHeight` on desktop.
+*/
+import type { ImageMetadata } from 'astro';
+import Photo from './Photo.astro';
+
+interface PhotoProps {
+  src: ImageMetadata;
+  alt: string;
+  fade?: 'left' | 'top' | 'bottom' | 'none';
+}
+
+interface Props {
+  main: PhotoProps;
+  inset: PhotoProps;
+  /** CSS length for the photo height on desktop, e.g. var(--size-who-photo-desktop). */
+  desktopHeight: string;
+}
+
+const { main, inset, desktopHeight } = Astro.props;
+---
+
+<div class="framed" style={`--framed-desktop-height: ${desktopHeight}`}>
+  <span class="framed__frame" aria-hidden="true"></span>
+  <Photo
+    class="framed__photo"
+    src={main.src}
+    alt={main.alt}
+    fade={main.fade ?? 'none'}
+    widths={[400, 700, 1100]}
+    sizes="(min-width: 1200px) 564px, (min-width: 768px) 688px, 100vw"
+  />
+  <div class="framed__inset">
+    <Photo class="framed__inset-photo" src={inset.src} alt={inset.alt} fade={inset.fade ?? 'none'} widths={[200, 400]} sizes="200px" />
+  </div>
+</div>
+
+<style>
+  .framed {
+    position: relative;
+    padding: 0 var(--space-16) var(--space-16) 0;
+  }
+  .framed__frame {
+    position: absolute;
+    inset: var(--space-16) 0 0 var(--space-16);
+    border: var(--border-width-frame) solid var(--bg-accent);
+    border-radius: var(--radius-card);
+  }
+  .framed :global(.framed__photo) {
+    position: relative;
+    aspect-ratio: 334 / 260;
+  }
+  .framed__inset {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .framed :global(.framed__photo) {
+      aspect-ratio: auto;
+      height: var(--size-who-photo-tablet);
+    }
+    .framed__inset {
+      position: absolute;
+      right: 0;
+      bottom: calc(-1 * var(--space-12));
+      display: block;
+      padding: var(--space-6);
+      border-radius: var(--radius-card);
+      background: var(--bg-surface);
+      box-shadow: var(--shadow-inset-photo);
+    }
+    .framed :global(.framed__inset-photo) {
+      width: var(--size-inset-photo-width);
+      height: var(--size-inset-photo-height);
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .framed :global(.framed__photo) {
+      height: var(--framed-desktop-height);
+    }
+  }
+</style>

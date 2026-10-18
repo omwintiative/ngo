@@ -224,6 +224,36 @@
   --size-callout-photo-tablet: 300px; /* square */
   --size-callout-photo-mobile: 200px; /* height */
 
+  /* About page (93:1503 / 93:1823 / 93:2132) and Page banner (37:165) */
+  --size-story-photo-desktop: 600px; /* "Our story" framed photo height */
+  --size-icon-tile-small: 48px; /* principle card icon tile */
+  --size-guides-media-width: 560px; /* "What guides us" photo, desktop; 360 tablet */
+  --size-guides-media-width-tablet: 360px;
+  --size-guides-media-height: 760px; /* 560 tablet, 420 mobile */
+  --size-guides-media-height-tablet: 560px;
+  --size-guides-media-height-mobile: 420px;
+  --size-banner-watermark: 360px;
+  --shadow-principle: 0 8px 24px color-mix(in srgb, var(--plum-950) 8%, transparent);
+  --shadow-caption: 0 8px 24px rgb(0 0 0 / 0.1);
+  --media-fade-color: rgb(0 0 0 / 0.7); /* bottom fade on the "What guides us" photo */
+  --bg-caption: color-mix(in srgb, var(--white) 90%, transparent);
+  --banner-tint: linear-gradient(
+    166.7deg,
+    color-mix(in srgb, var(--plum-500) 80%, transparent) 0%,
+    color-mix(in srgb, var(--rust-600) 50%, transparent) 71.43%
+  );
+  /* Read me: 82% behind banner titles on desktop and tablet, 78% on mobile */
+  --banner-overlay-strength: 78%;
+  --banner-overlay:
+    linear-gradient(180deg, color-mix(in srgb, var(--plum-950) 50%, transparent) 0%, transparent 32%),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--plum-950) 42%, transparent) 0%,
+      color-mix(in srgb, var(--plum-950) var(--banner-overlay-strength), transparent) 30%,
+      color-mix(in srgb, var(--plum-950) var(--banner-overlay-strength), transparent) 70%,
+      color-mix(in srgb, var(--plum-950) 42%, transparent) 100%
+    );
+
   /* ---------- Typeface (Brand Guidelines) ---------- */
   --font-sans: 'Montserrat Variable', 'Montserrat', system-ui, -apple-system,
     'Segoe UI', Roboto, Arial, sans-serif;
@@ -279,6 +309,7 @@
   --layout-section-gap: 36px; /* section heading to content */
   --layout-hero-slider-height: 722px; /* Hero slider component; see note on hero-height above */
   --layout-hero-padding-top: 128px;
+  --layout-banner-padding-top: 104px; /* Page banner: below the fixed header */
 }
 
 /* Tablet mode */
@@ -309,6 +340,7 @@
     --layout-banner-height: 300px;
     --layout-footer-padding-top: 64px;
     --layout-section-gap: 48px;
+    --banner-overlay-strength: 82%;
   }
 }
 

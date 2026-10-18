@@ -1,7 +1,8 @@
 ---
 /*
   Feature card, from Figma Card/Feature (44:199). Icon tile, title, text and
-  a link. The whole card is clickable (the link stretches over it).
+  an optional link. With a link, the whole card is clickable (the link
+  stretches over it). The About page uses the cards without links.
   Hover: plum border, deeper shadow, the icon tile turns plum with a white
   icon, the link arrow moves.
 
@@ -15,8 +16,8 @@ interface Props {
   icon: ImageMetadata;
   title: string;
   text: string;
-  linkLabel: string;
-  href: string;
+  linkLabel?: string;
+  href?: string;
   /** Direction of the faint plum glow (Figma Fade=Left / Fade=Top). */
   glow?: 'left' | 'top';
   class?: string;
@@ -36,9 +37,15 @@ const { icon, title, text, linkLabel, href, glow = 'left', class: className, ...
       <p class="t-body feature__text">{text}</p>
     </div>
   </div>
-  <div class="feature__bottom">
-    <TextLink href={href} class="feature__link">{linkLabel}</TextLink>
-  </div>
+  {
+    href && linkLabel && (
+      <div class="feature__bottom">
+        <TextLink href={href} class="feature__link">
+          {linkLabel}
+        </TextLink>
+      </div>
+    )
+  }
 </article>
 
 <style>

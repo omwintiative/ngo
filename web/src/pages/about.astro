@@ -1,0 +1,26 @@
+---
+/*
+  About, from Figma About (Desktop 93:1503, Tablet 93:1823, Mobile 93:2132).
+  Figma note: three of the four team cards are sample content; the Our
+  Story edits and the Newborn Care text are waiting for client approval.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import OurStory from '../components/about/OurStory.astro';
+import WhatGuidesUs from '../components/about/WhatGuidesUs.astro';
+import ProgrammeAreas from '../components/about/ProgrammeAreas.astro';
+import OurTeam from '../components/OurTeam.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+---
+
+<BaseLayout
+  title="About Us"
+  description="How the Ọmụgwọ Maternal Welfare Initiative began, what guides us, our programme areas and our team."
+>
+  <PageBanner title="Our Story" crumbs={[{ label: 'About Us' }]} />
+  <OurStory />
+  <WhatGuidesUs />
+  <ProgrammeAreas />
+  <OurTeam />
+  <DonationCallout />
+</BaseLayout>
