@@ -69,9 +69,11 @@ const getInvolvedLinks: NavLink[] = [
   { label: 'Partner / Sponsor', href: paths.partner },
 ];
 
-/** Header links, in Figma order. */
+/**
+  Header links, in Figma order. "Home" is left out on purpose (Ifeanyi,
+  18 Oct 2026): the logo already links to the home page.
+*/
 export const mainNav: NavItem[] = [
-  { label: 'Home', href: paths.home },
   { label: 'About Us', href: paths.about },
   { label: 'Programmes', href: paths.programmes },
   { label: 'Gallery', href: paths.gallery },

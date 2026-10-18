@@ -1,0 +1,92 @@
+---
+/*
+  Framed photo beside text with one button to an outside form, from Figma
+  Section / Volunteer (94:4219) and Section / Partner (94:4633).
+  Desktop: side by side (`photoSide` picks the side). Tablet and mobile:
+  photo first, then text; the button is full width on mobile.
+  The form opens in a new tab, as the note under the button says.
+*/
+import type { ImageMetadata } from 'astro';
+import FramedPhoto from './FramedPhoto.astro';
+import SectionHeading from './SectionHeading.astro';
+import Button from './Button.astro';
+
+interface PhotoProps {
+  src: ImageMetadata;
+  alt: string;
+  fade?: 'left' | 'top' | 'bottom' | 'none';
+}
+
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  text: string;
+  buttonLabel: string;
+  href: string;
+  /** Short line under the button, e.g. "Opens our application form in a new tab." */
+  note: string;
+  main: PhotoProps;
+  inset?: PhotoProps;
+  photoSide?: 'left' | 'right';
+}
+
+const { id, eyebrow, title, text, buttonLabel, href, note, main, inset, photoSide = 'right' } = Astro.props;
+---
+
+<section class="section" aria-labelledby={`${id}-title`} data-reveal>
+  <div class:list={['split', photoSide === 'left' && 'split--photo-left']}>
+    <div class="split__media">
+      <FramedPhoto main={main} inset={inset} desktopHeight="var(--size-who-photo-desktop)" />
+    </div>
+    <div class="split__text">
+      <SectionHeading id={`${id}-title`} eyebrow={eyebrow} title={title} />
+      <p class="t-body split__body">{text}</p>
+      <Button href={href} arrow target="_blank" rel="noopener" aria-describedby={`${id}-note`} class="split__button">
+        {buttonLabel}
+      </Button>
+      <p class="t-body-small split__note" id={`${id}-note`}>{note}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .split {
+    display: flex;
+    flex-direction: column;
+    gap: var(--layout-split-gap);
+  }
+  .split__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-20);
+  }
+  .split__body,
+  .split__note {
+    color: var(--text-muted);
+  }
+  .split__text :global(.split__button) {
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .split__text :global(.split__button) {
+      width: auto;
+    }
+  }
+  @media (min-width: 1200px) {
+    .split {
+      flex-direction: row-reverse;
+      align-items: center;
+    }
+    .split--photo-left {
+      flex-direction: row;
+    }
+    .split__media,
+    .split__text {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+  }
+</style>

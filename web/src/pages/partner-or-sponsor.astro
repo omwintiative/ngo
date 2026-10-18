@@ -1,0 +1,35 @@
+---
+/*
+  Partner / Sponsor, from Figma Partner or Sponsor (Desktop 94:4619,
+  Tablet 94:4756, Mobile 94:4886). The button opens the client's interest
+  form in a new tab (Figma prototype link). Figma note: partnership types
+  and partner logos are not shown until the client supplies them.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import GetInvolvedSplit from '../components/GetInvolvedSplit.astro';
+import OurStandard from '../components/OurStandard.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+import { externalLinks } from '../config/navigation';
+import threeWomen from '../assets/photos/stock-three-women.jpg';
+---
+
+<BaseLayout
+  title="Partner / Sponsor"
+  description="When you sponsor or partner with OMWI, you align your brand with meaningful community change."
+>
+  <PageBanner title="Partner / Sponsor" crumbs={[{ label: 'Get Involved' }, { label: 'Partner / Sponsor' }]} />
+  <GetInvolvedSplit
+    id="partner"
+    eyebrow="Partner / Sponsor"
+    title="Partner with us to create a lasting impact."
+    text="When you sponsor or partner with OMWI, you align your brand with meaningful community change. Fill out our brief interest form to explore how we can work together."
+    buttonLabel="Become a Partner or Sponsor"
+    href={externalLinks.partnerForm}
+    note="Opens our interest form in a new tab."
+    main={{ src: threeWomen, alt: 'Three smiling women standing together in an office', fade: 'left' }}
+    photoSide="left"
+  />
+  <OurStandard />
+  <DonationCallout />
+</BaseLayout>
