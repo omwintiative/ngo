@@ -1,0 +1,153 @@
+---
+/*
+  Button, from Figma Button (2:35): Primary, Secondary, Outline and On dark,
+  each with Default, Hover, Focus and Disabled states.
+
+  Renders an <a> when given an `href`, otherwise a <button>.
+  Any other attributes (aria-*, target, rel, name...) pass through.
+
+    <Button href="/donate" arrow>Donate Now</Button>
+    <Button variant="outline" type="submit">Send</Button>
+*/
+import type { HTMLAttributes } from 'astro/types';
+import arrowWhite from '../assets/icons/arrow-up-right-white.svg';
+import arrowPlum from '../assets/icons/arrow-up-right-plum.svg';
+
+type Variant = 'primary' | 'secondary' | 'outline' | 'on-dark';
+
+type Props = Omit<HTMLAttributes<'a'> & HTMLAttributes<'button'>, 'type'> & {
+  variant?: Variant;
+  href?: string;
+  type?: 'button' | 'submit' | 'reset';
+  /** Show the small up-right arrow after the label (Figma "Arrow" property). */
+  arrow?: boolean;
+  disabled?: boolean;
+  class?: string;
+};
+
+const {
+  variant = 'primary',
+  href,
+  type = 'button',
+  arrow = false,
+  disabled = false,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const classes = ['btn', `btn--${variant}`, 't-button', className];
+const arrowIcon = variant === 'outline' ? arrowPlum : arrowWhite;
+---
+
+{
+  href && !disabled ? (
+    <a class:list={classes} href={href} {...rest}>
+      <slot />
+      {arrow && <img class="btn__arrow" src={arrowIcon.src} width={arrowIcon.width} height={arrowIcon.height} alt="" />}
+    </a>
+  ) : href ? (
+    // A disabled link: no href, so it cannot be followed or focused.
+    <a class:list={classes} aria-disabled="true" {...rest}>
+      <slot />
+      {arrow && <img class="btn__arrow" src={arrowIcon.src} width={arrowIcon.width} height={arrowIcon.height} alt="" />}
+    </a>
+  ) : (
+    <button class:list={classes} type={type} disabled={disabled} {...rest}>
+      <slot />
+      {arrow && <img class="btn__arrow" src={arrowIcon.src} width={arrowIcon.width} height={arrowIcon.height} alt="" />}
+    </button>
+  )
+}
+
+<style>
+  /*
+    Figma values with no token yet (listed in the step 4 report):
+    button height 52, label-to-arrow gap 10, outline width 1.5,
+    focus ring 3px of plum/500 at 55% (white at 90% on dark),
+    disabled opacity 45%, On dark border white 70% and hover fill white 14%.
+  */
+  .btn {
+    --btn-height: 52px;
+    --btn-gap: 10px;
+    --btn-stroke: 1.5px;
+    --btn-ring: color-mix(in srgb, var(--plum-500) 55%, transparent);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--btn-gap);
+    min-height: var(--btn-height);
+    padding: 0 var(--space-24);
+    border: 0;
+    border-radius: var(--radius-button);
+    background: transparent;
+    color: var(--text-on-dark);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .btn__arrow {
+    flex: none;
+  }
+
+  /* Focus: Figma draws a 3px ring around the button, no outline */
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--btn-ring);
+  }
+
+  .btn--primary {
+    background: var(--bg-accent);
+  }
+  .btn--primary:hover {
+    background: var(--bg-accent-hover);
+  }
+
+  .btn--secondary {
+    background: var(--bg-primary);
+  }
+  .btn--secondary:hover {
+    background: var(--bg-primary-hover);
+  }
+
+  .btn--outline {
+    border: var(--btn-stroke) solid var(--border-primary);
+    color: var(--text-primary);
+  }
+  .btn--outline:hover {
+    background: var(--bg-soft);
+  }
+
+  .btn--on-dark {
+    --btn-ring: color-mix(in srgb, var(--white) 90%, transparent);
+    border: var(--btn-stroke) solid color-mix(in srgb, var(--white) 70%, transparent);
+  }
+  .btn--on-dark:hover {
+    background: color-mix(in srgb, var(--white) 14%, transparent);
+  }
+
+  /* Disabled: the Default look at 45% opacity, no hover */
+  .btn:disabled,
+  .btn[aria-disabled='true'] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .btn--primary:disabled,
+  .btn--primary[aria-disabled='true'] {
+    background: var(--bg-accent);
+  }
+  .btn--secondary:disabled,
+  .btn--secondary[aria-disabled='true'] {
+    background: var(--bg-primary);
+  }
+  .btn--outline:disabled,
+  .btn--outline[aria-disabled='true'],
+  .btn--on-dark:disabled,
+  .btn--on-dark[aria-disabled='true'] {
+    background: transparent;
+  }
+</style>

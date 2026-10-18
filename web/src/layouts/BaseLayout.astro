@@ -2,15 +2,18 @@
 /*
   Every page uses this layout. It sets up the document head (title,
   description, social preview), loads the font and base styles, and gives
-  each page a skip link and a <main> landmark.
+  each page a skip link, the site header, a <main> landmark and the footer.
 
-  The site header and footer are added here once they are built from the
-  Figma design (they will live in src/components/).
+  The header is fixed and sits over the top of the page (Figma puts it over
+  the hero or page banner). A page without either should leave room for it:
+  `padding-top: var(--site-header-height)`.
 */
 import '@fontsource-variable/montserrat';
 import '../styles/tokens.css';
 import '../styles/global.css';
 import '../styles/typography.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 
 interface Props {
   /** Page title, shown in the browser tab and search results. */
@@ -47,10 +50,10 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <slot name="header" />
+    <SiteHeader />
     <main id="main" tabindex="-1">
       <slot />
     </main>
-    <slot name="footer" />
+    <SiteFooter />
   </body>
 </html>

@@ -1,0 +1,186 @@
+---
+/*
+  Site footer, from Figma Footer (37:264): Desktop, Tablet and Mobile.
+  Desktop: brand and three link columns in one row.
+  Tablet: brand on top, three columns below. Mobile: everything stacked.
+
+  Links and contact details come from src/config/navigation.ts.
+*/
+import Logo from './Logo.astro';
+import { footerColumns, legalLinks, contact } from '../config/navigation';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer__main">
+    <div class="site-footer__brand">
+      <Logo variant="on-dark" />
+      <p class="t-body-small site-footer__about">
+        OMWI advances women’s health equity and reproductive dignity through education, improved
+        access to healthcare and compassionate community support.
+      </p>
+    </div>
+
+    <div class="site-footer__columns">
+      {
+        footerColumns.map((column) => (
+          <nav class="site-footer__column" aria-label={column.title}>
+            <h2 class="t-eyebrow site-footer__heading">{column.title}</h2>
+            <ul class="site-footer__list">
+              {column.links.map((link) => (
+                <li>
+                  <a class="t-body-small site-footer__link" href={link.href}>
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+
+      <div class="site-footer__column">
+        <h2 class="t-eyebrow site-footer__heading">Contact</h2>
+        <address class="site-footer__list">
+          <span class="t-body-small">{contact.location}</span>
+          <a class="t-body-small site-footer__link" href={contact.emailHref}>{contact.email}</a>
+          <a class="t-body-small site-footer__link" href={contact.phoneHref}>{contact.phone}</a>
+        </address>
+      </div>
+    </div>
+  </div>
+
+  <div class="site-footer__bottom t-body-small">
+    <p>© {year} Ọmụgwọ Maternal Welfare Initiative. All rights reserved.</p>
+    {
+      legalLinks.map((link) => (
+        <a class="site-footer__link" href={link.href}>
+          {link.label}
+        </a>
+      ))
+    }
+  </div>
+</footer>
+
+<style>
+  /*
+    Figma values with no token yet (listed in the step 4 report):
+    top padding 56 (mobile) and 80 (desktop), content width 1200, brand gap 20,
+    link gap 14, brand text width 360 (desktop), divider white at 14%.
+  */
+  .site-footer {
+    --content-max: 1200px;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+    padding: 56px max(var(--layout-page-padding), calc((100% - var(--content-max)) / 2))
+      var(--space-32);
+    background: var(--bg-darkest);
+    color: var(--text-on-dark);
+  }
+
+  .site-footer :focus-visible {
+    outline-color: var(--text-on-dark);
+  }
+
+  .site-footer__main,
+  .site-footer__columns {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+  }
+
+  .site-footer__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .site-footer__column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .site-footer__heading {
+    color: var(--text-highlight);
+  }
+
+  .site-footer__list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-style: normal;
+  }
+
+  .site-footer__link {
+    display: block;
+    color: var(--text-on-dark);
+    text-decoration: none;
+  }
+
+  /* Not in Figma: an underline so the pointer has a hover cue */
+  .site-footer__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  /* Divider line, then copyright and Privacy Policy */
+  .site-footer__bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
+    padding-top: var(--space-32);
+    border-top: 1px solid color-mix(in srgb, var(--white) 14%, transparent);
+  }
+
+  /* Tablet: brand on top, three columns side by side */
+  @media (min-width: 768px) {
+    .site-footer {
+      gap: var(--space-48);
+      padding-top: var(--space-64);
+    }
+    .site-footer__main {
+      gap: var(--space-48);
+    }
+    .site-footer__columns {
+      flex-direction: row;
+    }
+    .site-footer__column {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    .site-footer__bottom {
+      flex-direction: row;
+      justify-content: space-between;
+      gap: var(--space-24);
+      padding-top: var(--space-48);
+    }
+  }
+
+  /* Desktop: brand and columns in one row */
+  @media (min-width: 1200px) {
+    .site-footer {
+      padding-top: 80px;
+    }
+    .site-footer__main {
+      flex-direction: row;
+      gap: var(--space-64);
+    }
+    .site-footer__about {
+      width: 360px;
+    }
+    .site-footer__columns {
+      flex: 1;
+      gap: var(--space-64);
+    }
+  }
+</style>

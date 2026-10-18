@@ -6,6 +6,7 @@
   numbers on this page; real pages use the CSS variables.)
 */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
 
 // WCAG 2.x contrast ratio between two hex colours.
 function luminance(hex: string): number {
@@ -135,6 +136,30 @@ const styles = [
     </section>
 
     <section>
+      <h2>Buttons (step 4)</h2>
+      <p class="t-body-small lead">
+        Hover and tab to see the hover and focus states. The last of each row is disabled.
+      </p>
+      <div class="buttons">
+        <Button arrow>Donate Now</Button>
+        <Button href="#main" arrow>Link button</Button>
+        <Button arrow disabled>Donate Now</Button>
+      </div>
+      <div class="buttons">
+        <Button variant="secondary" arrow>Donate Now</Button>
+        <Button variant="secondary" arrow disabled>Donate Now</Button>
+      </div>
+      <div class="buttons">
+        <Button variant="outline" arrow>Donate Now</Button>
+        <Button variant="outline" arrow disabled>Donate Now</Button>
+      </div>
+      <div class="buttons buttons--dark">
+        <Button variant="on-dark" arrow>Donate Now</Button>
+        <Button variant="on-dark" arrow disabled>Donate Now</Button>
+      </div>
+    </section>
+
+    <section>
       <h2>Corners</h2>
       <div class="corners">
         <div class="card-sample">Card · radius/card 8px</div>
@@ -148,7 +173,7 @@ const styles = [
   .wrap {
     max-width: 1200px;
     margin: 0 auto;
-    padding: var(--space-64) var(--layout-page-padding);
+    padding: calc(var(--site-header-height) + var(--space-64)) var(--layout-page-padding) var(--space-64);
     display: grid;
     gap: var(--space-48);
   }
@@ -217,6 +242,16 @@ const styles = [
     flex-wrap: wrap;
     gap: var(--space-16);
     align-items: center;
+  }
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-16);
+  }
+  .buttons--dark {
+    padding: var(--space-24);
+    border-radius: var(--radius-card);
+    background: var(--bg-dark);
   }
   .card-sample {
     padding: var(--space-24);
