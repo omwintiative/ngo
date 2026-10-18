@@ -47,7 +47,7 @@ const trail: Crumb[] = [{ label: 'Home', href: paths.home }, ...crumbs];
     <img class="banner__watermark" src={watermark.src} width={watermark.width} height={watermark.height} alt="" />
   </div>
 
-  <h1 class="t-h1 banner__title">{title}</h1>
+  <h1 class="t-h1 banner__title" data-banner-title>{title}</h1>
   <nav class="banner__crumbs" aria-label="Breadcrumb">
     <ol>
       {
@@ -63,7 +63,9 @@ const trail: Crumb[] = [{ label: 'Home', href: paths.home }, ...crumbs];
               <span aria-hidden="true"> /</span>
             </li>
           ) : (
-            <li aria-current="page">{crumb.label}</li>
+            <li aria-current="page" data-banner-current>
+              {crumb.label}
+            </li>
           ),
         )
       }

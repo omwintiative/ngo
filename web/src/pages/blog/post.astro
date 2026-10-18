@@ -1,0 +1,242 @@
+---
+/*
+  One blog post, from Figma Blog post (Desktop 93:4661, Tablet 93:4843,
+  Mobile 93:5017). Address: /blog/post?id=<post id>.
+
+  The post loads from GET /api/blogs/:id in the browser, then the banner
+  title, breadcrumb and page title update. The text is the post's
+  description, split into paragraphs on line breaks. "More from the blog"
+  shows up to three other posts. If the post cannot be found, the 404
+  page's wording is shown.
+*/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import DonationCallout from '../../components/DonationCallout.astro';
+import PostCardTemplate from '../../components/PostCardTemplate.astro';
+import PostGrid from '../../components/PostGrid.astro';
+import Button from '../../components/Button.astro';
+import { paths } from '../../config/navigation';
+import facebook from '../../assets/icons/facebook-plum.svg';
+import whatsapp from '../../assets/icons/whatsapp-plum.svg';
+import linkedin from '../../assets/icons/linkedin-plum.svg';
+
+const share = [
+  { name: 'Facebook', icon: facebook, base: 'https://www.facebook.com/sharer/sharer.php?u=' },
+  { name: 'WhatsApp', icon: whatsapp, base: 'https://wa.me/?text=' },
+  { name: 'LinkedIn', icon: linkedin, base: 'https://www.linkedin.com/sharing/share-offsite/?url=' },
+];
+---
+
+<BaseLayout title="Blog" description="An article from the Ọmụgwọ Maternal Welfare Initiative blog.">
+  <PageBanner title="Blog" crumbs={[{ label: 'Blog', href: paths.blog }, { label: '' }]} />
+
+  <section class="section article-section" aria-label="Article" data-post>
+    <article class="article" hidden data-post-article>
+      <p class="t-body-small article__meta" data-post-meta></p>
+      <div class="article__photo" hidden data-post-photo>
+        <img alt="" data-post-photo-img />
+        <span class="article__tint" aria-hidden="true"></span>
+        <span class="article__fade" aria-hidden="true"></span>
+      </div>
+      <div class="article__body" data-post-body></div>
+      <div class="share">
+        <p class="t-button">Share this article</p>
+        {
+          share.map((s) => (
+            <a class="share__button" href="#" target="_blank" rel="noopener" data-share={s.base}>
+              <img src={s.icon.src} width="22" height="22" alt="" />
+              <span class="visually-hidden">Share on {s.name} (opens in a new tab)</span>
+            </a>
+          ))
+        }
+      </div>
+    </article>
+
+    <div class="missing" hidden data-post-missing>
+      <h2 class="t-h3">We could not find that page.</h2>
+      <p class="t-body missing__text">
+        The link may be old, or the page may have moved. Go back to the home page, or contact us and
+        we will point you to the right place.
+      </p>
+      <div class="missing__buttons">
+        <Button href={paths.home}>Back to Home</Button>
+        <Button href={paths.contact} variant="outline">Contact Us</Button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tint" aria-labelledby="more-title" hidden data-more>
+    <h2 class="t-h2 more__title" id="more-title">More from the blog</h2>
+    <PostGrid data-more-list />
+    <PostCardTemplate />
+  </section>
+
+  <DonationCallout />
+</BaseLayout>
+
+<style>
+  .article-section {
+    align-items: center;
+  }
+  .article,
+  .missing {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    width: 100%;
+    max-width: var(--size-article-width);
+  }
+  .article__meta {
+    color: var(--text-muted);
+  }
+  .article__photo {
+    position: relative;
+    height: var(--size-article-photo-height);
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--plum-400);
+  }
+  .article__photo img,
+  .article__tint,
+  .article__fade {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .article__photo img {
+    object-fit: cover;
+  }
+  .article__tint {
+    background: var(--photo-tint);
+    mix-blend-mode: soft-light;
+  }
+  .article__fade {
+    background: linear-gradient(180deg, var(--photo-fade-color) 0%, transparent 72%);
+  }
+  .article__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+  .article__body :global(p) {
+    font-size: var(--type-body-large-size);
+    line-height: var(--type-body-large-line);
+    white-space: pre-line;
+  }
+
+  .share {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+  }
+  .share__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-button);
+    height: var(--size-icon-button);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-button);
+    background: var(--bg-surface);
+  }
+  .share__button:hover {
+    background: var(--bg-soft);
+  }
+
+  .missing {
+    align-items: flex-start;
+  }
+  .missing__text {
+    color: var(--text-muted);
+  }
+  .missing__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+
+  .more__title {
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .article__photo {
+      height: var(--size-article-photo-height-tablet);
+    }
+  }
+  @media (min-width: 1200px) {
+    .article__photo {
+      height: var(--size-article-photo-height-desktop);
+    }
+  }
+</style>
+
+<script>
+  import { fetchPost, fetchPosts, formatDate, renderPostCard, safeImage } from '../../lib/posts';
+
+  const id = new URLSearchParams(location.search).get('id');
+  const article = document.querySelector<HTMLElement>('[data-post-article]')!;
+  const missing = document.querySelector<HTMLElement>('[data-post-missing]')!;
+  const title = document.querySelector<HTMLElement>('[data-banner-title]');
+  const current = document.querySelector<HTMLElement>('[data-banner-current]');
+
+  const showMissing = () => {
+    missing.hidden = false;
+    if (title) title.textContent = 'Page Not Found';
+    if (current) current.textContent = '404';
+  };
+
+  async function load() {
+    if (!id) return showMissing();
+    let post;
+    try {
+      post = await fetchPost(id);
+    } catch {
+      return showMissing();
+    }
+
+    document.title = `${post.title} | Ọmụgwọ Maternal Welfare Initiative`;
+    if (title) title.textContent = post.title;
+    if (current) current.textContent = post.category ?? post.title;
+
+    // Meta line: category · date · author (each only when known)
+    const date = formatDate(post.createdAt);
+    const meta = [post.category, date?.text, post.createdBy?.name].filter(Boolean).join('  ·  ');
+    document.querySelector('[data-post-meta]')!.textContent = meta;
+
+    const src = safeImage(post.images?.[0]);
+    if (src) {
+      const photo = document.querySelector<HTMLElement>('[data-post-photo]')!;
+      photo.querySelector('img')!.src = src;
+      photo.hidden = false;
+    }
+
+    const body = document.querySelector<HTMLElement>('[data-post-body]')!;
+    const paragraphs = post.description.split(/\n\s*\n/).map((text) => text.trim()).filter(Boolean);
+    body.replaceChildren(
+      ...paragraphs.map((text) => {
+        const p = document.createElement('p');
+        p.textContent = text;
+        return p;
+      }),
+    );
+
+    const url = encodeURIComponent(location.href);
+    document.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((a) => (a.href = `${a.dataset.share}${url}`));
+
+    article.hidden = false;
+
+    try {
+      const others = (await fetchPosts()).filter((p) => p._id !== post._id).slice(0, 3);
+      if (others.length) {
+        document.querySelector('[data-more-list]')!.append(...others.map(renderPostCard));
+        document.querySelector<HTMLElement>('[data-more]')!.hidden = false;
+      }
+    } catch {
+      // No related posts: the section stays hidden
+    }
+  }
+
+  load();
+</script>

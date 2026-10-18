@@ -238,6 +238,16 @@
   --size-programme-photo-desktop: 420px; /* framed photo height */
   --size-number-badge: 64px; /* "01" tile on the photo */
 
+  /* Blog (93:3973), Blog post (93:4661), Input (45:187), Category tabs (84:365) */
+  --size-search-width: 280px; /* 320 on desktop; full width on mobile */
+  --size-search-width-desktop: 320px;
+  --size-toolbar-text-max: 560px;
+  --size-article-width: 760px;
+  --size-article-photo-height: 220px; /* 360 tablet, 420 desktop */
+  --size-article-photo-height-tablet: 360px;
+  --size-article-photo-height-desktop: 420px;
+  --border-width-tab: 3px; /* active category tab underline */
+
   /* Gallery page (93:3395) and lightbox (211:7675 / 211:7725) */
   --size-gallery-photo-height: 128px; /* 248 tablet, 288 desktop */
   --size-gallery-photo-height-tablet: 248px;

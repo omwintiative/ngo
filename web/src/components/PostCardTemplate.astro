@@ -1,0 +1,142 @@
+---
+/*
+  Post card, from Figma Card/Post (108:436): photo (Tint, Fade from the top,
+  hover Wash and arrow), category, title, date and "Read article". The whole
+  card is clickable. Hover: plum border and deeper shadow.
+
+  Posts load in the browser, so this is a <template> that renderPostCard()
+  in src/lib/posts.ts copies. Put it once on any page that shows post cards.
+*/
+import TextLink from './TextLink.astro';
+import arrowUpRight from '../assets/icons/arrow-up-right-plum-16.svg';
+---
+
+<template id="post-card-template">
+  <li class="post" data-hover-card>
+    <div class="post__photo">
+      <img class="post__img" alt="" loading="lazy" decoding="async" data-post-img />
+      <span class="post__tint" aria-hidden="true"></span>
+      <span class="post__fade" aria-hidden="true"></span>
+      <span class="post__wash" aria-hidden="true"></span>
+      <span class="post__icon" aria-hidden="true">
+        <img src={arrowUpRight.src} width="24" height="24" alt="" />
+      </span>
+    </div>
+    <div class="post__body">
+      <p class="t-eyebrow post__category" data-post-category></p>
+      <h3 class="t-h4" data-post-title></h3>
+      <p class="t-body-small post__date"><time data-post-date></time></p>
+    </div>
+    <div class="post__bottom">
+      <TextLink href="#" class="post__link" data-post-link>Read article</TextLink>
+    </div>
+  </li>
+</template>
+
+<style>
+  .post {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-card);
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+  .post:hover,
+  .post:focus-within {
+    border-color: var(--border-primary);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .post__photo {
+    position: relative;
+    height: var(--size-post-photo-height);
+    overflow: hidden;
+    background: var(--plum-400);
+  }
+  .post__img,
+  .post__tint,
+  .post__fade,
+  .post__wash {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .post__img {
+    object-fit: cover;
+    transition: transform 400ms ease;
+  }
+  .post__tint {
+    background: var(--photo-tint);
+    mix-blend-mode: soft-light;
+  }
+  .post__fade {
+    background: linear-gradient(180deg, var(--photo-fade-color) 0%, transparent 72%);
+  }
+  .post__wash {
+    background: var(--photo-wash);
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: top;
+    transition:
+      transform 300ms ease,
+      opacity 300ms ease;
+  }
+  .post__icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-photo-hover-icon);
+    height: var(--size-photo-hover-icon);
+    border-radius: var(--radius-photo-hover-icon);
+    background: var(--bg-surface);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.57);
+    transition:
+      transform 300ms ease,
+      opacity 300ms ease;
+  }
+  .post:hover .post__img {
+    transform: scale(1.1);
+  }
+  .post:hover .post__wash {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  .post:hover .post__icon {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .post__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+    padding: var(--space-24) var(--space-24) 0;
+  }
+  .post__category {
+    color: var(--text-accent);
+  }
+  .post__date {
+    color: var(--text-muted);
+  }
+  .post__bottom {
+    margin-top: auto;
+    padding: 0 var(--space-24) var(--space-20);
+  }
+  /* The link covers the whole card */
+  .post :global(.post__link)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+</style>

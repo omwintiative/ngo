@@ -1,58 +1,26 @@
 ---
 /*
   Home "Latest from the blog", from Figma Section / Latest from the blog
-  (91:6883) and Card/Post (108:436).
-
-  Posts are real data: the three newest come from GET /api/blogs when the
-  page opens. The section stays hidden until at least one post arrives, so
-  the page never shows sample posts. (Figma's cards also show a category;
-  posts have no category yet. It is added with the blog fields in step 5.)
+  (91:6883). The three newest posts from GET /api/blogs. The section stays
+  hidden until at least one post arrives, so the page never shows samples.
 */
 import SectionHeading from '../SectionHeading.astro';
 import Button from '../Button.astro';
-import TextLink from '../TextLink.astro';
+import PostCardTemplate from '../PostCardTemplate.astro';
+import PostGrid from '../PostGrid.astro';
 import { paths } from '../../config/navigation';
-import arrowUpRight from '../../assets/icons/arrow-up-right-plum-16.svg';
 ---
 
-<section class="section section--tint posts" aria-labelledby="posts-title" hidden data-posts>
+<section class="section section--tint" aria-labelledby="posts-title" hidden data-latest-posts>
   <SectionHeading id="posts-title" eyebrow="Stories and Insights" title="Latest from the blog" align="center" />
-  <ul class="posts__grid" data-posts-list></ul>
+  <PostGrid data-latest-list />
   <div class="posts__actions">
     <Button href={paths.blog} variant="outline" arrow class="posts__button">View All Posts</Button>
   </div>
-
-  <template data-post-template>
-    <li class="post" data-hover-card>
-      <div class="post__photo">
-        <img class="post__img" alt="" loading="lazy" decoding="async" data-post-img />
-        <span class="post__tint" aria-hidden="true"></span>
-        <span class="post__fade" aria-hidden="true"></span>
-        <span class="post__wash" aria-hidden="true"></span>
-        <span class="post__icon" aria-hidden="true">
-          <img src={arrowUpRight.src} width="24" height="24" alt="" />
-        </span>
-      </div>
-      <div class="post__body">
-        <h3 class="t-h4" data-post-title></h3>
-        <p class="t-body-small post__date"><time data-post-date></time></p>
-      </div>
-      <div class="post__bottom">
-        <TextLink href="#" class="post__link" data-post-link>Read article</TextLink>
-      </div>
-    </li>
-  </template>
+  <PostCardTemplate />
 </section>
 
 <style>
-  .posts__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--layout-gap);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
   .posts__actions {
     display: flex;
     justify-content: center;
@@ -60,181 +28,26 @@ import arrowUpRight from '../../assets/icons/arrow-up-right-plum-16.svg';
   .posts__actions :global(.posts__button) {
     width: 100%;
   }
-
-  .post {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-card);
-    background: var(--bg-surface);
-    box-shadow: var(--shadow-card);
-    transition:
-      border-color 200ms ease,
-      box-shadow 200ms ease;
-  }
-  .post:hover,
-  .post:focus-within {
-    border-color: var(--border-primary);
-    box-shadow: var(--shadow-card-hover);
-  }
-
-  /* Photo with the Figma Photo layers (Tint, Fade from the top, hover Wash) */
-  .post__photo {
-    position: relative;
-    height: var(--size-post-photo-height);
-    overflow: hidden;
-    background: var(--plum-400);
-  }
-  .post__img,
-  .post__tint,
-  .post__fade,
-  .post__wash {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-  .post__img {
-    object-fit: cover;
-    transition: transform 400ms ease;
-  }
-  .post__tint {
-    background: var(--photo-tint);
-    mix-blend-mode: soft-light;
-  }
-  .post__fade {
-    background: linear-gradient(180deg, var(--photo-fade-color) 0%, transparent 72%);
-  }
-  .post__wash {
-    background: var(--photo-wash);
-    opacity: 0;
-    transform: scaleY(0);
-    transform-origin: top;
-    transition:
-      transform 300ms ease,
-      opacity 300ms ease;
-  }
-  .post__icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--size-photo-hover-icon);
-    height: var(--size-photo-hover-icon);
-    border-radius: var(--radius-photo-hover-icon);
-    background: var(--bg-surface);
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.57);
-    transition:
-      transform 300ms ease,
-      opacity 300ms ease;
-  }
-  .post:hover .post__img {
-    transform: scale(1.1);
-  }
-  .post:hover .post__wash {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  .post:hover .post__icon {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-
-  .post__body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-10);
-    padding: var(--space-24) var(--space-24) 0;
-  }
-  .post__date {
-    color: var(--text-muted);
-  }
-  .post__bottom {
-    margin-top: auto;
-    padding: 0 var(--space-24) var(--space-20);
-  }
-  /* The link covers the whole card */
-  .post :global(.post__link)::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-  }
-
   @media (min-width: 768px) {
-    .posts__grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
     .posts__actions :global(.posts__button) {
       width: auto;
-    }
-  }
-  @media (min-width: 1200px) {
-    .posts__grid {
-      grid-template-columns: repeat(3, 1fr);
     }
   }
 </style>
 
 <script>
-  import { api } from '../../lib/api';
-  import { postHref } from '../../config/navigation';
+  import { fetchPosts, renderPostCard } from '../../lib/posts';
 
-  interface Post {
-    _id: string;
-    title: string;
-    images?: string[];
-    createdAt: string;
-  }
+  const section = document.querySelector<HTMLElement>('[data-latest-posts]');
+  const list = section?.querySelector<HTMLElement>('[data-latest-list]');
 
-  const section = document.querySelector<HTMLElement>('[data-posts]');
-  const list = section?.querySelector<HTMLUListElement>('[data-posts-list]');
-  const template = section?.querySelector<HTMLTemplateElement>('[data-post-template]');
-
-  // Only web addresses or site paths are used as image sources.
-  const safeImage = (src: string | undefined) =>
-    src && (/^https:\/\//.test(src) || src.startsWith('/')) ? src : undefined;
-
-  const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-
-  async function load() {
-    if (!section || !list || !template) return;
-    let posts: Post[];
-    try {
-      posts = await api<Post[]>('/blogs');
-    } catch {
-      return; // API not reachable: the section stays hidden
-    }
-    if (!Array.isArray(posts) || posts.length === 0) return;
-
-    for (const post of posts.slice(0, 3)) {
-      const card = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
-      card.querySelector('[data-post-title]')!.textContent = post.title;
-
-      const time = card.querySelector<HTMLTimeElement>('[data-post-date]')!;
-      const date = new Date(post.createdAt);
-      if (!Number.isNaN(date.getTime())) {
-        time.dateTime = date.toISOString().slice(0, 10);
-        time.textContent = dateFormat.format(date);
-      }
-
-      const img = card.querySelector<HTMLImageElement>('[data-post-img]')!;
-      const src = safeImage(post.images?.[0]);
-      if (src) img.src = src;
-      else img.remove();
-
-      const link = card.querySelector<HTMLAnchorElement>('[data-post-link]')!;
-      link.href = postHref(post._id);
-      link.setAttribute('aria-label', `Read article: ${post.title}`);
-
-      list.append(card);
-    }
-    section.hidden = false;
-  }
-
-  load();
+  fetchPosts()
+    .then((posts) => {
+      if (!section || !list || !Array.isArray(posts) || posts.length === 0) return;
+      posts.slice(0, 3).forEach((post) => list.append(renderPostCard(post)));
+      section.hidden = false;
+    })
+    .catch(() => {
+      // API not reachable: the section stays hidden
+    });
 </script>

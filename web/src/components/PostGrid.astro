@@ -1,0 +1,33 @@
+---
+/*
+  Grid for post cards: 1 column on mobile, 2 on tablet, 3 on desktop
+  (Figma Blog, Home and Blog post). Cards are added by renderPostCard().
+*/
+interface Props {
+  [attr: string]: unknown;
+}
+const attrs = Astro.props;
+---
+
+<ul class="post-grid" {...attrs}></ul>
+
+<style>
+  .post-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--layout-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 768px) {
+    .post-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1200px) {
+    .post-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
