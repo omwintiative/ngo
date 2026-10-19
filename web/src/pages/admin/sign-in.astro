@@ -1,0 +1,113 @@
+---
+/*
+  Admin · Sign in (Figma 338:1166). One admin account; no public sign-up.
+  "Keep me signed in on this device" keeps the session for 30 days;
+  otherwise it ends when the browser closes. After repeated wrong passwords
+  the API pauses sign-in for 15 minutes and says so.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import FormField from '../../components/FormField.astro';
+import Checkbox from '../../components/Checkbox.astro';
+import Button from '../../components/Button.astro';
+import TextLink from '../../components/TextLink.astro';
+import { adminPaths } from '../../config/admin';
+---
+
+<AdminLayout title="Sign in" variant="auth">
+  <h1 class="t-h3">Sign in</h1>
+  <p class="admin-alert admin-alert--success" role="status" data-signin-notice></p>
+  <form class="admin-form" novalidate data-signin-form>
+    <FormField name="email" label="Email address" type="email" placeholder="name@example.com" autocomplete="username" required />
+    <FormField name="password" label="Password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
+    <Checkbox name="remember">Keep me signed in on this device</Checkbox>
+    <p class="admin-alert" role="alert" data-signin-error></p>
+    <Button type="submit" class="admin-auth__submit" data-signin-submit>Sign In</Button>
+  </form>
+  <TextLink href={adminPaths.forgotPassword}>Forgot your password?</TextLink>
+</AdminLayout>
+
+<style>
+  :global(.admin-auth__submit) {
+    width: 100%;
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { currentUser, safeNext } from '../../lib/admin';
+
+  const form = document.querySelector<HTMLFormElement>('[data-signin-form]')!;
+  const error = document.querySelector<HTMLElement>('[data-signin-error]')!;
+  const notice = document.querySelector<HTMLElement>('[data-signin-notice]')!;
+  const submit = form.querySelector<HTMLButtonElement>('[data-signin-submit]')!;
+  const params = new URLSearchParams(window.location.search);
+  const next = safeNext(params.get('next'));
+
+  // After "Set a new password" (Figma: Sign in with a "Password updated" message)
+  if (params.get('updated') === '1') notice.textContent = 'Password updated. You can sign in now.';
+
+  // Already signed in: go straight on.
+  currentUser()
+    .then((user) => {
+      if (user?.role === 'admin') window.location.replace(next);
+    })
+    .catch(() => {});
+
+  const showFieldError = (name: string, message: string) => {
+    const field = form.elements.namedItem(name) as HTMLInputElement;
+    field.setAttribute('aria-invalid', 'true');
+    form.querySelector(`[data-error-for="${name}"]`)!.textContent = message;
+  };
+  form.querySelectorAll('input').forEach((input) =>
+    input.addEventListener('input', () => {
+      input.removeAttribute('aria-invalid');
+      const line = form.querySelector(`[data-error-for="${input.name}"]`);
+      if (line) line.textContent = '';
+    }),
+  );
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    error.textContent = '';
+    const email = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+    const remember = (form.elements.namedItem('remember') as HTMLInputElement).checked;
+
+    let ok = true;
+    if (!email) {
+      showFieldError('email', 'Enter your email address.');
+      ok = false;
+    }
+    if (!password) {
+      showFieldError('password', 'Enter your password.');
+      ok = false;
+    }
+    if (!ok) {
+      form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      return;
+    }
+
+    submit.disabled = true;
+    try {
+      const { user } = await api<{ user: { role: string } }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, remember }),
+      });
+      if (user.role !== 'admin') {
+        await api('/auth/logout', { method: 'POST' }).catch(() => {});
+        error.textContent = 'This account cannot use the admin.';
+        submit.disabled = false;
+        return;
+      }
+      window.location.assign(next);
+    } catch (err) {
+      error.textContent =
+        err instanceof ApiError && err.status === 401
+          ? 'The email address or password is not right. Please try again.'
+          : err instanceof ApiError
+            ? err.message
+            : 'Something went wrong. Please try again.';
+      submit.disabled = false;
+    }
+  });
+</script>

@@ -1,0 +1,194 @@
+---
+/*
+  Admin · Dashboard (Figma 339:1781): this month's donations and donors,
+  new messages and posts (GET /api/admin/summary), the five newest
+  donations, quick actions and the latest messages. Desktop: two columns;
+  tablet and phones: one.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Button from '../../components/Button.astro';
+import TextLink from '../../components/TextLink.astro';
+import { adminPaths } from '../../config/admin';
+---
+
+<AdminLayout title="Dashboard" section="dashboard">
+  <div class="admin-page-header">
+    <h1 class="t-h3">Dashboard</h1>
+    <p class="t-body-small">What has happened on the website this month.</p>
+  </div>
+
+  <div class="admin-stats">
+    <div class="admin-stat">
+      <p class="t-body-small admin-stat__label">Donations this month</p>
+      <p class="t-h2" data-stat="donationsTotal">–</p>
+      <p class="t-body-small admin-stat__note" data-stat="donationsCount"></p>
+    </div>
+    <div class="admin-stat">
+      <p class="t-body-small admin-stat__label">Donors this month</p>
+      <p class="t-h2" data-stat="donors">–</p>
+      <p class="t-body-small admin-stat__note" data-stat="firstTime"></p>
+    </div>
+    <div class="admin-stat">
+      <p class="t-body-small admin-stat__label">New messages</p>
+      <p class="t-h2" data-stat="messages">–</p>
+      <p class="t-body-small admin-stat__note">Waiting for a reply</p>
+    </div>
+    <div class="admin-stat">
+      <p class="t-body-small admin-stat__label">Published posts</p>
+      <p class="t-h2" data-stat="posts">–</p>
+      <p class="t-body-small admin-stat__note" data-stat="drafts"></p>
+    </div>
+  </div>
+
+  <div class="dashboard__columns">
+    <section class="admin-card" aria-labelledby="recent-title">
+      <h2 class="t-h4" id="recent-title">Recent donations</h2>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th class="t-body-small" scope="col">Donor</th>
+            <th class="t-body-small" scope="col">Amount</th>
+            <th class="t-body-small admin-table__method" scope="col">Method</th>
+            <th class="t-body-small" scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody data-recent></tbody>
+      </table>
+      <p class="t-body-small admin-empty" hidden data-recent-empty>No donations yet.</p>
+      <TextLink href={adminPaths.donations}>View all donations</TextLink>
+    </section>
+
+    <div class="dashboard__side">
+      <section class="admin-card dashboard__actions" aria-labelledby="actions-title">
+        <h2 class="t-h4" id="actions-title">Quick actions</h2>
+        <Button href={adminPaths.recordTransfer}>Record a Bank Transfer</Button>
+        <Button href={adminPaths.editPost} variant="outline">Write a Blog Post</Button>
+        <Button href={adminPaths.gallery} variant="outline">Upload Photos</Button>
+      </section>
+
+      <section class="admin-card dashboard__messages" aria-labelledby="messages-title">
+        <h2 class="t-h4" id="messages-title">Latest messages</h2>
+        <ul class="admin-list" data-messages></ul>
+        <p class="t-body-small admin-empty" hidden data-messages-empty>No messages yet.</p>
+        <TextLink href={adminPaths.messages}>View all messages</TextLink>
+      </section>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .dashboard__columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-24);
+    align-items: start;
+  }
+  .dashboard__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+  .dashboard__actions {
+    gap: var(--space-12);
+  }
+  .dashboard__actions :global(.btn) {
+    width: 100%;
+  }
+  .dashboard__messages {
+    gap: 0;
+  }
+  .dashboard__messages h2 {
+    margin-bottom: var(--space-2);
+  }
+  .dashboard__messages :global(.text-link) {
+    margin-top: var(--space-12);
+  }
+  @media (min-width: 1200px) {
+    .dashboard__columns {
+      grid-template-columns: 1fr var(--size-admin-side-column);
+    }
+  }
+</style>
+
+<script>
+  import { api } from '../../lib/api';
+  import { adminPaths } from '../../config/admin';
+  import {
+    requireAdmin,
+    formatNaira,
+    formatDate,
+    methodLabel,
+    statusBadge,
+    donorLabel,
+    el,
+    type DonationLike,
+  } from '../../lib/admin';
+
+  interface Summary {
+    donationsThisMonth: { total: number; count: number };
+    donorsThisMonth: { count: number; firstTime: number };
+    newMessages: number;
+    latestMessages: { id: string; name: string; subject: string; status: 'new' | 'handled' }[];
+    posts: { published: number; drafts: number };
+    recentDonations: (DonationLike & { id: string; amount: number; date: string })[];
+  }
+
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  const setStat = (name: string, text: string) => {
+    document.querySelector<HTMLElement>(`[data-stat="${name}"]`)!.textContent = text;
+  };
+
+  const badge = (label: string, tone: 'success' | 'warning') => el('span', `admin-badge admin-badge--${tone} t-body-small`, label);
+
+  const donationRow = (d: Summary['recentDonations'][number]) => {
+    const row = el('tr');
+    const donor = el('td', 'admin-table__donor');
+    const link = el('a', 'admin-table__link t-body', donorLabel(d));
+    link.href = `${adminPaths.donation}?id=${encodeURIComponent(d.id)}`;
+    const sub = el('span', 't-body-small admin-muted', formatDate(d.date));
+    sub.append(el('span', 'admin-table__inline-method', ` · ${methodLabel(d)}`));
+    donor.append(link, sub);
+    const { label, tone } = statusBadge(d);
+    const status = el('td', 'admin-table__status');
+    status.append(badge(label, tone));
+    row.append(
+      donor,
+      el('td', 'admin-table__amount t-body', formatNaira(d.amount)),
+      el('td', 'admin-table__method t-body', methodLabel(d)),
+      status,
+    );
+    return row;
+  };
+
+  const messageItem = (m: Summary['latestMessages'][number]) => {
+    const item = el('li', 'admin-list__item');
+    const text = el('div', 'admin-list__text');
+    const link = el('a', 'admin-table__link t-button', m.name);
+    link.href = `${adminPaths.message}?id=${encodeURIComponent(m.id)}`;
+    text.append(link, el('span', 't-body-small admin-muted', m.subject || '(no subject)'));
+    item.append(text);
+    if (m.status === 'new') item.append(badge('New', 'warning'));
+    return item;
+  };
+
+  requireAdmin().then(async () => {
+    try {
+      const s = await api<Summary>('/admin/summary');
+      setStat('donationsTotal', formatNaira(s.donationsThisMonth.total));
+      setStat('donationsCount', plural(s.donationsThisMonth.count, 'donation', 'donations'));
+      setStat('donors', String(s.donorsThisMonth.count));
+      setStat('firstTime', `${s.donorsThisMonth.firstTime} gave for the first time`);
+      setStat('messages', String(s.newMessages));
+      setStat('posts', String(s.posts.published));
+      setStat('drafts', plural(s.posts.drafts, 'draft', 'drafts'));
+
+      document.querySelector('[data-recent]')!.replaceChildren(...s.recentDonations.map(donationRow));
+      document.querySelector<HTMLElement>('[data-recent-empty]')!.hidden = s.recentDonations.length > 0;
+      document.querySelector('[data-messages]')!.replaceChildren(...s.latestMessages.map(messageItem));
+      document.querySelector<HTMLElement>('[data-messages-empty]')!.hidden = s.latestMessages.length > 0;
+    } catch {
+      document.querySelector<HTMLElement>('[data-admin-alert]')!.textContent =
+        'The dashboard could not load. Please refresh the page.';
+    }
+  });
+</script>

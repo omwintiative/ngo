@@ -1,19 +1,21 @@
 ---
 /*
   Form field, from Figma Input (45:187): label, field (Text or Textarea)
-  and an error line (Type=Error: red 2px border, red message). The error
-  shows when the form script sets `aria-invalid="true"` on the field and
-  fills the error line.
+  an optional helper line, and an error line (Type=Error: red 2px border,
+  red message). The error shows when the form script sets
+  `aria-invalid="true"` on the field and fills the error line.
 */
 interface Props {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'textarea';
+  type?: 'text' | 'email' | 'tel' | 'password' | 'textarea';
   placeholder?: string;
   autocomplete?: string;
   /** Keyboard on phones, e.g. "numeric" for amounts. */
   inputmode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email';
   required?: boolean;
+  /** Muted line under the field (Figma "Helper"). */
+  helper?: string;
   class?: string;
 }
 
@@ -25,9 +27,11 @@ const {
   autocomplete,
   inputmode,
   required = false,
+  helper,
   class: className,
 } = Astro.props;
 const id = `field-${name}`;
+const describedBy = [helper && `${id}-helper`, `${id}-error`].filter(Boolean).join(' ');
 ---
 
 <div class:list={['field', className]}>
@@ -39,7 +43,7 @@ const id = `field-${name}`;
         id={id}
         name={name}
         placeholder={placeholder}
-        aria-describedby={`${id}-error`}
+        aria-describedby={describedBy}
         aria-required={required ? 'true' : undefined}
       />
     ) : (
@@ -51,11 +55,12 @@ const id = `field-${name}`;
         placeholder={placeholder}
         autocomplete={autocomplete}
         inputmode={inputmode}
-        aria-describedby={`${id}-error`}
+        aria-describedby={describedBy}
         aria-required={required ? 'true' : undefined}
       />
     )
   }
+  {helper && <p class="t-body-small field__helper" id={`${id}-helper`}>{helper}</p>}
   <p class="t-body-small field__error" id={`${id}-error`} data-error-for={name}></p>
 </div>
 
@@ -95,6 +100,9 @@ const id = `field-${name}`;
   .field__control[aria-invalid='true'] {
     border: var(--border-width-error) solid var(--border-error);
     padding-inline: calc(var(--space-16) - 1px);
+  }
+  .field__helper {
+    color: var(--text-muted);
   }
   .field__error {
     color: var(--text-error);

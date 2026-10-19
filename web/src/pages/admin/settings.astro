@@ -1,0 +1,197 @@
+---
+/*
+  Admin · Settings (Figma 350:3063): the one admin account's name and
+  sign-in email, and its password. Changing the email asks for the current
+  password (not in Figma; the API requires it so a stolen session cannot
+  take the account over). Changing the password signs out other devices.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import FormField from '../../components/FormField.astro';
+import Button from '../../components/Button.astro';
+---
+
+<AdminLayout title="Account settings" section="settings">
+  <div class="admin-page-header">
+    <h1 class="t-h3">Account settings</h1>
+    <p class="t-body-small">The details you use to sign in to this admin.</p>
+  </div>
+
+  <div class="settings">
+    <section class="admin-card" aria-labelledby="details-title">
+      <h2 class="t-h4" id="details-title">Your details</h2>
+      <form class="admin-form" novalidate data-details-form>
+        <FormField name="name" label="Name" autocomplete="name" required />
+        <FormField
+          name="email"
+          label="Email address"
+          type="email"
+          autocomplete="email"
+          helper="Used to sign in and to receive password reset links."
+          required
+        />
+        <div hidden data-details-password>
+          <FormField
+            name="detailsPassword"
+            label="Current password"
+            type="password"
+            placeholder="Enter your current password"
+            autocomplete="current-password"
+            helper="Needed to change the sign-in email."
+          />
+        </div>
+        <p class="admin-alert" role="alert" data-details-status></p>
+        <div class="admin-form__actions">
+          <Button type="submit" data-details-submit>Save Changes</Button>
+        </div>
+      </form>
+    </section>
+
+    <section class="admin-card" aria-labelledby="password-title">
+      <h2 class="t-h4" id="password-title">Change password</h2>
+      <p class="t-body-small admin-card__note">Choose a new password for this admin account.</p>
+      <form class="admin-form" novalidate data-password-form>
+        <FormField
+          name="currentPassword"
+          label="Current password"
+          type="password"
+          placeholder="Enter your current password"
+          autocomplete="current-password"
+          required
+        />
+        <FormField
+          name="newPassword"
+          label="New password"
+          type="password"
+          placeholder="Enter a new password"
+          autocomplete="new-password"
+          helper="Use a long password that you do not use anywhere else."
+          required
+        />
+        <FormField
+          name="confirmPassword"
+          label="Confirm new password"
+          type="password"
+          placeholder="Enter the new password again"
+          autocomplete="new-password"
+          required
+        />
+        <p class="admin-alert" role="alert" data-password-status></p>
+        <div class="admin-form__actions">
+          <Button type="submit" data-password-submit>Update Password</Button>
+        </div>
+      </form>
+    </section>
+  </div>
+</AdminLayout>
+
+<style>
+  .settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    max-width: var(--size-admin-form-column);
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { requireAdmin } from '../../lib/admin';
+
+  const MIN_LENGTH = 12; // same rule as the API (server/src/lib/passwords.js)
+
+  const input = (form: HTMLFormElement, name: string) => form.elements.namedItem(name) as HTMLInputElement;
+  const fieldError = (form: HTMLFormElement, name: string, message: string) => {
+    input(form, name).setAttribute('aria-invalid', message ? 'true' : 'false');
+    form.querySelector(`[data-error-for="${name}"]`)!.textContent = message;
+  };
+  const setStatus = (box: HTMLElement, message: string, ok = false) => {
+    box.classList.toggle('admin-alert--success', ok);
+    box.setAttribute('role', ok ? 'status' : 'alert');
+    box.textContent = message;
+  };
+  const failure = (err: unknown) => (err instanceof ApiError ? err.message : 'Something went wrong. Please try again.');
+
+  // ----- Your details -----
+  const details = document.querySelector<HTMLFormElement>('[data-details-form]')!;
+  const detailsStatus = document.querySelector<HTMLElement>('[data-details-status]')!;
+  const passwordBox = document.querySelector<HTMLElement>('[data-details-password]')!;
+  const detailsSubmit = details.querySelector<HTMLButtonElement>('[data-details-submit]')!;
+  let savedEmail = '';
+
+  requireAdmin().then((user) => {
+    input(details, 'name').value = user.name;
+    input(details, 'email').value = user.email;
+    savedEmail = user.email;
+  });
+
+  input(details, 'email').addEventListener('input', () => {
+    passwordBox.hidden = input(details, 'email').value.trim().toLowerCase() === savedEmail;
+  });
+
+  details.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setStatus(detailsStatus, '');
+    const name = input(details, 'name').value.trim();
+    const email = input(details, 'email').value.trim();
+    const emailChanges = email.toLowerCase() !== savedEmail;
+    const currentPassword = input(details, 'detailsPassword').value;
+
+    fieldError(details, 'name', name ? '' : 'Enter your name.');
+    fieldError(details, 'email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? '' : 'Enter a valid email address.');
+    fieldError(details, 'detailsPassword', emailChanges && !currentPassword ? 'Enter your current password.' : '');
+    const invalid = details.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (invalid) {
+      invalid.focus();
+      return;
+    }
+
+    detailsSubmit.disabled = true;
+    try {
+      const { user } = await api<{ user: { name: string; email: string } }>('/admin/account', {
+        method: 'PATCH',
+        body: JSON.stringify(emailChanges ? { name, email, currentPassword } : { name }),
+      });
+      savedEmail = user.email;
+      input(details, 'detailsPassword').value = '';
+      passwordBox.hidden = true;
+      setStatus(detailsStatus, 'Your details are saved.', true);
+    } catch (err) {
+      setStatus(detailsStatus, failure(err));
+    } finally {
+      detailsSubmit.disabled = false;
+    }
+  });
+
+  // ----- Change password -----
+  const pw = document.querySelector<HTMLFormElement>('[data-password-form]')!;
+  const pwStatus = document.querySelector<HTMLElement>('[data-password-status]')!;
+  const pwSubmit = pw.querySelector<HTMLButtonElement>('[data-password-submit]')!;
+
+  pw.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setStatus(pwStatus, '');
+    const currentPassword = input(pw, 'currentPassword').value;
+    const newPassword = input(pw, 'newPassword').value;
+    const confirm = input(pw, 'confirmPassword').value;
+
+    fieldError(pw, 'currentPassword', currentPassword ? '' : 'Enter your current password.');
+    fieldError(pw, 'newPassword', newPassword.length < MIN_LENGTH ? `Use at least ${MIN_LENGTH} characters.` : '');
+    fieldError(pw, 'confirmPassword', confirm !== newPassword ? 'The two passwords are not the same.' : '');
+    const invalid = pw.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (invalid) {
+      invalid.focus();
+      return;
+    }
+
+    pwSubmit.disabled = true;
+    try {
+      await api('/admin/account/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) });
+      pw.reset();
+      setStatus(pwStatus, 'Password updated. Other devices are now signed out.', true);
+    } catch (err) {
+      setStatus(pwStatus, failure(err));
+    } finally {
+      pwSubmit.disabled = false;
+    }
+  });
+</script>

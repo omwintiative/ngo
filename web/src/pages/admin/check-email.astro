@@ -1,0 +1,63 @@
+---
+/*
+  Admin · Check your email (Figma 352:3032). Shown after Send Reset Link.
+  "Send a new link" asks for another email to the same address (the API
+  allows 3 an hour).
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Button from '../../components/Button.astro';
+import TextLink from '../../components/TextLink.astro';
+import { adminPaths } from '../../config/admin';
+import envelopeOpen from '../../assets/icons/admin/envelope-open-plum.svg';
+---
+
+<AdminLayout title="Check your email" variant="auth">
+  <span class="admin-auth__icon" aria-hidden="true">
+    <img src={envelopeOpen.src} width="24" height="24" alt="" />
+  </span>
+  <h1 class="t-h3">Check your email</h1>
+  <p class="t-body" data-check-text>
+    If that is the email for the OMWI admin account, we have sent it a link to set a new password. The link
+    works once and then expires.
+  </p>
+  <p class="t-body-small admin-auth__note">Nothing after a few minutes? Check your spam folder, or ask for a new link.</p>
+  <p class="admin-alert admin-alert--success" role="status" data-check-status></p>
+  <Button href={adminPaths.signIn} variant="outline" class="admin-auth__submit">Back to Sign In</Button>
+  <TextLink href={adminPaths.forgotPassword} data-check-resend>Send a new link</TextLink>
+</AdminLayout>
+
+<style>
+  :global(.admin-auth__submit) {
+    width: 100%;
+  }
+</style>
+
+<script>
+  import { api } from '../../lib/api';
+
+  let email = '';
+  try {
+    email = sessionStorage.getItem('omwi-reset-email') ?? '';
+  } catch {
+    // Storage blocked: keep the general wording.
+  }
+
+  const text = document.querySelector<HTMLElement>('[data-check-text]')!;
+  const status = document.querySelector<HTMLElement>('[data-check-status]')!;
+  const resend = document.querySelector<HTMLAnchorElement>('[data-check-resend]')!;
+
+  if (email) {
+    text.textContent = `If ${email} is the email for the OMWI admin account, we have sent it a link to set a new password. The link works once and then expires.`;
+    // With the address known, send the new link from here.
+    resend.addEventListener('click', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      try {
+        await api('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+        status.textContent = `If ${email} is the admin email, a new link is on its way.`;
+      } catch {
+        window.location.assign(resend.href);
+      }
+    });
+  }
+</script>

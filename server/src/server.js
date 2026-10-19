@@ -9,8 +9,6 @@ const connectDB = require("./config/db");
 const User = require("./models/User");
 const app = require("./app");
 
-connectDB();
-
 // Create the admin account from ADMIN_EMAIL / ADMIN_PASSWORD on first start.
 // Once any admin exists this does nothing, so the admin can change their
 // sign-in email and password in Settings without a restart undoing it.
@@ -48,8 +46,10 @@ const ensureAdmin = async () => {
   }
 };
 
+// Connect to the database first, so creating the admin account cannot time
+// out on a slow connection (connectDB stops the process if it fails).
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
+connectDB().then(async () => {
   await ensureAdmin();
-  console.log(`Server running on port ${PORT}`);
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

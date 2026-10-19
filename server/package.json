@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "local": "node --env-file=.env.test src/server.js",
     "test": "node --env-file=.env.test --test --test-concurrency=1 \"test/*.test.js\""
   },
   "dependencies": {

@@ -19,11 +19,22 @@ test("sign-in sets a secure, HttpOnly, SameSite=Strict session cookie", async ()
   assert.match(res.setCookie, /Secure/i);
   assert.match(res.setCookie, /SameSite=Strict/i);
   assert.match(res.setCookie, /Path=\//);
-  assert.match(res.setCookie, /Expires=/);
+  assert.doesNotMatch(res.setCookie, /Expires=/, "ends when the browser closes");
   // Old site still gets its token and user until launch
   assert.ok(res.body.token);
   assert.equal(res.body.user.email, ADMIN.email);
   assert.equal(res.body.user.password, undefined);
+});
+
+test("'Keep me signed in' keeps the cookie for 30 days", async () => {
+  const res = await request(server.base, "POST", "/api/auth/login", {
+    body: { email: ADMIN.email, password: ADMIN.password, remember: true },
+  });
+  assert.equal(res.status, 200);
+  const expires = new Date(res.setCookie.match(/Expires=([^;]+)/)[1]).getTime();
+  const days = (expires - Date.now()) / (24 * 60 * 60 * 1000);
+  assert.ok(days > 29.9 && days <= 30, `expires in ${days} days`);
+  assert.equal((await request(server.base, "GET", "/api/auth/me", { cookie: res.cookie })).status, 200);
 });
 
 test("wrong password or unknown email gives the same 401", async () => {
