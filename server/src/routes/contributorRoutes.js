@@ -1,6 +1,8 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
+const { serverError } = require("../lib/http");
 const ManualContribution = require("../models/ManualContribution");
 
 const router = express.Router();
@@ -25,10 +27,7 @@ router.get("/manual-payments", auth, adminOnly, async (req, res) => {
 
     return res.json({ contributions });
   } catch (error) {
-    return res.status(500).json({
-      message: "Unable to fetch manual contributions.",
-      error: error.message,
-    });
+    return serverError(res, error, "Unable to fetch manual contributions.");
   }
 });
 
@@ -57,15 +56,15 @@ router.post("/manual-payments", auth, adminOnly, async (req, res) => {
       contribution,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "Unable to add manual contribution.",
-      error: error.message,
-    });
+    return serverError(res, error, "Unable to add manual contribution.");
   }
 });
 
 router.put("/manual-payments/:id", auth, adminOnly, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ message: "Manual contribution not found." });
+    }
     const { contributorName, contributorEmail, amount, transferDate } =
       req.body;
 
@@ -88,15 +87,15 @@ router.put("/manual-payments/:id", auth, adminOnly, async (req, res) => {
       contribution,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "Unable to update manual contribution.",
-      error: error.message,
-    });
+    return serverError(res, error, "Unable to update manual contribution.");
   }
 });
 
 router.delete("/manual-payments/:id", auth, adminOnly, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ message: "Manual contribution not found." });
+    }
     const contribution = await ManualContribution.findByIdAndDelete(
       req.params.id,
     );
@@ -108,10 +107,7 @@ router.delete("/manual-payments/:id", auth, adminOnly, async (req, res) => {
 
     return res.json({ message: "Manual contribution deleted successfully." });
   } catch (error) {
-    return res.status(500).json({
-      message: "Unable to delete manual contribution.",
-      error: error.message,
-    });
+    return serverError(res, error, "Unable to delete manual contribution.");
   }
 });
 

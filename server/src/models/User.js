@@ -23,6 +23,12 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    // Raised when the password changes, which signs out every other session
+    // (see lib/session.js).
+    sessionVersion: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );

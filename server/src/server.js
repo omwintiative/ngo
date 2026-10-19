@@ -1,80 +1,19 @@
-const path = require("path");
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
 const bcrypt = require("bcryptjs");
+const dotenv = require("dotenv");
 
+// Load .env before anything reads process.env (the Cloudinary config does,
+// as soon as the routes are loaded).
 dotenv.config();
 
 const connectDB = require("./config/db");
 const User = require("./models/User");
-const authRoutes = require("./routes/authRoutes");
-const blogRoutes = require("./routes/blogRoutes");
-const contributorRoutes = require("./routes/contributorRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
+const app = require("./app");
+
 connectDB();
 
-const app = express();
-
-const allowedOrigins = (process.env.CORS_ORIGIN || "")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-const corsOptions =
-  allowedOrigins.length === 0 || allowedOrigins.includes("*")
-    ? undefined
-    : {
-        origin(origin, callback) {
-          if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-            return;
-          }
-
-          callback(new Error("Not allowed by CORS"));
-        },
-      };
-
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-app.use("/api/auth", authRoutes);
-app.use("/api/blogs", blogRoutes);
-app.use("/api/contributors", contributorRoutes);
-app.use("/api/payments", paymentRoutes);
-
-app.get("/api/health", (req, res) => {
-  return res.json({ status: "ok" });
-});
-
-const shouldServeStaticFrontend = process.env.SERVE_STATIC_FRONTEND === "true";
-
-if (shouldServeStaticFrontend) {
-  const staticRoot = path.join(__dirname, "../../");
-  app.use(express.static(staticRoot));
-
-  app.get("/", (req, res) => {
-    return res.sendFile(path.join(staticRoot, "index.html"));
-  });
-} else {
-  app.get("/", (req, res) => {
-    return res.json({
-      name: "omwi-ngo-api",
-      status: "ok",
-    });
-  });
-}
-
-app.use((error, req, res, next) => {
-  if (error.message === "Not allowed by CORS") {
-    return res.status(403).json({ message: "Blocked by CORS policy." });
-  }
-
-  return next(error);
-});
-
+// Create the admin account from ADMIN_EMAIL / ADMIN_PASSWORD on first start.
+// Once any admin exists this does nothing, so the admin can change their
+// sign-in email and password in Settings without a restart undoing it.
 const ensureAdmin = async () => {
   try {
     const adminEmail = process.env.ADMIN_EMAIL;
@@ -84,12 +23,14 @@ const ensureAdmin = async () => {
       return;
     }
 
+    if (await User.exists({ role: "admin" })) {
+      return;
+    }
+
     const existing = await User.findOne({ email: adminEmail.toLowerCase() });
     if (existing) {
-      if (existing.role !== "admin") {
-        existing.role = "admin";
-        await existing.save();
-      }
+      existing.role = "admin";
+      await existing.save();
       return;
     }
 

@@ -1,6 +1,7 @@
 const express = require("express");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
+const { serverError } = require("../lib/http");
 
 const router = express.Router();
 
@@ -61,10 +62,7 @@ router.get("/paystack/transactions", auth, adminOnly, async (req, res) => {
 
     return res.json({ transactions: successfulTransactions });
   } catch (error) {
-    return res.status(500).json({
-      message: "Unable to fetch Paystack transactions.",
-      error: error.message,
-    });
+    return serverError(res, error, "Unable to fetch Paystack transactions.");
   }
 });
 
@@ -121,10 +119,7 @@ router.post("/paystack/initialize", async (req, res) => {
       accessCode: data.data.access_code,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: "Unable to initialize Paystack payment.",
-      error: error.message,
-    });
+    return serverError(res, error, "Unable to initialize Paystack payment.");
   }
 });
 

@@ -1,13 +1,47 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const multer = require("multer");
 const Blog = require("../models/Blog");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const cloudinary = require("../config/cloudinary");
+const { serverError } = require("../lib/http");
 
 const router = express.Router();
 
-const upload = multer({ storage: multer.memoryStorage() });
+// Blog images: JPEG, PNG or WebP, up to 5 MB each, at most 3.
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const NOT_AN_IMAGE = "NOT_AN_IMAGE";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_IMAGE_BYTES, files: 3 },
+  fileFilter(req, file, callback) {
+    if (IMAGE_TYPES.includes(file.mimetype)) return callback(null, true);
+    return callback(new Error(NOT_AN_IMAGE));
+  },
+}).fields([
+  { name: "image1", maxCount: 1 },
+  { name: "image2", maxCount: 1 },
+  { name: "image3", maxCount: 1 },
+]);
+
+// Turn upload problems into a clear 400 instead of a server error.
+const uploadImages = (req, res, next) =>
+  upload(req, res, (error) => {
+    if (!error) return next();
+    let message = "The images could not be read. Please try again.";
+    if (error.code === "LIMIT_FILE_SIZE") message = "Each image must be 5 MB or smaller.";
+    else if (error.message === NOT_AN_IMAGE) message = "Images must be JPEG, PNG or WebP files.";
+    else if (error.code === "LIMIT_FILE_COUNT" || error.code === "LIMIT_UNEXPECTED_FILE") {
+      message = "Add up to 3 images.";
+    }
+    return res.status(400).json({ message });
+  });
+
+// An id that is not a valid database id can only mean "not found".
+const notFound = (res) => res.status(404).json({ message: "Blog not found" });
 
 const uploadToCloudinary = async (fileBuffer, originalName) => {
   return new Promise((resolve, reject) => {
@@ -55,14 +89,13 @@ router.get("/", async (req, res) => {
       .populate("createdBy", "name email");
     return res.json(blogs);
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.message });
+    return serverError(res, error);
   }
 });
 
 router.get("/:id", async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
     const blog = await Blog.findById(req.params.id).populate(
       "createdBy",
       "name email",
@@ -73,9 +106,7 @@ router.get("/:id", async (req, res) => {
 
     return res.json(blog);
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.message });
+    return serverError(res, error);
   }
 });
 
@@ -83,11 +114,7 @@ router.post(
   "/",
   auth,
   adminOnly,
-  upload.fields([
-    { name: "image1", maxCount: 1 },
-    { name: "image2", maxCount: 1 },
-    { name: "image3", maxCount: 1 },
-  ]),
+  uploadImages,
   async (req, res) => {
     try {
       const { title, description } = req.body;
@@ -109,9 +136,7 @@ router.post(
 
       return res.status(201).json(blog);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Server error", error: error.message });
+      return serverError(res, error);
     }
   },
 );
@@ -120,13 +145,10 @@ router.put(
   "/:id",
   auth,
   adminOnly,
-  upload.fields([
-    { name: "image1", maxCount: 1 },
-    { name: "image2", maxCount: 1 },
-    { name: "image3", maxCount: 1 },
-  ]),
+  uploadImages,
   async (req, res) => {
     try {
+      if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
       const { title, description } = req.body;
       const blog = await Blog.findById(req.params.id);
 
@@ -146,15 +168,14 @@ router.put(
       await blog.save();
       return res.json(blog);
     } catch (error) {
-      return res
-        .status(500)
-        .json({ message: "Server error", error: error.message });
+      return serverError(res, error);
     }
   },
 );
 
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
     const deleted = await Blog.findByIdAndDelete(req.params.id);
 
     if (!deleted) {
@@ -163,9 +184,7 @@ router.delete("/:id", auth, adminOnly, async (req, res) => {
 
     return res.json({ message: "Blog deleted successfully" });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Server error", error: error.message });
+    return serverError(res, error);
   }
 });
 
