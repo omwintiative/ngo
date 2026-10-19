@@ -16,6 +16,7 @@ import '../styles/tokens.css';
 import '../styles/global.css';
 import '../styles/typography.css';
 import '../styles/admin.css';
+import Button from '../components/Button.astro';
 import { adminNav, adminPaths, type AdminSection } from '../config/admin';
 import logoOnDark from '../assets/logo/omwi-on-dark.svg';
 import mark from '../assets/logo/omwi-mark.svg';
@@ -127,6 +128,18 @@ const { title, variant = 'shell', section } = Astro.props;
               <slot />
             </main>
           </div>
+
+          {/* Shared "Delete …?" confirmation (Figma Overlay / Admin confirm delete); see confirmAction() */}
+          <dialog class="admin-dialog" aria-labelledby="admin-confirm-title" data-admin-confirm>
+            <form method="dialog" class="admin-dialog__body">
+              <h2 class="t-h4" id="admin-confirm-title" data-confirm-title></h2>
+              <p class="t-body admin-dialog__text" data-confirm-text></p>
+              <div class="admin-dialog__buttons">
+                <Button type="submit" variant="outline" value="cancel">Cancel</Button>
+                <button type="submit" class="admin-danger t-button" value="confirm" data-confirm-button></button>
+              </div>
+            </form>
+          </dialog>
 
           <dialog class="admin-menu" id="admin-menu" aria-label="Menu" data-admin-menu>
             <div class="admin-menu__top">

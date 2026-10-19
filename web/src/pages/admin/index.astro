@@ -120,6 +120,7 @@ import { adminPaths } from '../../config/admin';
     methodLabel,
     statusBadge,
     donorLabel,
+    badge,
     el,
     type DonationLike,
   } from '../../lib/admin';
@@ -137,8 +138,6 @@ import { adminPaths } from '../../config/admin';
   const setStat = (name: string, text: string) => {
     document.querySelector<HTMLElement>(`[data-stat="${name}"]`)!.textContent = text;
   };
-
-  const badge = (label: string, tone: 'success' | 'warning') => el('span', `admin-badge admin-badge--${tone} t-body-small`, label);
 
   const donationRow = (d: Summary['recentDonations'][number]) => {
     const row = el('tr');

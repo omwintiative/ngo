@@ -1,0 +1,209 @@
+---
+/*
+  Admin · Record a bank transfer (Figma 340:2646): gifts paid straight into
+  OMWI's bank account, or in cash. Saved as received. Ticking "The donor
+  asked to stay anonymous" turns the Contributors switch off (Figma note).
+  With ?id= the same form edits a recorded gift (Figma: a recorded bank
+  transfer "opens the same screen with editable fields").
+*/
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Button from '../../../components/Button.astro';
+import FormField from '../../../components/FormField.astro';
+import Checkbox from '../../../components/Checkbox.astro';
+import { adminPaths } from '../../../config/admin';
+import arrowLeft from '../../../assets/icons/admin/arrow-left-plum.svg';
+---
+
+<AdminLayout title="Record a bank transfer" section="donations">
+  <a class="admin-back t-button" href={adminPaths.donations}>
+    <img src={arrowLeft.src} width="20" height="20" alt="" />
+    All donations
+  </a>
+
+  <div class="admin-page-header">
+    <h1 class="t-h3" data-title>Record a bank transfer</h1>
+    <p class="t-body-small">For gifts paid straight into OMWI’s bank account, or in cash. Paystack donations are added automatically.</p>
+  </div>
+
+  <form class="admin-columns" novalidate data-record-form>
+    <section class="admin-card admin-columns__main" aria-labelledby="transfer-title">
+      <h2 class="t-h4" id="transfer-title">Transfer details</h2>
+      <div class="record__grid">
+        <FormField name="donorName" label="Donor’s full name" placeholder="Full name" autocomplete="off" required />
+        <FormField name="donorEmail" label="Email address (optional)" type="email" placeholder="name@example.com" autocomplete="off" />
+        <FormField name="amount" label="Amount (₦)" placeholder="Enter the amount" inputmode="decimal" required />
+        <FormField name="paidAt" label="Date received" type="date" required />
+        <FormField
+          name="method"
+          label="How it was paid"
+          type="select"
+          options={[
+            { value: 'bank-transfer', label: 'Bank transfer' },
+            { value: 'cash', label: 'Cash' },
+          ]}
+        />
+        <FormField name="bankReference" label="Bank reference (optional)" placeholder="From the bank alert" autocomplete="off" />
+        <FormField
+          class="record__wide"
+          name="note"
+          label="Note for admins (optional)"
+          type="textarea"
+          placeholder="Anything the team should know about this gift"
+        />
+      </div>
+    </section>
+
+    <section class="admin-card admin-columns__side" aria-labelledby="contributors-title">
+      <h2 class="t-h4" id="contributors-title">Contributors page</h2>
+      <div class="record__listing">
+        <div class="record__listing-text">
+          <p class="t-body" id="show-label">Show this donor on the Contributors page</p>
+          <p class="t-body-small admin-muted">Only the name and the month are shown. The amount stays private.</p>
+        </div>
+        <button type="button" class="admin-switch" role="switch" aria-checked="true" aria-labelledby="show-label" data-show></button>
+      </div>
+      <Checkbox name="anonymous">The donor asked to stay anonymous</Checkbox>
+      <p class="admin-alert" role="alert" data-record-error></p>
+      <Button type="submit" class="record__button" data-record-save>Save Transfer</Button>
+      <Button href={adminPaths.donations} variant="outline" class="record__button" data-record-cancel>Cancel</Button>
+    </section>
+  </form>
+</AdminLayout>
+
+<style>
+  .record__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-16) var(--space-20);
+  }
+  .record__listing {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+  .record__listing-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .admin-columns__main,
+  .admin-columns__side {
+    gap: var(--space-16);
+  }
+  .record__button {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .record__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .record__grid :global(.record__wide) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../../lib/api';
+  import { adminPaths } from '../../../config/admin';
+  import { requireAdmin } from '../../../lib/admin';
+
+  const form = document.querySelector<HTMLFormElement>('[data-record-form]')!;
+  const showSwitch = document.querySelector<HTMLButtonElement>('[data-show]')!;
+  const anonymous = form.elements.namedItem('anonymous') as HTMLInputElement;
+  const errorEl = document.querySelector<HTMLElement>('[data-record-error]')!;
+  const save = document.querySelector<HTMLButtonElement>('[data-record-save]')!;
+  const id = new URLSearchParams(window.location.search).get('id');
+  const field = <T extends HTMLElement = HTMLInputElement>(name: string) => form.elements.namedItem(name) as unknown as T;
+
+  // Today in Nigeria, as the latest date allowed
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+  field('paidAt').max = today;
+
+  const setShow = (on: boolean) => showSwitch.setAttribute('aria-checked', String(on));
+  showSwitch.addEventListener('click', () => setShow(showSwitch.getAttribute('aria-checked') !== 'true'));
+  anonymous.addEventListener('change', () => {
+    if (anonymous.checked) setShow(false);
+    showSwitch.disabled = anonymous.checked;
+  });
+
+  const fieldError = (name: string, message: string) => {
+    field(name).setAttribute('aria-invalid', message ? 'true' : 'false');
+    form.querySelector(`[data-error-for="${name}"]`)!.textContent = message;
+  };
+
+  // Editing: fill the form from the saved gift.
+  if (id) {
+    document.title = 'Edit bank transfer | OMWI website admin';
+    document.querySelector('[data-title]')!.textContent = 'Edit bank transfer';
+    save.textContent = 'Save Changes';
+    document.querySelector<HTMLAnchorElement>('[data-record-cancel]')!.href =
+      `${adminPaths.donation}?id=${encodeURIComponent(id)}`;
+    requireAdmin().then(async () => {
+      try {
+        const { donation } = await api<{ donation: Record<string, any> }>(`/admin/donations/${encodeURIComponent(id)}`);
+        if (!donation.editable) {
+          window.location.replace(`${adminPaths.donation}?id=${encodeURIComponent(id)}`);
+          return;
+        }
+        field('donorName').value = donation.donorName;
+        field('donorEmail').value = donation.donorEmail;
+        field('amount').value = String(donation.amount);
+        field('paidAt').value = new Date(donation.date).toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+        field<HTMLSelectElement>('method').value = donation.method;
+        field('bankReference').value = donation.bankReference;
+        field<HTMLTextAreaElement>('note').value = donation.note;
+        anonymous.checked = donation.anonymous;
+        setShow(donation.showOnContributors);
+        showSwitch.disabled = donation.anonymous;
+      } catch {
+        errorEl.textContent = 'That gift could not load. Please go back and try again.';
+        save.disabled = true;
+      }
+    });
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    errorEl.textContent = '';
+    const donorName = field('donorName').value.trim();
+    const donorEmail = field('donorEmail').value.trim();
+    const amount = Number(field('amount').value.replace(/[,\s₦]/g, ''));
+    const paidAt = field('paidAt').value;
+
+    fieldError('donorName', donorName ? '' : 'Enter the donor’s full name.');
+    fieldError('donorEmail', !donorEmail || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(donorEmail) ? '' : 'Enter a valid email address.');
+    fieldError('amount', Number.isFinite(amount) && amount > 0 ? '' : 'Enter the amount received.');
+    fieldError('paidAt', paidAt && paidAt <= today ? '' : 'Choose the date the money was received.');
+    const invalid = form.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (invalid) {
+      invalid.focus();
+      return;
+    }
+
+    const body = {
+      donorName,
+      donorEmail,
+      amount,
+      paidAt,
+      method: field<HTMLSelectElement>('method').value,
+      bankReference: field('bankReference').value.trim(),
+      note: field<HTMLTextAreaElement>('note').value.trim(),
+      anonymous: anonymous.checked,
+      showOnContributors: !anonymous.checked && showSwitch.getAttribute('aria-checked') === 'true',
+    };
+
+    save.disabled = true;
+    try {
+      const { donation } = await api<{ donation: { id: string } }>(
+        id ? `/admin/donations/${encodeURIComponent(id)}` : '/admin/donations',
+        { method: id ? 'PATCH' : 'POST', body: JSON.stringify(body) },
+      );
+      window.location.assign(`${adminPaths.donation}?id=${encodeURIComponent(donation.id)}`);
+    } catch (error) {
+      errorEl.textContent = error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
+      save.disabled = false;
+    }
+  });
+</script>

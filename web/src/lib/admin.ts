@@ -76,9 +76,9 @@ const naira = new Intl.NumberFormat('en-NG', {
 /** "₦10,000" */
 export const formatNaira = (amount: number) => naira.format(amount);
 
-/** "28 Sep 2026" */
+/** "28 Sep 2026" (Nigerian time, wherever the admin is) */
 export const formatDate = (value: string | Date) =>
-  new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' });
 
 // Paystack's channel names, as the Figma screens write them.
 const CHANNELS: Record<string, string> = {
@@ -107,16 +107,69 @@ export function methodLabel(d: DonationLike): string {
   return channel ? `Paystack · ${channel}` : 'Paystack';
 }
 
-/** Status badge text and colour (Figma Admin/Badge: Success or Warning). */
-export function statusBadge(d: DonationLike): { label: string; tone: 'success' | 'warning' } {
+export type BadgeTone = 'success' | 'warning' | 'error';
+
+/** Status badge text and colour (Figma Admin/Badge: Success, Warning or Error). */
+export function statusBadge(d: DonationLike): { label: string; tone: BadgeTone } {
   if (d.status === 'paid') return { label: d.method === 'paystack' ? 'Paid' : 'Received', tone: 'success' };
   if (d.status === 'not-completed') return { label: 'Not completed', tone: 'warning' };
-  if (d.status === 'failed') return { label: 'Failed', tone: 'warning' };
+  if (d.status === 'failed') return { label: 'Failed', tone: 'error' };
   return { label: 'Pending', tone: 'warning' };
+}
+
+export const badge = (label: string, tone: BadgeTone) => el('span', `admin-badge admin-badge--${tone} t-body-small`, label);
+
+/** The name the Contributors page shows: "Adaeze Okafor" -> "Adaeze O." (same rule as the API). */
+export function publicName(fullName: string): string {
+  const words = fullName.trim().split(/\s+/).filter(Boolean);
+  if (words.length < 2) return words[0] ?? '';
+  return `${words[0]} ${words[words.length - 1].charAt(0).toUpperCase()}.`;
+}
+
+/** "September 2026" */
+export const formatMonth = (value: string | Date) =>
+  new Date(value).toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' });
+
+/** "28 Sep 2026, 14:32" (Nigerian time) */
+export const formatDateTime = (value: string | Date) =>
+  new Date(value).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Africa/Lagos',
+  });
+
+/** An on/off switch (Figma Admin/Toggle) with an accessible name. */
+export function makeSwitch(on: boolean, label: string): HTMLButtonElement {
+  const button = el('button', 'admin-switch');
+  button.type = 'button';
+  button.setAttribute('role', 'switch');
+  button.setAttribute('aria-checked', String(on));
+  button.setAttribute('aria-label', label);
+  return button;
 }
 
 /** The name the admin sees: "Anonymous" when the donor asked (Figma Admin · Dashboard). */
 export const donorLabel = (d: DonationLike) => (d.anonymous ? 'Anonymous' : d.donorName);
+
+/**
+ * Ask before deleting (the layout's shared dialog). Resolves true only when
+ * the red button is pressed; Cancel, Escape or a click outside resolve false.
+ */
+export function confirmAction(opts: { title: string; text: string; confirmLabel: string }): Promise<boolean> {
+  const dialog = document.querySelector<HTMLDialogElement>('[data-admin-confirm]');
+  if (!dialog) return Promise.resolve(false);
+  dialog.querySelector('[data-confirm-title]')!.textContent = opts.title;
+  dialog.querySelector('[data-confirm-text]')!.textContent = opts.text;
+  dialog.querySelector('[data-confirm-button]')!.textContent = opts.confirmLabel;
+  dialog.returnValue = '';
+  dialog.showModal();
+  return new Promise((resolve) =>
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true }),
+  );
+}
 
 /** Make an element with optional class and text: keeps API text out of innerHTML. */
 export function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string) {

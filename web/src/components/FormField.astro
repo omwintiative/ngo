@@ -5,10 +5,14 @@
   red message). The error shows when the form script sets
   `aria-invalid="true"` on the field and fills the error line.
 */
+import caret from '../assets/icons/admin/caret-down-plum-20.svg';
+
 interface Props {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'password' | 'textarea';
+  type?: 'text' | 'email' | 'tel' | 'password' | 'date' | 'textarea' | 'select';
+  /** For type="select": the choices, in order. */
+  options?: { value: string; label: string }[];
   placeholder?: string;
   autocomplete?: string;
   /** Keyboard on phones, e.g. "numeric" for amounts. */
@@ -28,6 +32,7 @@ const {
   inputmode,
   required = false,
   helper,
+  options = [],
   class: className,
 } = Astro.props;
 const id = `field-${name}`;
@@ -37,7 +42,20 @@ const describedBy = [helper && `${id}-helper`, `${id}-error`].filter(Boolean).jo
 <div class:list={['field', className]}>
   <label class="t-button field__label" for={id}>{label}</label>
   {
-    type === 'textarea' ? (
+    type === 'select' ? (
+      <select
+        class="t-body field__control field__control--select"
+        style={`--select-caret: url("${caret.src}")`}
+        id={id}
+        name={name}
+        aria-describedby={describedBy}
+        aria-required={required ? 'true' : undefined}
+      >
+        {options.map((option) => (
+          <option value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    ) : type === 'textarea' ? (
       <textarea
         class="t-body field__control field__control--area"
         id={id}
@@ -87,6 +105,12 @@ const describedBy = [helper && `${id}-helper`, `${id}-error`].filter(Boolean).jo
     height: var(--size-textarea-height);
     padding: var(--space-14) var(--space-16);
     resize: vertical;
+  }
+  /* Figma Input, Type=Select: caret on the right */
+  .field__control--select {
+    padding-right: calc(var(--space-16) * 2 + var(--size-select-caret));
+    background: var(--bg-field) var(--select-caret) no-repeat right var(--space-16) center / var(--size-select-caret);
+    appearance: none;
   }
   .field__control::placeholder {
     color: var(--text-muted);
