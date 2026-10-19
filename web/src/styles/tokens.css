@@ -254,6 +254,14 @@
   --size-overlay-width: 480px; /* 350 on mobile */
   --shadow-overlay: 0 24px 64px color-mix(in srgb, var(--plum-950) 35%, transparent);
 
+  /* Donate (94:5622), Amount chip (45:194), Checkbox (45:212), Check item (44:170) */
+  --size-amount-chip-height: 56px;
+  --size-checkbox: 24px;
+  --radius-checkbox: 6px;
+  --border-width-checkbox: 1.5px;
+  --size-check-item-tick: 24px;
+  --size-donate-photo-desktop: 300px;
+
   /* Gallery page (93:3395) and lightbox (211:7675 / 211:7725) */
   --size-gallery-photo-height: 128px; /* 248 tablet, 288 desktop */
   --size-gallery-photo-height-tablet: 248px;

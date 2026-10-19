@@ -1,0 +1,17 @@
+---
+/*
+  Donate, from Figma Donate (Desktop 94:5622, Tablet 94:5780, Mobile
+  94:5917). No donation call-out on this page (as in Figma).
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import DonateSection from '../components/donate/DonateSection.astro';
+---
+
+<BaseLayout
+  title="Donate"
+  description="Help us make the journey to motherhood safe for all women and eradicate period poverty. Any donation, no matter how big or small, is deeply appreciated."
+>
+  <PageBanner title="Support Our Mission" crumbs={[{ label: 'Donate' }]} />
+  <DonateSection />
+</BaseLayout>

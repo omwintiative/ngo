@@ -11,11 +11,22 @@ interface Props {
   type?: 'text' | 'email' | 'tel' | 'textarea';
   placeholder?: string;
   autocomplete?: string;
+  /** Keyboard on phones, e.g. "numeric" for amounts. */
+  inputmode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email';
   required?: boolean;
   class?: string;
 }
 
-const { name, label, type = 'text', placeholder, autocomplete, required = false, class: className } = Astro.props;
+const {
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  autocomplete,
+  inputmode,
+  required = false,
+  class: className,
+} = Astro.props;
 const id = `field-${name}`;
 ---
 
@@ -39,6 +50,7 @@ const id = `field-${name}`;
         type={type}
         placeholder={placeholder}
         autocomplete={autocomplete}
+        inputmode={inputmode}
         aria-describedby={`${id}-error`}
         aria-required={required ? 'true' : undefined}
       />
