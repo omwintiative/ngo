@@ -1,15 +1,17 @@
 // Admin-only routes (Figma Admin page). Every route here needs the signed-in
-// admin: account settings and the dashboard summary. Donations have their own
-// file (adminDonationRoutes.js); messages and the gallery follow in later
-// parts (API-PLAN.md).
+// admin: account settings, the blog list with drafts, and the dashboard
+// summary. Donations, messages and the gallery have their own files
+// (adminDonationRoutes.js, adminMessageRoutes.js, galleryRoutes.js).
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Donation = require("../models/Donation");
 const Message = require("../models/Message");
+const Blog = require("../models/Blog");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const { serverError } = require("../lib/http");
+const { searchPattern } = require("../lib/search");
 const { signToken, setSessionCookie } = require("../lib/session");
 
 const router = express.Router();
@@ -108,9 +110,27 @@ const startOfMonthInNigeria = (now = new Date()) => {
 // A donor is their email address, or their name for gifts recorded without one.
 const donorKey = (d) => d.donorEmail || `name:${d.donorName.toLowerCase()}`;
 
+// Admin · Blog posts (Figma): every post, drafts included, newest first,
+// with the status and category filters and a title search.
+router.get("/blogs", async (req, res) => {
+  try {
+    const { status, category, q } = req.query;
+    const filter = {};
+    if (status === "draft") filter.status = "draft";
+    else if (status === "published") Object.assign(filter, Blog.PUBLISHED);
+    if (typeof category === "string" && Blog.CATEGORIES.includes(category)) filter.category = category;
+    const pattern = searchPattern(q);
+    if (pattern) filter.title = pattern;
+    const posts = await Blog.find(filter).sort({ createdAt: -1 }).populate("createdBy", "name");
+    return res.json({ posts, total: posts.length });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
 // Figma Admin · Dashboard: this month's donations, donors (and how many gave
-// for the first time), the five newest donations, and messages waiting for a
-// reply. Posts are added with Part D.
+// for the first time), the five newest donations, messages waiting for a
+// reply, and published and draft posts.
 router.get("/summary", async (req, res) => {
   try {
     const monthStart = startOfMonthInNigeria();
@@ -134,12 +154,15 @@ router.get("/summary", async (req, res) => {
         date: d.paidAt || d.createdAt,
       }));
 
-    const [newMessages, latestMessages] = await Promise.all([
+    const [publishedPosts, draftPosts, newMessages, latestMessages] = await Promise.all([
+      Blog.countDocuments(Blog.PUBLISHED),
+      Blog.countDocuments({ status: "draft" }),
       Message.countDocuments({ status: "new" }),
       Message.find({}, { name: 1, subject: 1, status: 1, createdAt: 1 }).sort({ createdAt: -1 }).limit(3).lean(),
     ]);
 
     return res.json({
+      posts: { published: publishedPosts, drafts: draftPosts },
       newMessages,
       latestMessages: latestMessages.map((m) => ({
         id: m._id,

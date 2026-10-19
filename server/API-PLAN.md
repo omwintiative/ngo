@@ -1,7 +1,7 @@
 # API upgrade plan (roadmap step 5)
 
-Status: **approved 19 Oct 2026** (decisions below). Built and tested so far: **Part A** and
-**Part B** (19 Oct 2026; `npm test` in `server/`, 40 tests against the test database).
+Status: **approved 19 Oct 2026** (decisions below). Built and tested so far: **Parts A to D**
+(19 Oct 2026; `npm test` in `server/`, 53 tests against the test database).
 
 Decided: email service **Resend**; tests run against a **separate free MongoDB Atlas database**
 (connection string in `server/.env.test`, never committed); **past Paystack donations are imported
@@ -145,9 +145,12 @@ Gallery (new `GalleryPhoto` model: Cloudinary URL, description, order):
 
 - Public `GET /api/gallery`. Admin: upload (with description, required), reorder, delete
   (also removes the file from Cloudinary).
-- The Gallery page and the Home photo strip then load photos from the API, with loading
-  skeletons, instead of from `web/src/data/gallery.ts`. The six current outreach photos are
-  uploaded once as the starting set.
+- The seven photos the site shows today are uploaded once as the starting set, on launch day
+  (`server/scripts/seed-gallery.js`).
+- Website side, done with the admin screens (step 7): the Gallery page and the Home photo strip
+  load photos from `GET /api/gallery`, with loading skeletons, instead of from
+  `web/src/data/gallery.ts`. Until the engine is live there are no photos to load, so the site
+  keeps its built-in photos for now.
 
 ## Part E: password reset by email (needs decision 1)
 

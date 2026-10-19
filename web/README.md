@@ -117,6 +117,9 @@ On launch day:
       into the new list (uses the live `server/.env`; safe to run twice):
       `node scripts/import-donations.js --confirm`. Imported Paystack donors start hidden from the
       Contributors page; the admin switches on the ones who agree.
+- [ ] In `server/`, put today's seven gallery photos into the admin Gallery (live Cloudinary and
+      database; does nothing if the gallery already has photos):
+      `node scripts/seed-gallery.js --confirm`.
 - [ ] Make a test donation, send a test contact message, and sign in to the admin.
 
 After launch, delete the old site:

@@ -10,6 +10,7 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const Donation = require("../models/Donation");
 const { serverError } = require("../lib/http");
+const { searchPattern } = require("../lib/search");
 
 const router = express.Router();
 router.use(auth, adminOnly);
@@ -37,8 +38,6 @@ const toAdminJSON = (d) => ({
   editable: RECORDED_METHODS.includes(d.method),
   createdAt: d.createdAt,
 });
-
-const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const notFound = (res) => res.status(404).json({ message: "Donation not found." });
 
@@ -112,8 +111,8 @@ router.get("/", async (req, res) => {
       filter.$or = [{ status: "not-completed" }, { status: "pending", createdAt: { $lt: cutoff } }];
     }
 
-    if (typeof q === "string" && q.trim()) {
-      const pattern = new RegExp(escapeRegex(q.trim().slice(0, 100)), "i");
+    const pattern = searchPattern(q);
+    if (pattern) {
       const search = [{ donorName: pattern }, { donorEmail: pattern }, { paystackReference: pattern }];
       filter.$and = [...(filter.$and || []), { $or: search }];
     }

@@ -7,6 +7,7 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const Message = require("../models/Message");
 const { serverError } = require("../lib/http");
+const { searchPattern } = require("../lib/search");
 
 const router = express.Router();
 router.use(auth, adminOnly);
@@ -22,7 +23,6 @@ const toAdminJSON = (m) => ({
   handledAt: m.handledAt || null,
 });
 
-const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const notFound = (res) => res.status(404).json({ message: "Message not found." });
 
 router.get("/", async (req, res) => {
@@ -30,8 +30,8 @@ router.get("/", async (req, res) => {
     const { status, q } = req.query;
     const filter = {};
     if (status === "new" || status === "handled") filter.status = status;
-    if (typeof q === "string" && q.trim()) {
-      const pattern = new RegExp(escapeRegex(q.trim().slice(0, 100)), "i");
+    const pattern = searchPattern(q);
+    if (pattern) {
       filter.$or = [{ name: pattern }, { email: pattern }, { subject: pattern }];
     }
     const messages = await Message.find(filter).sort({ createdAt: -1 });

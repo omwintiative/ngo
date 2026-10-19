@@ -1,0 +1,179 @@
+// Part D: blog categories and drafts, and the gallery. Cloudinary is replaced
+// by a stand-in, so no real files are uploaded or deleted.
+const { test, before, after, beforeEach } = require("node:test");
+const assert = require("node:assert/strict");
+const { Writable } = require("node:stream");
+// helpers first: it sets the stand-in settings the app needs at load time
+const { startServer, createAdmin, request, signIn } = require("./helpers");
+const cloudinary = require("../src/config/cloudinary");
+const Blog = require("../src/models/Blog");
+const GalleryPhoto = require("../src/models/GalleryPhoto");
+
+let server;
+let cookie;
+let admin;
+const uploads = [];
+const deletions = [];
+let failDelete = false;
+
+before(async () => {
+  cloudinary.uploader.upload_stream = (options, callback) => {
+    const n = uploads.length + 1;
+    uploads.push(options);
+    return new Writable({
+      write(chunk, encoding, done) {
+        done();
+      },
+      final(done) {
+        callback(null, { secure_url: `https://res.cloudinary.com/test/${options.folder}/${n}.jpg`, public_id: `${options.folder}/${n}`, width: 1200, height: 800 });
+        done();
+      },
+    });
+  };
+  cloudinary.uploader.destroy = async (publicId) => {
+    if (failDelete) throw new Error("Cloudinary down");
+    deletions.push(publicId);
+    return { result: "ok" };
+  };
+  server = await startServer();
+  admin = await createAdmin();
+  ({ cookie } = await signIn(server.base));
+});
+after(() => server.stop());
+beforeEach(async () => {
+  await Blog.deleteMany({});
+  await GalleryPhoto.deleteMany({});
+  uploads.length = 0;
+  deletions.length = 0;
+  failDelete = false;
+});
+
+const api = (method, path, body) => request(server.base, method, path, { cookie, body });
+const jpeg = () => new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], { type: "image/jpeg" });
+const postForm = (fields, withImage = false) => {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
+  if (withImage) form.append("image1", jpeg(), "photo.jpg");
+  return form;
+};
+const photoForm = (alt, withPhoto = true) => {
+  const form = new FormData();
+  if (alt !== undefined) form.append("alt", alt);
+  if (withPhoto) form.append("photo", jpeg(), "outreach.jpg");
+  return form;
+};
+
+test("blog: drafts stay out of public lists and links; old posts with no status stay public", async () => {
+  const draft = await api("POST", "/api/blogs", postForm({ title: "Draft post", description: "Text", status: "draft", category: "Newborn Care" }));
+  assert.equal(draft.status, 201);
+  const live = await api("POST", "/api/blogs", postForm({ title: "Live post", description: "Text", status: "published", category: "OMWI News", imageAlt: "Mothers at an outreach" }, true));
+  assert.equal(live.status, 201);
+  assert.equal(live.body.images.length, 1);
+  assert.equal(live.body.imageAlt, "Mothers at an outreach");
+  // A post saved before status existed
+  await Blog.collection.insertOne({ title: "Old post", description: "Text", images: [], createdBy: admin._id, createdAt: new Date(0) });
+
+  const list = await request(server.base, "GET", "/api/blogs");
+  assert.deepEqual(list.body.map((p) => p.title), ["Live post", "Old post"]);
+  assert.equal(list.body[0].category, "OMWI News");
+  assert.equal(list.body[0].createdBy.name, "Test Admin");
+  assert.equal(list.body[0].createdBy.email, undefined, "the author's email is never public");
+
+  assert.equal((await request(server.base, "GET", `/api/blogs/${draft.body._id}`)).status, 404);
+  assert.equal((await request(server.base, "GET", `/api/blogs/${live.body._id}`)).status, 200);
+
+  const adminList = await api("GET", "/api/admin/blogs");
+  assert.equal(adminList.body.total, 3);
+  assert.deepEqual((await api("GET", "/api/admin/blogs?status=draft")).body.posts.map((p) => p.title), ["Draft post"]);
+  assert.deepEqual((await api("GET", "/api/admin/blogs?status=published")).body.posts.map((p) => p.title), ["Live post", "Old post"]);
+  assert.deepEqual((await api("GET", "/api/admin/blogs?category=Newborn%20Care")).body.posts.map((p) => p.title), ["Draft post"]);
+  assert.deepEqual((await api("GET", "/api/admin/blogs?q=live")).body.posts.map((p) => p.title), ["Live post"]);
+  assert.equal((await request(server.base, "GET", "/api/admin/blogs")).status, 401);
+
+  const summary = await api("GET", "/api/admin/summary");
+  assert.deepEqual(summary.body.posts, { published: 2, drafts: 1 });
+});
+
+test("blog: publishing a draft, and the old site's form still works", async () => {
+  const draft = await api("POST", "/api/blogs", postForm({ title: "Soon", description: "Text", status: "draft" }));
+  const publish = await api("PUT", `/api/blogs/${draft.body._id}`, postForm({ status: "published" }));
+  assert.equal(publish.status, 200);
+  assert.equal(publish.body.title, "Soon", "fields left out stay as they were");
+  assert.equal((await request(server.base, "GET", `/api/blogs/${draft.body._id}`)).status, 200);
+
+  // Old site: title and description only, and empty fields mean "no change"
+  const old = await api("POST", "/api/blogs", postForm({ title: "Old form", description: "Text" }));
+  assert.equal(old.body.status, "published");
+  const edited = await api("PUT", `/api/blogs/${old.body._id}`, postForm({ title: "", description: "New text" }));
+  assert.equal(edited.body.title, "Old form");
+  assert.equal(edited.body.description, "New text");
+});
+
+test("blog: unknown categories, statuses and empty titles are refused", async () => {
+  for (const fields of [
+    { title: "T", description: "D", category: "Sports" },
+    { title: "T", description: "D", status: "secret" },
+    { title: "   ", description: "D" },
+    { title: "T", description: "D", imageAlt: "x".repeat(251) },
+  ]) {
+    assert.equal((await api("POST", "/api/blogs", postForm(fields))).status, 400, JSON.stringify(fields));
+  }
+  assert.equal(await Blog.countDocuments(), 0);
+});
+
+test("gallery: upload with a description, newest first, public list", async () => {
+  const first = await api("POST", "/api/admin/gallery", photoForm("Mothers at an outreach"));
+  assert.equal(first.status, 201);
+  const second = await api("POST", "/api/admin/gallery", photoForm("A volunteer with a baby"));
+  assert.equal(second.status, 201);
+  assert.equal(uploads[0].folder, "omwi/gallery");
+
+  const list = await request(server.base, "GET", "/api/gallery");
+  assert.equal(list.status, 200);
+  assert.deepEqual(list.body.map((p) => p.alt), ["A volunteer with a baby", "Mothers at an outreach"]);
+  assert.match(list.body[0].url, /^https:\/\/res\.cloudinary\.com\//);
+  assert.equal(list.body[0].width, 1200);
+  assert.equal(list.body[0].publicId, undefined, "storage details stay private");
+});
+
+test("gallery: a description and an image file are required; only the admin can upload", async () => {
+  assert.equal((await api("POST", "/api/admin/gallery", photoForm(""))).status, 400);
+  assert.equal((await api("POST", "/api/admin/gallery", photoForm("No file", false))).status, 400);
+  const text = new FormData();
+  text.append("alt", "A text file");
+  text.append("photo", new Blob(["hello"], { type: "text/plain" }), "notes.txt");
+  assert.equal((await api("POST", "/api/admin/gallery", text)).status, 400);
+  const two = photoForm("Two files");
+  two.append("photo", jpeg(), "second.jpg");
+  assert.equal((await api("POST", "/api/admin/gallery", two)).status, 400);
+  assert.equal((await request(server.base, "POST", "/api/admin/gallery", { body: photoForm("Signed out") })).status, 401);
+  assert.equal(uploads.length, 0, "nothing reached Cloudinary");
+  assert.equal(await GalleryPhoto.countDocuments(), 0);
+});
+
+test("gallery: edit the description, reorder, delete (with the file)", async () => {
+  const ids = [];
+  for (const alt of ["A", "B", "C"]) ids.push((await api("POST", "/api/admin/gallery", photoForm(alt))).body.photo.id);
+
+  const edit = await api("PATCH", `/api/admin/gallery/${ids[0]}`, { alt: "A, described better" });
+  assert.equal(edit.body.photo.alt, "A, described better");
+  assert.equal((await api("PATCH", `/api/admin/gallery/${ids[0]}`, { alt: "" })).status, 400);
+
+  const order = await api("PUT", "/api/admin/gallery/order", { ids: [ids[0], ids[2], ids[1]] });
+  assert.equal(order.status, 200);
+  assert.deepEqual(order.body.photos.map((p) => p.id), [ids[0], ids[2], ids[1]]);
+  for (const bad of [[ids[0], ids[1]], [ids[0], ids[0], ids[1]], [ids[0], ids[1], "nope"]]) {
+    assert.equal((await api("PUT", "/api/admin/gallery/order", { ids: bad })).status, 400);
+  }
+
+  const del = await api("DELETE", `/api/admin/gallery/${ids[1]}`);
+  assert.equal(del.status, 200);
+  assert.equal(deletions.length, 1);
+  assert.equal((await request(server.base, "GET", "/api/gallery")).body.length, 2);
+
+  // If Cloudinary is down the photo still leaves the site
+  failDelete = true;
+  assert.equal((await api("DELETE", `/api/admin/gallery/${ids[2]}`)).status, 200);
+  assert.equal(await GalleryPhoto.countDocuments(), 1);
+  assert.equal((await api("DELETE", `/api/admin/gallery/${ids[2]}`)).status, 404);
+});
