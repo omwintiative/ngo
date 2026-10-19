@@ -86,10 +86,11 @@ Who owns the new Vercel project, and on which plan, is still to be agreed with O
 
 ### Connecting the GoDaddy domain
 
-1. In the new Vercel project: Settings → Domains → add `omwinitiative.org` and `www.omwinitiative.org`.
+1. In the new Vercel project: Settings → Domains → add `omwinitiative.org`, `www.omwinitiative.org`
+   and `admin.omwinitiative.org` (the admin area; a subdomain costs nothing extra).
 2. Vercel then shows the exact DNS records to create. In GoDaddy (My Products → the domain → DNS),
-   add those records exactly as shown (an A record for the root, a CNAME for `www`), replacing the
-   records that point at the old site.
+   add those records exactly as shown (an A record for the root, a CNAME for `www`, a CNAME for
+   `admin`), replacing the records that point at the old site.
 3. Keep GoDaddy's nameservers, and do not touch the MX or other email records, so
    `info@omwinitiative.org` keeps working.
 4. Wait until Vercel shows both domains as valid (DNS can take up to a few hours).
