@@ -112,6 +112,11 @@ On launch day:
 - [ ] Point the GoDaddy DNS at the new Vercel project (above).
 - [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org` and
       `https://www.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
+- [ ] Render environment, email (see `server/.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`,
+      `MESSAGE_ALERT_TO=info@omwinitiative.org`, `ADMIN_SITE_URL=https://admin.omwinitiative.org`.
+      `omwinitiative.org` must show as verified in Resend.
+- [ ] Email wording: OMWI approves the reset email and the new-message alert
+      (`server/src/routes/authRoutes.js`, `contactRoutes.js`; not in the Figma file).
 - [ ] Paystack dashboard: callback and webhook URLs updated to the new domain.
 - [ ] In `server/`, once the old site no longer takes bank-transfer records, copy the old donations
       into the new list (uses the live `server/.env`; safe to run twice):

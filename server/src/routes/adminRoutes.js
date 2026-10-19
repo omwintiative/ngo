@@ -12,14 +12,12 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const { serverError } = require("../lib/http");
 const { searchPattern } = require("../lib/search");
+const { newPasswordProblem } = require("../lib/passwords");
 const { signToken, setSessionCookie } = require("../lib/session");
 
 const router = express.Router();
 router.use(auth, adminOnly);
 
-const MIN_PASSWORD_LENGTH = 12;
-// bcrypt only reads the first 72 bytes of a password.
-const MAX_PASSWORD_BYTES = 72;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const publicUser = (user) => ({ id: user._id, name: user.name, email: user.email, role: user.role });
@@ -76,15 +74,8 @@ router.patch("/account", async (req, res) => {
 router.put("/account/password", async (req, res) => {
   try {
     const { newPassword } = req.body;
-    if (
-      typeof newPassword !== "string" ||
-      newPassword.length < MIN_PASSWORD_LENGTH ||
-      Buffer.byteLength(newPassword) > MAX_PASSWORD_BYTES
-    ) {
-      return res.status(400).json({
-        message: `Choose a password of at least ${MIN_PASSWORD_LENGTH} characters (and no more than ${MAX_PASSWORD_BYTES}).`,
-      });
-    }
+    const problem = newPasswordProblem(newPassword);
+    if (problem) return res.status(400).json({ message: problem });
 
     const user = await confirmPassword(req, res);
     if (!user) return undefined;

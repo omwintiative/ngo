@@ -1,11 +1,12 @@
 // Public: the Contact page form (API-PLAN.md, Part C). Every message is saved
 // for the admin. Spam protection: a hidden "website" field that people never
 // see but robots fill in (those messages are dropped quietly), and at most
-// 5 messages an hour from one email address. An email alert to
-// info@omwinitiative.org comes with Part E (email sending).
+// 5 messages an hour from one email address. Each saved message is also
+// emailed to the team (see alertTeam).
 const express = require("express");
 const Message = require("../models/Message");
 const { serverError } = require("../lib/http");
+const { sendEmail } = require("../lib/email");
 
 const router = express.Router();
 
@@ -27,6 +28,30 @@ const tooMany = (email) => {
 const remember = (email) => recent.get(email).push(Date.now());
 
 const text = (value) => (typeof value === "string" ? value.trim() : "");
+
+// Email alert to MESSAGE_ALERT_TO (info@omwinitiative.org). Not awaited: the
+// message is already saved, so a slow or failed email never affects the
+// visitor. Reply-To is the visitor, so "Reply" in the inbox answers them.
+// TODO: wording to be approved by OMWI (not in the Figma file).
+const alertTeam = ({ name, email, subject, message }) => {
+  const to = process.env.MESSAGE_ALERT_TO;
+  if (!to) return;
+  sendEmail({
+    to,
+    replyTo: email,
+    subject: `New message from the website: ${subject || "(no subject)"}`,
+    text: [
+      `From: ${name} <${email}>`,
+      subject ? `Subject: ${subject}` : null,
+      "",
+      message,
+      "",
+      "This message is also saved in the website admin, under Messages.",
+    ]
+      .filter((line) => line !== null)
+      .join("\n"),
+  });
+};
 
 router.post("/", async (req, res) => {
   try {
@@ -55,6 +80,7 @@ router.post("/", async (req, res) => {
 
     await Message.create({ name, email, subject, message });
     remember(email);
+    alertTeam({ name, email, subject, message });
     return res.status(201).json({ message: "Message sent." });
   } catch (error) {
     return serverError(res, error, "Your message could not be sent. Please try again.");

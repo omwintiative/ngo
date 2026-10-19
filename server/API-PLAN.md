@@ -1,7 +1,8 @@
 # API upgrade plan (roadmap step 5)
 
-Status: **approved 19 Oct 2026** (decisions below). Built and tested so far: **Parts A to D**
-(19 Oct 2026; `npm test` in `server/`, 53 tests against the test database).
+Status: **approved 19 Oct 2026** (decisions below). All five parts (**A to E**) are built
+and tested (19 Oct 2026; `npm test` in `server/`, 60 tests against the test database). Still to
+come: the admin screens and the website's switch to the API gallery (roadmap step 7).
 
 Decided: email service **Resend**; tests run against a **separate free MongoDB Atlas database**
 (connection string in `server/.env.test`, never committed); **past Paystack donations are imported
