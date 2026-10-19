@@ -68,9 +68,7 @@ const year = new Date().getFullYear();
     display: flex;
     flex-direction: column;
     gap: var(--space-32);
-    padding: var(--layout-footer-padding-top)
-      max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2))
-      var(--space-32);
+    padding: var(--layout-footer-padding-top) var(--layout-page-padding) var(--space-32);
     background: var(--bg-darkest);
     color: var(--text-on-dark);
   }
@@ -107,15 +105,21 @@ const year = new Date().getFullYear();
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--space-14);
+    gap: 0; /* phones: the links' padding spaces them; 14px from tablet */
     margin: 0;
     padding: 0;
     list-style: none;
     font-style: normal;
   }
 
+  /*
+    Phones: each link is a 44px-tall tap target, made with padding (the text
+    size is unchanged) and no list gap, so the rows keep a steady rhythm.
+    Tablet and desktop go back to Figma's spacing (see the 768 query).
+  */
   .site-footer__link {
     display: block;
+    padding-block: calc((var(--size-touch-target) - var(--type-body-small-line)) / 2);
     color: var(--text-on-dark);
     text-decoration: none;
   }
@@ -146,6 +150,12 @@ const year = new Date().getFullYear();
     }
     .site-footer__columns {
       flex-direction: row;
+    }
+    .site-footer__list {
+      gap: var(--space-14);
+    }
+    .site-footer__link {
+      padding-block: 0;
     }
     .site-footer__column {
       flex: 1 1 0;

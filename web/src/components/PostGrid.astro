@@ -2,14 +2,34 @@
 /*
   Grid for post cards: 1 column on mobile, 2 on tablet, 3 on desktop
   (Figma Blog, Home and Blog post). Cards are added by renderPostCard().
+
+  `skeletons`: how many grey placeholder cards to show while the posts load.
+  They have the post card's shape, so nothing jumps when the real cards
+  replace them (the scripts use replaceChildren).
 */
 interface Props {
+  skeletons?: number;
   [attr: string]: unknown;
 }
-const attrs = Astro.props;
+const { skeletons = 0, ...attrs } = Astro.props;
 ---
 
-<ul class="post-grid" {...attrs}></ul>
+<ul class="post-grid" {...attrs}>
+  {
+    Array.from({ length: skeletons }, () => (
+      <li class="post-skeleton" aria-hidden="true" data-skeleton>
+        <span class="skeleton post-skeleton__photo" />
+        <span class="post-skeleton__body">
+          <span class="skeleton skeleton-text post-skeleton__eyebrow" />
+          <span class="skeleton skeleton-text post-skeleton__title" />
+          <span class="skeleton skeleton-text post-skeleton__title post-skeleton__short" />
+          <span class="skeleton skeleton-text post-skeleton__short" />
+        </span>
+        <span class="skeleton skeleton-text post-skeleton__link" />
+      </li>
+    ))
+  }
+</ul>
 
 <style>
   .post-grid {
@@ -29,5 +49,43 @@ const attrs = Astro.props;
     .post-grid {
       grid-template-columns: repeat(3, 1fr);
     }
+  }
+
+  /* Same frame and spacing as the post card (PostCardTemplate.astro) */
+  .post-skeleton {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+  }
+  .post-skeleton__photo {
+    height: var(--size-post-photo-height);
+    border-radius: 0;
+  }
+  .post-skeleton__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-10);
+    padding: var(--space-24) var(--space-24) var(--space-10);
+  }
+  .post-skeleton__eyebrow {
+    --skeleton-size: var(--type-label-eyebrow-size);
+    --skeleton-line: var(--type-label-eyebrow-line);
+    width: 40%;
+  }
+  .post-skeleton__title {
+    --skeleton-size: var(--type-h4-size);
+    --skeleton-line: var(--type-h4-line);
+  }
+  .post-skeleton__short {
+    width: 60%;
+  }
+  .post-skeleton__link {
+    --skeleton-size: var(--type-label-button-size);
+    --skeleton-line: var(--type-label-button-line);
+    width: 40%;
+    margin: 0 var(--space-24) var(--space-20);
   }
 </style>

@@ -14,6 +14,7 @@ import '../styles/global.css';
 import '../styles/typography.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import PageLoader from '../components/PageLoader.astro';
 
 interface Props {
   /** Page title, shown in the browser tab and search results. */
@@ -51,6 +52,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <slot name="head" />
   </head>
   <body>
+    <PageLoader />
     <a class="skip-link" href="#main">Skip to content</a>
     <SiteHeader />
     <main id="main" tabindex="-1">

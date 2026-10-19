@@ -160,7 +160,6 @@ const total = String(slides.length).padStart(2, '0');
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     gap: var(--space-20);
     min-height: var(--layout-hero-slider-height);
     padding: var(--layout-hero-padding-top) var(--layout-page-padding) var(--space-28);
@@ -216,13 +215,17 @@ const total = String(slides.length).padStart(2, '0');
     transform: translate(40%, 34%);
   }
 
-  /* ----- Slide content ----- */
+  /* ----- Slide content -----
+     Every slide starts at the top padding, where Figma puts the eyebrow, so
+     a slide with shorter text does not sit lower. The stage takes the spare
+     height, which keeps the controls at the bottom. */
   .hero__stage {
+    flex: 1 0 auto;
     display: grid;
   }
   .hero__slide {
     grid-area: 1 / 1;
-    align-self: end;
+    align-self: start;
     visibility: hidden;
   }
   .hero__slide.is-active {
@@ -275,7 +278,8 @@ const total = String(slides.length).padStart(2, '0');
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: var(--space-16);
+    /* Figma: a 16px Space between two 20px gaps */
+    margin-top: calc(var(--space-16) + var(--space-20));
   }
   .hero__progress {
     display: flex;
@@ -330,16 +334,24 @@ const total = String(slides.length).padStart(2, '0');
       width: var(--size-watermark);
       transform: translate(25%, 30%);
     }
+    /* Text and fact card side by side in a grid, so the card can never
+       overlap the headline at any width (UX review, 19 Oct 2026). */
+    .hero__slide {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--size-fact-card-width);
+      align-items: center;
+      column-gap: var(--space-48);
+    }
     .hero__content {
       gap: var(--space-28);
+    }
+    .hero__title {
+      max-width: min(var(--size-hero-title-max), 100%);
     }
     .hero__text {
       max-width: var(--size-hero-text-max);
     }
     .hero__fact {
-      position: absolute;
-      top: calc(50% + var(--space-8));
-      right: max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2));
       display: flex;
       flex-direction: column;
       gap: var(--space-8);
@@ -350,13 +362,13 @@ const total = String(slides.length).padStart(2, '0');
       background: var(--bg-fact-card);
       -webkit-backdrop-filter: blur(var(--blur-fact-card));
       backdrop-filter: blur(var(--blur-fact-card));
-      translate: 0 -50%;
     }
     .hero__stat {
       color: var(--text-highlight);
     }
+    /* Figma: a 40px Space between two 28px gaps */
     .hero__controls {
-      margin-top: var(--space-40);
+      margin-top: calc(var(--space-40) + var(--space-28));
     }
     .hero__bar {
       width: var(--size-hero-bar);
