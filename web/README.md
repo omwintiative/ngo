@@ -103,6 +103,8 @@ Before merging `redesign` into `main`:
       (`server/node_modules` is no longer in git, so Render must install the packages itself.)
 - [ ] The API upgrades and the admin are built and tested (roadmap steps 5 and 7).
 - [ ] `site` is set to `https://omwinitiative.org` in `astro.config.mjs`.
+- [ ] Privacy Policy: every `[bracketed]` line in `src/pages/privacy-policy.astro` replaced with
+      wording approved by OMWI, and its `noindex` removed.
 - [ ] The new Vercel project's preview has been checked page by page.
 
 On launch day:
@@ -110,7 +112,19 @@ On launch day:
 - [ ] Point the GoDaddy DNS at the new Vercel project (above).
 - [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org` and
       `https://www.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
+- [ ] Render environment, email (see `server/.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`,
+      `MESSAGE_ALERT_TO=info@omwinitiative.org`, `ADMIN_SITE_URL=https://admin.omwinitiative.org`.
+      `omwinitiative.org` must show as verified in Resend.
+- [ ] Email wording: OMWI approves the reset email and the new-message alert
+      (`server/src/routes/authRoutes.js`, `contactRoutes.js`; not in the Figma file).
 - [ ] Paystack dashboard: callback and webhook URLs updated to the new domain.
+- [ ] In `server/`, once the old site no longer takes bank-transfer records, copy the old donations
+      into the new list (uses the live `server/.env`; safe to run twice):
+      `node scripts/import-donations.js --confirm`. Imported Paystack donors start hidden from the
+      Contributors page; the admin switches on the ones who agree.
+- [ ] In `server/`, put today's seven gallery photos into the admin Gallery (live Cloudinary and
+      database; does nothing if the gallery already has photos):
+      `node scripts/seed-gallery.js --confirm`.
 - [ ] Make a test donation, send a test contact message, and sign in to the admin.
 
 After launch, delete the old site:

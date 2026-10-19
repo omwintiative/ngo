@@ -5,7 +5,8 @@
   breadcrumb. 260 / 300 / 340 tall (layout/banner-height).
 
   Figma "Read me": on load the photo settles from 108% to 100% while the
-  heading rises and fades in over 800ms. Off with reduced motion.
+  heading rises and fades in over 800ms. With reduced motion the heading
+  only fades in and the photo stays still.
 */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -128,6 +129,13 @@ const trail: Crumb[] = [{ label: 'Home', href: paths.home }, ...crumbs];
   }
   .banner__crumbs {
     animation-delay: 120ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .banner__title,
+    .banner__crumbs {
+      animation-name: motion-fade-in !important;
+      animation-duration: 800ms !important;
+    }
   }
 
   .banner__crumbs ol {

@@ -129,6 +129,11 @@
   --size-icon-button: 44px;
   --size-touch-target: 44px; /* smallest tap target on phones (WCAG 2.5.5) */
 
+  /* "Page not found" message card (Figma 404 page, 128:7212) */
+  --size-message-card-width: 640px;
+  --size-icon-tile-large: 72px;
+  --size-icon-large: 36px;
+
   /* Page loader (Figma Loader 118:693) and loading skeletons */
   --size-loader-mark-width: 88px;
   --size-loader-mark-height: 80px;
@@ -357,7 +362,6 @@
   --layout-footer-padding-top: 56px;
   --layout-section-gap: 36px; /* section heading to content */
   --layout-hero-slider-height: 722px; /* Hero slider component; see note on hero-height above */
-  --layout-hero-padding-top: 128px;
   --layout-banner-padding-top: 104px; /* Page banner: below the fixed header */
 }
 
@@ -386,7 +390,6 @@
     --layout-gap: 24px;
     --layout-split-gap: 40px;
     --layout-hero-height: 640px;
-    --layout-hero-padding-top: 248px; /* Figma Home Tablet: hero eyebrow at 248 */
     --layout-banner-height: 300px;
     --layout-footer-padding-top: 64px;
     --layout-section-gap: 48px;
@@ -424,6 +427,5 @@
     --layout-footer-padding-top: 80px;
     --layout-section-gap: 56px;
     --layout-hero-slider-height: 816px;
-    --layout-hero-padding-top: 176px;
   }
 }

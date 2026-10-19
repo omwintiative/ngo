@@ -1,6 +1,12 @@
 # API upgrade plan (roadmap step 5)
 
-Status: **proposal, waiting for Ifeanyi's approval.** Nothing in `server/` has changed yet.
+Status: **approved 19 Oct 2026** (decisions below). All five parts (**A to E**) are built
+and tested (19 Oct 2026; `npm test` in `server/`, 60 tests against the test database). Still to
+come: the admin screens and the website's switch to the API gallery (roadmap step 7).
+
+Decided: email service **Resend**; tests run against a **separate free MongoDB Atlas database**
+(connection string in `server/.env.test`, never committed); **past Paystack donations are imported
+once**; admin at **admin.omwinitiative.org**.
 Written 19 Oct 2026 from the current code and the notes on the Figma Admin page (`1:5`).
 
 ## In short
@@ -108,8 +114,9 @@ Admin routes (all admin only):
 
 Public:
 
-- `GET /api/contributors`: names of paid, non-anonymous donors the admin has not hidden.
-  Names only, never emails or amounts (unless the Contributors design shows amounts; to check).
+- `GET /api/contributors`: paid, non-anonymous donors the admin has not hidden, newest first,
+  as `[{ name, date }]` (the Contributors page shows the name and the month). Never emails or
+  amounts (checked against the Figma Contributors page). The page already calls this route.
 
 Existing data: the current bank-transfer records (`ManualContribution`) are copied into
 `Donation` once; past Paystack payments are imported once (decision 3). The old routes stay
@@ -139,9 +146,12 @@ Gallery (new `GalleryPhoto` model: Cloudinary URL, description, order):
 
 - Public `GET /api/gallery`. Admin: upload (with description, required), reorder, delete
   (also removes the file from Cloudinary).
-- The Gallery page and the Home photo strip then load photos from the API, with loading
-  skeletons, instead of from `web/src/data/gallery.ts`. The six current outreach photos are
-  uploaded once as the starting set.
+- The seven photos the site shows today are uploaded once as the starting set, on launch day
+  (`server/scripts/seed-gallery.js`).
+- Website side, done with the admin screens (step 7): the Gallery page and the Home photo strip
+  load photos from `GET /api/gallery`, with loading skeletons, instead of from
+  `web/src/data/gallery.ts`. Until the engine is live there are no photos to load, so the site
+  keeps its built-in photos for now.
 
 ## Part E: password reset by email (needs decision 1)
 

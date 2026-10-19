@@ -14,7 +14,7 @@ import PageBanner from '../../components/PageBanner.astro';
 import DonationCallout from '../../components/DonationCallout.astro';
 import PostCardTemplate from '../../components/PostCardTemplate.astro';
 import PostGrid from '../../components/PostGrid.astro';
-import Button from '../../components/Button.astro';
+import NotFoundMessage from '../../components/NotFoundMessage.astro';
 import { paths } from '../../config/navigation';
 import facebook from '../../assets/icons/facebook-plum.svg';
 import whatsapp from '../../assets/icons/whatsapp-plum.svg';
@@ -80,20 +80,10 @@ const share = [
       </div>
     </article>
 
-    <div class="missing" hidden data-post-missing>
-      <h2 class="t-h3">We could not find that page.</h2>
-      <p class="t-body missing__text">
-        The link may be old, or the page may have moved. Go back to the home page, or contact us and
-        we will point you to the right place.
-      </p>
-      <div class="missing__buttons">
-        <Button href={paths.home}>Back to Home</Button>
-        <Button href={paths.contact} variant="outline">Contact Us</Button>
-      </div>
-    </div>
+    <NotFoundMessage hidden data-post-missing />
   </section>
 
-  <section class="section section--tint" aria-labelledby="more-title" hidden data-more>
+  <section class="section section--tint" aria-labelledby="more-title" hidden data-more data-reveal>
     <h2 class="t-h2 more__title" id="more-title">More from the blog</h2>
     <PostGrid data-more-list />
     <PostCardTemplate />
@@ -106,8 +96,7 @@ const share = [
   .article-section {
     align-items: center;
   }
-  .article,
-  .missing {
+  .article {
     display: flex;
     flex-direction: column;
     gap: var(--space-24);
@@ -187,18 +176,6 @@ const share = [
   }
   .share__button:hover {
     background: var(--bg-soft);
-  }
-
-  .missing {
-    align-items: flex-start;
-  }
-  .missing__text {
-    color: var(--text-muted);
-  }
-  .missing__buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-12);
   }
 
   .more__title {

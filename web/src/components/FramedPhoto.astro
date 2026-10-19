@@ -14,6 +14,7 @@ interface PhotoProps {
   src: ImageMetadata;
   alt: string;
   fade?: 'left' | 'top' | 'bottom' | 'none';
+  focus?: string;
 }
 
 interface Props {
@@ -35,6 +36,7 @@ const { main, inset, badge, desktopHeight } = Astro.props;
     src={main.src}
     alt={main.alt}
     fade={main.fade ?? 'none'}
+    focus={main.focus}
     widths={[400, 700, 1100]}
     sizes="(min-width: 1200px) 564px, (min-width: 768px) 688px, 100vw"
   />
@@ -42,7 +44,15 @@ const { main, inset, badge, desktopHeight } = Astro.props;
   {
     inset && (
       <div class="framed__inset">
-        <Photo class="framed__inset-photo" src={inset.src} alt={inset.alt} fade={inset.fade ?? 'none'} widths={[200, 400]} sizes="200px" />
+        <Photo
+          class="framed__inset-photo"
+          src={inset.src}
+          alt={inset.alt}
+          fade={inset.fade ?? 'none'}
+          focus={inset.focus}
+          widths={[200, 400]}
+          sizes="200px"
+        />
       </div>
     )
   }

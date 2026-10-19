@@ -17,6 +17,9 @@ interface Props {
   /** Describe the picture. Use "" only when it is purely decorative. */
   alt: string;
   fade?: 'left' | 'top' | 'bottom' | 'none';
+  /** Which part of the picture to keep when it is cropped to its box, as CSS
+      object-position, e.g. "center 15%" to keep faces near the top. */
+  focus?: string;
   /** Show the hover wash and arrow (Figma hover state). */
   hover?: boolean;
   widths?: number[];
@@ -30,6 +33,7 @@ const {
   src,
   alt,
   fade = 'none',
+  focus,
   hover = true,
   widths = [400, 800, 1200],
   sizes = '(min-width: 1200px) 600px, 100vw',
@@ -40,7 +44,15 @@ const {
 ---
 
 <div class:list={['photo', hover && 'photo--hover', className]} {...rest}>
-  <Image class="photo__img" src={src} alt={alt} widths={widths} sizes={sizes} priority={priority} />
+  <Image
+    class="photo__img"
+    src={src}
+    alt={alt}
+    widths={widths}
+    sizes={sizes}
+    priority={priority}
+    style={focus ? `object-position: ${focus}` : undefined}
+  />
   <span class="photo__tint" aria-hidden="true"></span>
   {fade !== 'none' && <span class:list={['photo__fade', `photo__fade--${fade}`]} aria-hidden="true" />}
   {

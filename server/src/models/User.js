@@ -23,6 +23,16 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    // Raised when the password changes, which signs out every other session
+    // (see lib/session.js).
+    sessionVersion: {
+      type: Number,
+      default: 0,
+    },
+    // Password reset by email link: only a hash of the link's token is kept,
+    // and it works once, until it expires.
+    passwordResetTokenHash: { type: String },
+    passwordResetExpires: { type: Date },
   },
   { timestamps: true },
 );

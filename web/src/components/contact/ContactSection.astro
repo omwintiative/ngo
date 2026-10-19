@@ -72,6 +72,10 @@ const cards = [
       </div>
       <FormField name="subject" label="Subject" placeholder="What is your message about?" />
       <FormField name="message" label="Your message" type="textarea" placeholder="Write your message here" />
+      <!-- Spam trap: hidden from people (and screen readers), filled in by robots. The API drops those. -->
+      <div class="form__trap" aria-hidden="true">
+        <label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+      </div>
       <Button type="submit" class="form__submit" data-contact-submit>Send Message</Button>
       <p class="t-body-small form__note" role="status" data-contact-status>We reply by email.</p>
     </form>
@@ -148,6 +152,13 @@ const cards = [
   }
 
   /* Form card: 20 / 32 / 40 padding (mobile / tablet / desktop) */
+  .form__trap {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
   .form {
     display: flex;
     flex-direction: column;
@@ -287,6 +298,7 @@ const cards = [
             email: data.email.trim(),
             subject: data.subject.trim(),
             message: data.message.trim(),
+            website: data.website ?? '',
           }),
         });
         form.reset();

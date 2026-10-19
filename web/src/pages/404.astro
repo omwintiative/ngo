@@ -1,0 +1,27 @@
+---
+/*
+  404 Page not found, from Figma (128:7430). Astro builds this as 404.html,
+  which Vercel shows for any address that does not exist.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import NotFoundMessage from '../components/NotFoundMessage.astro';
+import banner from '../assets/photos/stock-banner-not-found.jpg';
+---
+
+<BaseLayout
+  title="Page Not Found"
+  description="We could not find that page on the Ọmụgwọ Maternal Welfare Initiative website."
+  noindex
+>
+  <PageBanner title="Page Not Found" crumbs={[{ label: '404' }]} image={banner} imagePosition="center" />
+  <section class="section not-found-section" aria-label="Page not found">
+    <NotFoundMessage />
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found-section {
+    align-items: center;
+  }
+</style>

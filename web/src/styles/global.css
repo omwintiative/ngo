@@ -114,8 +114,8 @@ h6 {
 /*
   Scroll reveal (Figma "Read me"): each section after the first fades up by
   24px as it enters the screen, once; cards in a row follow 80ms apart.
-  The script in BaseLayout adds .is-visible. Without JavaScript, or with
-  reduced motion, everything is simply shown.
+  The script in BaseLayout adds .is-visible. Without JavaScript everything is
+  simply shown; with reduced motion, sections only fade (end of this file).
 */
 .js [data-reveal] {
   opacity: 0;
@@ -160,7 +160,14 @@ html:not(.js) [data-skeleton] {
   }
 }
 
-/* Respect the visitor's reduced-motion setting everywhere */
+/*
+  Reduced motion. Visitors who ask their device for less motion get no
+  sliding, rising, zooming or smooth scrolling anywhere. The "gentle version"
+  (Ifeanyi, 19 Oct 2026) keeps the site alive for them with fades only:
+  sections fade in, and the hero, page banners and photo strip fade instead
+  of moving (their own reduced-motion rules use the fade below). Those rules
+  are more specific than `*`, so their !important wins over this one.
+*/
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -171,7 +178,16 @@ html:not(.js) [data-skeleton] {
     scroll-behavior: auto !important;
   }
   .js [data-reveal] {
-    opacity: 1;
     transform: none;
+    transition: opacity 700ms ease !important;
+    transition-delay: calc(var(--reveal-index, 0) * 80ms) !important;
+  }
+}
+@keyframes motion-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

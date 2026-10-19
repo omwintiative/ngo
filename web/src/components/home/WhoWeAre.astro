@@ -19,7 +19,12 @@ import healthWorker from '../../assets/photos/stock-health-worker.jpg';
         alt: 'Four smiling women standing together outdoors with their arms around each other',
         fade: 'left',
       }}
-      inset={{ src: healthWorker, alt: 'A health worker in a headscarf attending to a woman' }}
+      inset={{
+        src: healthWorker,
+        alt: 'A health worker in a headscarf attending to a woman',
+        // Portrait photo in a landscape box: keep the faces, not the middle
+        focus: 'center 15%',
+      }}
       desktopHeight="var(--size-who-photo-desktop)"
     />
 
