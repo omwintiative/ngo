@@ -5,8 +5,10 @@
 
   Desktop (1200px+): 816 tall, fact card on the right.
   Tablet and mobile: 722 tall, no fact card (Figma "Device=Mobile").
-  Motion (Figma motion data): the photo drifts and zooms slowly; the text
-  rises in, 120ms apart. Both are off for visitors who ask for reduced motion.
+  Motion: each new photo slides in from the right (Ifeanyi, 19 Oct 2026),
+  then drifts and zooms slowly (Figma motion data); the text
+  rises in, 120ms apart. For visitors who ask for reduced motion the slides
+  still change, but photos and text only fade (no slide, zoom or rise).
 */
 import { Image } from 'astro:assets';
 import Button from '../Button.astro';
@@ -160,16 +162,18 @@ const total = String(slides.length).padStart(2, '0');
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--space-20);
-    min-height: var(--layout-hero-slider-height);
-    padding: var(--layout-hero-padding-top) var(--layout-page-padding) var(--space-28);
+    /* Figma's height, but never taller than the window, so the centred text
+       and its buttons are in view on short laptop screens too */
+    min-height: min(var(--layout-hero-slider-height), 100vh);
+    min-height: min(var(--layout-hero-slider-height), 100svh);
+    padding: var(--layout-header-height) var(--layout-page-padding) var(--space-28);
     overflow: hidden;
     isolation: isolate;
     background: var(--bg-darkest);
     color: var(--text-on-dark);
   }
 
-  /* ----- Backgrounds (one per slide, cross-fade) ----- */
+  /* ----- Backgrounds (one per slide, sliding) ----- */
   .hero__backgrounds,
   .hero__bg,
   .hero__tint,
@@ -177,16 +181,21 @@ const total = String(slides.length).padStart(2, '0');
     position: absolute;
     inset: 0;
   }
-  /* Backgrounds sit behind the content; the fact card positions against .hero */
+  /* Backgrounds sit behind the content */
   .hero__backgrounds {
     z-index: -1;
   }
+  /* Photos slide in from the right (from the left when going back). The
+     script places the incoming photo on the correct side first. */
   .hero__bg {
-    opacity: 0;
-    transition: opacity 600ms ease;
+    /* Clip the zoomed photo to its own frame, or the next photo (waiting off
+       to the right) would show a strip at the edge of the hero */
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: transform 900ms cubic-bezier(0.65, 0, 0.35, 1);
   }
   .hero__bg.is-active {
-    opacity: 1;
+    transform: none;
   }
   .hero__img {
     position: absolute;
@@ -216,16 +225,17 @@ const total = String(slides.length).padStart(2, '0');
   }
 
   /* ----- Slide content -----
-     Every slide starts at the top padding, where Figma puts the eyebrow, so
-     a slide with shorter text does not sit lower. The stage takes the spare
-     height, which keeps the controls at the bottom. */
+     The stage fills the space between the header and the controls, and each
+     slide sits in its centre: the same space above and below the text
+     (Ifeanyi, 19 Oct 2026). The controls stay at the bottom. */
   .hero__stage {
     flex: 1 0 auto;
     display: grid;
+    padding-block: var(--space-40);
   }
   .hero__slide {
     grid-area: 1 / 1;
-    align-self: start;
+    align-self: center;
     visibility: hidden;
   }
   .hero__slide.is-active {
@@ -278,8 +288,6 @@ const total = String(slides.length).padStart(2, '0');
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* Figma: a 16px Space between two 20px gaps */
-    margin-top: calc(var(--space-16) + var(--space-20));
   }
   .hero__progress {
     display: flex;
@@ -324,7 +332,6 @@ const total = String(slides.length).padStart(2, '0');
 
   @media (min-width: 1200px) {
     .hero {
-      gap: var(--space-28);
       padding-bottom: var(--space-40);
     }
     .hero__overlay {
@@ -366,12 +373,42 @@ const total = String(slides.length).padStart(2, '0');
     .hero__stat {
       color: var(--text-highlight);
     }
-    /* Figma: a 40px Space between two 28px gaps */
-    .hero__controls {
-      margin-top: calc(var(--space-40) + var(--space-28));
-    }
     .hero__bar {
       width: var(--size-hero-bar);
+    }
+  }
+
+  /* Short screens (laptops, especially with display scaling): tighter gaps
+     in the text, so the buttons show without scrolling on every slide
+     (Ifeanyi, 19 Oct 2026). Not in Figma, which only has full-height frames. */
+  @media (min-width: 768px) and (max-height: 760px) {
+    .hero__content {
+      gap: var(--space-20);
+    }
+  }
+  /* Very short desktop windows: the headline also steps down to the H1 size */
+  @media (min-width: 1200px) and (max-height: 640px) {
+    .hero__title {
+      font-size: var(--type-h1-size);
+      line-height: var(--type-h1-line);
+    }
+  }
+
+  /* Reduced motion: fade the photos and text instead of moving them. The
+     !important rules beat both the global reduced-motion rule and the
+     inline transforms the script sets for sliding. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero__bg {
+      opacity: 0;
+      transform: none !important;
+      transition: opacity 800ms ease !important;
+    }
+    .hero__bg.is-active {
+      opacity: 1;
+    }
+    .hero__slide.is-active .hero__anim {
+      animation-name: motion-fade-in !important;
+      animation-duration: 800ms !important;
     }
   }
 
@@ -404,29 +441,45 @@ const total = String(slides.length).padStart(2, '0');
     const count = hero.querySelector('[data-hero-count]');
     let current = 0;
 
-    const show = (index: number) => {
+    // dir 1: the new photo comes in from the right and the old one leaves to
+    // the left; dir -1 is the other way round (Previous button).
+    const slidePhotos = (from: number, to: number, dir: number) => {
+      const incoming = backgrounds[to];
+      const outgoing = backgrounds[from];
+      incoming.style.transition = 'none';
+      incoming.style.transform = `translateX(${dir * 100}%)`;
+      void incoming.offsetWidth; // apply the start position before animating
+      incoming.style.transition = '';
+      incoming.style.transform = '';
+      incoming.classList.add('is-active');
+      outgoing.classList.remove('is-active');
+      outgoing.style.transform = `translateX(${-dir * 100}%)`;
+    };
+
+    const show = (index: number, dir = 1) => {
+      const previous = current;
       current = (index + slides.length) % slides.length;
+      if (current !== previous) slidePhotos(previous, current, dir);
       slides.forEach((slide, i) => {
         const active = i === current;
         slide.classList.toggle('is-active', active);
         slide.inert = !active;
       });
-      backgrounds.forEach((bg, i) => bg.classList.toggle('is-active', i === current));
       bars.forEach((bar, i) => bar.classList.toggle('is-active', i === current));
       if (count) count.textContent = String(current + 1).padStart(2, '0');
     };
 
     // Autoplay every 8s (the length of Figma's slide animation). Pauses while
-    // the pointer or keyboard focus is in the hero or the tab is hidden; off
-    // for reduced motion. The arrows restart the timer.
+    // the pointer or keyboard focus is in the hero or the tab is hidden. With
+    // reduced motion it still runs, as a fade (see the styles). The arrows
+    // restart the timer.
     const INTERVAL_MS = 8000;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     let paused = false;
     let timer: number | undefined;
     const restart = () => {
       window.clearInterval(timer);
       timer = window.setInterval(() => {
-        if (!paused && !document.hidden && !reduced.matches) show(current + 1);
+        if (!paused && !document.hidden) show(current + 1);
       }, INTERVAL_MS);
     };
     hero.addEventListener('mouseenter', () => (paused = true));
@@ -440,7 +493,7 @@ const total = String(slides.length).padStart(2, '0');
     const stage = hero.querySelector('[data-hero-stage]');
     const go = (delta: number) => {
       stage?.setAttribute('aria-live', 'polite');
-      show(current + delta);
+      show(current + delta, delta);
       restart();
     };
     hero.querySelector('[data-hero-prev]')?.addEventListener('click', () => go(-1));

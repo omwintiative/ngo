@@ -1,0 +1,71 @@
+---
+/*
+  Privacy Policy, from Figma (208:7806). The Figma page is a template: every
+  line in square brackets must be replaced with wording approved by OMWI
+  before launch (see the launch checklist in web/README.md). The headings show
+  what a policy for a donation site normally covers; they are not legal
+  wording. Kept out of search engines until the real text is in.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import banner from '../assets/photos/stock-banner-privacy.jpg';
+
+// Copy from Figma, word for word. TODO before launch: OMWI's approved text.
+const sections = [
+  {
+    heading: 'What information we collect',
+    text: '[To be supplied. For example: the name, email address and phone number entered on the Donate and Contact forms.]',
+  },
+  { heading: 'How we use your information', text: '[To be supplied by OMWI.]' },
+  {
+    heading: 'Payments',
+    text: '[To be supplied. Payment is completed on Paystack’s checkout; confirm with Paystack what OMWI receives.]',
+  },
+  { heading: 'Who we share information with', text: '[To be supplied by OMWI.]' },
+  { heading: 'How long we keep it', text: '[To be supplied by OMWI.]' },
+  { heading: 'Your rights', text: '[To be supplied by OMWI.]' },
+  {
+    heading: 'Contact us about your data',
+    text: '[To be supplied: the person and email address for privacy questions.]',
+  },
+];
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="How the Ọmụgwọ Maternal Welfare Initiative collects, uses and protects your information."
+  noindex
+>
+  <PageBanner title="Privacy Policy" crumbs={[{ label: 'Privacy Policy' }]} image={banner} imagePosition="center" />
+
+  <section class="section policy-section" aria-label="Privacy policy">
+    <article class="policy">
+      <p class="t-body-small policy__updated">Last updated: [date to be supplied by OMWI]</p>
+      <p class="t-body-large">[OMWI to supply the policy text. The headings below are a starting structure only.]</p>
+      {
+        sections.map((s) => (
+          <>
+            <h2 class="t-h3">{s.heading}</h2>
+            <p class="t-body-large">{s.text}</p>
+          </>
+        ))
+      }
+    </article>
+  </section>
+</BaseLayout>
+
+<style>
+  .policy-section {
+    align-items: center;
+  }
+  .policy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    width: 100%;
+    max-width: var(--size-article-width);
+  }
+  .policy__updated {
+    color: var(--text-muted);
+  }
+</style>

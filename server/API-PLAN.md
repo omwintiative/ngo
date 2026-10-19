@@ -1,6 +1,10 @@
 # API upgrade plan (roadmap step 5)
 
-Status: **proposal, waiting for Ifeanyi's approval.** Nothing in `server/` has changed yet.
+Status: **approved 19 Oct 2026** (decisions below). Nothing in `server/` has changed yet.
+
+Decided: email service **Resend**; tests run against a **separate free MongoDB Atlas database**
+(connection string in `server/.env.test`, never committed); **past Paystack donations are imported
+once**; admin at **admin.omwinitiative.org**.
 Written 19 Oct 2026 from the current code and the notes on the Figma Admin page (`1:5`).
 
 ## In short
@@ -108,8 +112,9 @@ Admin routes (all admin only):
 
 Public:
 
-- `GET /api/contributors`: names of paid, non-anonymous donors the admin has not hidden.
-  Names only, never emails or amounts (unless the Contributors design shows amounts; to check).
+- `GET /api/contributors`: paid, non-anonymous donors the admin has not hidden, newest first,
+  as `[{ name, date }]` (the Contributors page shows the name and the month). Never emails or
+  amounts (checked against the Figma Contributors page). The page already calls this route.
 
 Existing data: the current bank-transfer records (`ManualContribution`) are copied into
 `Donation` once; past Paystack payments are imported once (decision 3). The old routes stay

@@ -1,0 +1,88 @@
+---
+/*
+  "We could not find that page." card, from Figma 404 Page not found
+  (Section / Message, 128:7211). Used by the 404 page and by a blog post
+  that does not exist. Card padding 28 / 48 / 56; on mobile the buttons
+  stack at full width.
+*/
+import Button from './Button.astro';
+import { paths } from '../config/navigation';
+import search from '../assets/icons/search-plum.svg';
+
+interface Props {
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<div class:list={['not-found', className]} {...rest}>
+  <span class="not-found__tile" aria-hidden="true">
+    <img src={search.src} width="36" height="36" alt="" />
+  </span>
+  <h2 class="t-h2">We could not find that page.</h2>
+  <p class="t-body-large not-found__text">
+    The link may be old, or the page may have moved. Go back to the home page, or contact us and we will
+    point you to the right place.
+  </p>
+  <div class="not-found__buttons">
+    <Button href={paths.home}>Back to Home</Button>
+    <Button href={paths.contact} variant="outline">Contact Us</Button>
+  </div>
+</div>
+
+<style>
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-20);
+    width: 100%;
+    max-width: var(--size-message-card-width);
+    padding: var(--space-28);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    box-shadow: var(--shadow-card);
+    text-align: center;
+  }
+  .not-found__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile-large);
+    height: var(--size-icon-tile-large);
+    border-radius: 50%;
+    background: var(--bg-soft);
+  }
+  .not-found__tile img {
+    width: var(--size-icon-large);
+    height: var(--size-icon-large);
+  }
+  .not-found__text {
+    color: var(--text-muted);
+  }
+  .not-found__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .not-found {
+      padding: var(--space-48);
+    }
+    .not-found__buttons {
+      flex-direction: row;
+      justify-content: center;
+      width: auto;
+    }
+  }
+  @media (min-width: 1200px) {
+    .not-found {
+      padding: var(--space-56);
+    }
+  }
+</style>

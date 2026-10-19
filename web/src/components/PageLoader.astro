@@ -6,7 +6,8 @@
   It only appears when a page is slow: if the page has not finished loading
   after 400ms it fades in, and it fades out on the window load event (or
   after 5s at most, so a stuck image can never hide the page). Fast loads
-  never show it. Without JavaScript it never shows.
+  never show it. Without JavaScript, or for visitors who ask for reduced
+  motion (Figma motion note), it never shows.
 
   It is decorative (aria-hidden): the page underneath is already in the
   document, so screen readers can read it straight away.
@@ -22,6 +23,7 @@ import mark from '../assets/logo/omwi-mark.svg';
 <script is:inline>
   (function () {
     var loader = document.querySelector('[data-page-loader]');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var show = setTimeout(function () {
       loader.classList.add('is-visible');
     }, 400);

@@ -1,0 +1,193 @@
+---
+/*
+  Contributors, from Figma (94:6915): a thank-you heading, one card per donor
+  (name and month, never amounts), a Donate button and the donation call-out.
+
+  Names come from GET /api/contributors (API plan, Part B): paid donations
+  that are not anonymous and that the admin has not hidden. Expected shape:
+  [{ name: string, date: ISO date string }]. Three skeleton cards show while
+  it loads. Until that route exists, or if there are no names yet, the grid
+  stays hidden and the heading's own text explains how the page works.
+  Grid: 3 columns on desktop, 2 on tablet, 1 on mobile.
+*/
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import Button from '../components/Button.astro';
+import DonationCallout from '../components/DonationCallout.astro';
+import { paths } from '../config/navigation';
+import banner from '../assets/photos/stock-banner-contributors.jpg';
+import heart from '../assets/icons/heart-rust.svg';
+---
+
+<BaseLayout
+  title="Our Contributors"
+  description="Thank you to everyone who has given to the Ọmụgwọ Maternal Welfare Initiative."
+>
+  <PageBanner title="Our Contributors" crumbs={[{ label: 'Contributors' }]} image={banner} imagePosition="center" />
+
+  <section class="section contributors" aria-labelledby="contributors-title" data-reveal>
+    <SectionHeading
+      id="contributors-title"
+      eyebrow="Thank You"
+      title="Thank you to our OMWI contributors"
+      lead="Thank you to everyone who has given to OMWI. Names appear here once a donation is confirmed. Donors who give anonymously are not listed, and we do not show amounts."
+      align="center"
+    />
+
+    <ul class="donors" data-donors>
+      {
+        [0, 1, 2].map(() => (
+          <li class="donor" aria-hidden="true" data-skeleton>
+            <span class="skeleton donor__tile" />
+            <span class="donor__body">
+              <span class="skeleton skeleton-text donor__skeleton-name" />
+              <span class="skeleton skeleton-text donor__skeleton-date" />
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <template id="donor-template">
+      <li class="donor">
+        <span class="donor__tile" aria-hidden="true">
+          <img src={heart.src} width="24" height="24" alt="" />
+        </span>
+        <span class="donor__body">
+          <span class="t-h4" data-donor-name></span>
+          <span class="t-body-small donor__date" data-donor-date></span>
+        </span>
+      </li>
+    </template>
+
+    <div class="contributors__actions">
+      <Button href={paths.donate} arrow class="contributors__button">Donate Now</Button>
+    </div>
+  </section>
+
+  <DonationCallout />
+</BaseLayout>
+
+<style>
+  .contributors {
+    align-items: center;
+  }
+  .contributors > :global(*) {
+    width: 100%;
+  }
+  .contributors :global(.section-heading) {
+    max-width: var(--size-article-width);
+  }
+
+  /* Figma Card/Donor (45:146) */
+  .donors {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--layout-gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .donor {
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+    padding: var(--space-20);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+  }
+  .donor__tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile-small);
+    height: var(--size-icon-tile-small);
+    border-radius: var(--radius-card);
+    background: var(--bg-accent-soft);
+  }
+  .donor__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+  .donor__date {
+    color: var(--text-muted);
+  }
+  .donor__skeleton-name {
+    --skeleton-size: var(--type-h4-size);
+    --skeleton-line: var(--type-h4-line);
+    width: 60%;
+  }
+  .donor__skeleton-date {
+    width: 40%;
+  }
+
+  .contributors__actions {
+    display: flex;
+    justify-content: center;
+  }
+  .contributors__actions :global(.contributors__button) {
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .donors {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .contributors__actions :global(.contributors__button) {
+      width: auto;
+    }
+  }
+  @media (min-width: 1200px) {
+    .donors {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
+
+<script>
+  import { api } from '../lib/api';
+
+  interface Contributor {
+    name: string;
+    date?: string;
+  }
+
+  const list = document.querySelector<HTMLElement>('[data-donors]');
+  const template = document.querySelector<HTMLTemplateElement>('#donor-template');
+
+  const month = (value?: string) => {
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime())
+      ? date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+      : '';
+  };
+
+  if (list && template) {
+    api<Contributor[]>('/contributors')
+      .then((people) => {
+        const named = Array.isArray(people) ? people.filter((p) => p && typeof p.name === 'string' && p.name.trim()) : [];
+        if (named.length === 0) {
+          list.hidden = true;
+          return;
+        }
+        list.replaceChildren(
+          ...named.map((person) => {
+            const card = template.content.firstElementChild!.cloneNode(true) as HTMLElement;
+            card.querySelector('[data-donor-name]')!.textContent = person.name.trim();
+            card.querySelector('[data-donor-date]')!.textContent = month(person.date);
+            return card;
+          }),
+        );
+      })
+      .catch(() => {
+        // Route not built yet, or the API is down: no list, no error message.
+        list.hidden = true;
+      });
+  }
+</script>

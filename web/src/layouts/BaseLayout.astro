@@ -63,8 +63,8 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <script>
       // Scroll reveal: [data-reveal] elements fade up once as they come into
       // view. [data-count-to] numbers count up from 0 at the same moment
-      // (Figma Our mission). Reduced motion: shown at once, no counting.
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // (Figma Our mission). Reduced motion: the same, but sections only fade
+      // (no rise); see global.css.
       const items = document.querySelectorAll<HTMLElement>('[data-reveal], [data-count-to]');
 
       const countUp = (el: HTMLElement) => {
@@ -80,7 +80,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
         requestAnimationFrame(step);
       };
 
-      if (reduced || !('IntersectionObserver' in window)) {
+      if (!('IntersectionObserver' in window)) {
         items.forEach((el) => el.classList.add('is-visible'));
       } else {
         const observer = new IntersectionObserver(

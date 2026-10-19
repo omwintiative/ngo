@@ -103,6 +103,8 @@ Before merging `redesign` into `main`:
       (`server/node_modules` is no longer in git, so Render must install the packages itself.)
 - [ ] The API upgrades and the admin are built and tested (roadmap steps 5 and 7).
 - [ ] `site` is set to `https://omwinitiative.org` in `astro.config.mjs`.
+- [ ] Privacy Policy: every `[bracketed]` line in `src/pages/privacy-policy.astro` replaced with
+      wording approved by OMWI, and its `noindex` removed.
 - [ ] The new Vercel project's preview has been checked page by page.
 
 On launch day:

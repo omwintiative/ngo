@@ -2,8 +2,9 @@
 /*
   Gallery strip, from Figma Gallery strip (86:626): a full-width row of
   outreach photos that slides left one photo every 2.5 seconds and loops.
-  Pauses while hovered or focused, when the tab is hidden, and never moves
-  for visitors who ask for reduced motion (Figma "Read me").
+  Pauses while hovered or focused and when the tab is hidden. For visitors
+  who ask for reduced motion it does not slide: the row fades out, moves on
+  one photo and fades back in (gentle version, Ifeanyi, 19 Oct 2026).
 
   The photos are listed twice so the loop never shows a gap; the second copy
   is hidden from screen readers.
@@ -50,6 +51,12 @@ const { photos } = Astro.props;
     padding: 0;
     list-style: none;
   }
+  /* Reduced motion: the script fades the row instead of sliding it */
+  @media (prefers-reduced-motion: reduce) {
+    .strip__track {
+      transition: opacity 400ms ease !important;
+    }
+  }
   .strip__item {
     flex: none;
     height: var(--size-strip-height);
@@ -91,10 +98,23 @@ const { photos } = Astro.props;
     // that photo at the end of the row. The photos' own hover transitions
     // bubble up to the track, so only the track's transform ends the step.
     let moving = false;
+    const fadeStep = (first: HTMLElement) => {
+      moving = true;
+      const done = (event: TransitionEvent) => {
+        if (event.target !== track || event.propertyName !== 'opacity') return;
+        track.removeEventListener('transitionend', done);
+        track.append(first);
+        track.style.opacity = '';
+        moving = false;
+      };
+      track.addEventListener('transitionend', done);
+      track.style.opacity = '0';
+    };
     const step = () => {
-      if (moving || paused || document.hidden || reduced.matches) return;
+      if (moving || paused || document.hidden) return;
       const first = track.firstElementChild as HTMLElement | null;
       if (!first) return;
+      if (reduced.matches) return fadeStep(first);
       const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
       moving = true;
       track.style.transition = `transform ${MOVE_MS}ms ease-in-out`;

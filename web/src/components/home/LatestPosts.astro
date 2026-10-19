@@ -13,7 +13,7 @@ import PostGrid from '../PostGrid.astro';
 import { paths } from '../../config/navigation';
 ---
 
-<section class="section section--tint" aria-labelledby="posts-title" hidden data-latest-posts>
+<section class="section section--tint" aria-labelledby="posts-title" hidden data-latest-posts data-reveal>
   <SectionHeading id="posts-title" eyebrow="Stories and Insights" title="Latest from the blog" align="center" />
   <PostGrid skeletons={3} data-latest-list />
   <div class="posts__actions">
