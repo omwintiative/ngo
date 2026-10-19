@@ -6,6 +6,9 @@ const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const adminDonationRoutes = require("./routes/adminDonationRoutes");
+const adminMessageRoutes = require("./routes/adminMessageRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const contributorRoutes = require("./routes/contributorRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -32,15 +35,25 @@ const corsOptions =
       };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+// Keep the raw body too: Paystack's webhook signature is computed over it.
+app.use(
+  express.json({
+    verify(req, res, buffer) {
+      req.rawBody = buffer;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/auth", authRoutes);
+app.use("/api/admin/donations", adminDonationRoutes);
+app.use("/api/admin/messages", adminMessageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/contributors", contributorRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.get("/api/health", (req, res) => {
   return res.json({ status: "ok" });

@@ -113,6 +113,10 @@ On launch day:
 - [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org` and
       `https://www.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
 - [ ] Paystack dashboard: callback and webhook URLs updated to the new domain.
+- [ ] In `server/`, once the old site no longer takes bank-transfer records, copy the old donations
+      into the new list (uses the live `server/.env`; safe to run twice):
+      `node scripts/import-donations.js --confirm`. Imported Paystack donors start hidden from the
+      Contributors page; the admin switches on the ones who agree.
 - [ ] Make a test donation, send a test contact message, and sign in to the admin.
 
 After launch, delete the old site:

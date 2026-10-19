@@ -1,9 +1,12 @@
 // Admin-only routes (Figma Admin page). Every route here needs the signed-in
-// admin. Part A: account settings. Donations, messages, gallery and the
-// dashboard summary follow in later parts (API-PLAN.md).
+// admin: account settings and the dashboard summary. Donations have their own
+// file (adminDonationRoutes.js); messages and the gallery follow in later
+// parts (API-PLAN.md).
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const Donation = require("../models/Donation");
+const Message = require("../models/Message");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const { serverError } = require("../lib/http");
@@ -95,4 +98,70 @@ router.put("/account/password", async (req, res) => {
   }
 });
 
+// Start of the current month in Nigeria (WAT, UTC+1 all year).
+const WAT_OFFSET_MS = 60 * 60 * 1000;
+const startOfMonthInNigeria = (now = new Date()) => {
+  const local = new Date(now.getTime() + WAT_OFFSET_MS);
+  return new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), 1) - WAT_OFFSET_MS);
+};
+
+// A donor is their email address, or their name for gifts recorded without one.
+const donorKey = (d) => d.donorEmail || `name:${d.donorName.toLowerCase()}`;
+
+// Figma Admin · Dashboard: this month's donations, donors (and how many gave
+// for the first time), the five newest donations, and messages waiting for a
+// reply. Posts are added with Part D.
+router.get("/summary", async (req, res) => {
+  try {
+    const monthStart = startOfMonthInNigeria();
+    const paid = await Donation.find({ status: "paid" }, { donorEmail: 1, donorName: 1, amount: 1, paidAt: 1 }).lean();
+
+    const thisMonth = paid.filter((d) => d.paidAt && d.paidAt >= monthStart);
+    const donorsThisMonth = new Set(thisMonth.map(donorKey));
+    const givenBefore = new Set(paid.filter((d) => d.paidAt && d.paidAt < monthStart).map(donorKey));
+
+    const recent = (await Donation.find().sort({ createdAt: -1 }).limit(20))
+      .sort((a, b) => (b.paidAt || b.createdAt) - (a.paidAt || a.createdAt))
+      .slice(0, 5)
+      .map((d) => ({
+        id: d._id,
+        donorName: d.donorName,
+        anonymous: d.anonymous,
+        amount: d.amount,
+        method: d.method,
+        channel: d.channel,
+        status: d.displayStatus(),
+        date: d.paidAt || d.createdAt,
+      }));
+
+    const [newMessages, latestMessages] = await Promise.all([
+      Message.countDocuments({ status: "new" }),
+      Message.find({}, { name: 1, subject: 1, status: 1, createdAt: 1 }).sort({ createdAt: -1 }).limit(3).lean(),
+    ]);
+
+    return res.json({
+      newMessages,
+      latestMessages: latestMessages.map((m) => ({
+        id: m._id,
+        name: m.name,
+        subject: m.subject,
+        status: m.status,
+        createdAt: m.createdAt,
+      })),
+      donationsThisMonth: {
+        total: Math.round(thisMonth.reduce((sum, d) => sum + d.amount, 0) * 100) / 100,
+        count: thisMonth.length,
+      },
+      donorsThisMonth: {
+        count: donorsThisMonth.size,
+        firstTime: [...donorsThisMonth].filter((key) => !givenBefore.has(key)).length,
+      },
+      recentDonations: recent,
+    });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
 module.exports = router;
+module.exports.startOfMonthInNigeria = startOfMonthInNigeria;

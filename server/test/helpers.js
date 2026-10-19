@@ -11,6 +11,8 @@ const TEST_DB = "omwi-test";
 // Values the app needs at load time. Fake: the tests never reach Cloudinary
 // or Paystack.
 process.env.JWT_SECRET = "test-only-secret";
+process.env.PAYSTACK_SECRET_KEY = "sk_test_only";
+process.env.PAYSTACK_CALLBACK_URL = "https://example.org/thank-you";
 process.env.CLOUDINARY_CLOUD_NAME ||= "test";
 process.env.CLOUDINARY_API_KEY ||= "test";
 process.env.CLOUDINARY_API_SECRET ||= "test";
@@ -87,4 +89,22 @@ async function signIn(base, credentials = ADMIN) {
   return res;
 }
 
-module.exports = { ADMIN, startServer, createAdmin, request, signIn };
+// Stand-in for Paystack's API: the app's calls to api.paystack.co are answered
+// by `handler(path, init)`, which returns { status, json }. Every other
+// request (the tests calling the app) goes through as normal. Returns the
+// list of calls made, and restore().
+const realFetch = globalThis.fetch;
+function fakePaystack(handler) {
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    const href = String(url);
+    if (!href.startsWith("https://api.paystack.co")) return realFetch(url, init);
+    const path = href.slice("https://api.paystack.co".length);
+    calls.push({ path, method: init.method || "GET", body: init.body ? JSON.parse(init.body) : undefined });
+    const { status = 200, json } = await handler(path, init);
+    return new Response(JSON.stringify(json), { status, headers: { "Content-Type": "application/json" } });
+  };
+  return { calls, restore: () => (globalThis.fetch = realFetch) };
+}
+
+module.exports = { ADMIN, startServer, createAdmin, request, signIn, fakePaystack };
