@@ -86,7 +86,7 @@ Senior-level judgment and restraint, for both `web/` and `server/`.
 
 - `npm install`, `npm run dev` (http://localhost:4321), `npm run build`, `npm run preview`.
 - Needs Node 22.22.0 or newer.
-- Do not run `npm install` in `server/`: its `node_modules` folder is committed, and cleaning that up is a later step.
+- `server/node_modules` is no longer in git (removed 19 Oct 2026; Render installs packages itself). Do not run `npm install` in `server/` unless a task needs the API running locally.
 - `npm run dev` forwards `/api` to `http://localhost:5000` by default. Do not point `API_PROXY_TARGET` at the live API when testing admin actions.
 
 ## Checking your work
