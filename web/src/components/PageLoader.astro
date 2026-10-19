@@ -1,0 +1,91 @@
+---
+/*
+  Page loader, from Figma Loader (118:693): logo mark, a bar sliding along
+  a track (the two variants are its start and end), and "Loading…".
+
+  It only appears when a page is slow: if the page has not finished loading
+  after 400ms it fades in, and it fades out on the window load event (or
+  after 5s at most, so a stuck image can never hide the page). Fast loads
+  never show it. Without JavaScript it never shows.
+
+  It is decorative (aria-hidden): the page underneath is already in the
+  document, so screen readers can read it straight away.
+*/
+import mark from '../assets/logo/omwi-mark.svg';
+---
+
+<div class="page-loader" aria-hidden="true" data-page-loader>
+  <img src={mark.src} width="88" height="80" alt="" />
+  <span class="page-loader__track"><span class="page-loader__bar"></span></span>
+  <p class="t-body-small page-loader__text">Loading…</p>
+</div>
+<script is:inline>
+  (function () {
+    var loader = document.querySelector('[data-page-loader]');
+    var show = setTimeout(function () {
+      loader.classList.add('is-visible');
+    }, 400);
+    function hide() {
+      clearTimeout(show);
+      loader.classList.remove('is-visible');
+    }
+    if (document.readyState === 'complete') hide();
+    else addEventListener('load', hide, { once: true });
+    setTimeout(hide, 5000);
+  })();
+</script>
+
+<style>
+  .page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-24);
+    background: var(--bg-page);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 300ms ease,
+      visibility 0s linear 300ms;
+  }
+  .page-loader.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 300ms ease;
+  }
+  .page-loader img {
+    width: var(--size-loader-mark-width);
+    height: var(--size-loader-mark-height);
+  }
+  .page-loader__track {
+    position: relative;
+    width: var(--size-loader-track);
+    height: var(--size-loader-bar-height);
+    overflow: hidden;
+    border-radius: var(--radius-loader-bar);
+    background: var(--bg-loader-track);
+  }
+  .page-loader__bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--size-loader-bar);
+    height: 100%;
+    border-radius: var(--radius-loader-bar);
+    background: var(--bg-primary);
+    animation: page-loader-slide 900ms ease-in-out infinite alternate;
+  }
+  .page-loader__text {
+    color: var(--text-muted);
+  }
+  /* From variant 1 (bar at the start) to variant 2 (bar at the end) */
+  @keyframes page-loader-slide {
+    to {
+      transform: translateX(calc(var(--size-loader-track) - var(--size-loader-bar)));
+    }
+  }
+</style>

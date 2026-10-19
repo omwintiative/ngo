@@ -3,7 +3,8 @@
   Blog "All articles", from Figma Section / Articles (93:3987), Input
   (45:187, Search), Category tabs (84:365) and Empty / Blog search (128:7434).
 
-  Posts come from GET /api/blogs when the page opens; 6 show at first and
+  Posts come from GET /api/blogs when the page opens (6 skeleton cards show
+  while they load); 6 show at first and
   "Load More Articles" adds 6 more. The search filters by title and text as
   you type. Category tabs are built from the categories the posts actually
   have (posts get a category field in step 5), so they stay hidden until
@@ -41,7 +42,7 @@ import searchLarge from '../../assets/icons/search-plum.svg';
   <div class="tabs" role="group" aria-label="Filter by category" hidden data-articles-tabs></div>
 
   <p class="visually-hidden" aria-live="polite" data-articles-status></p>
-  <PostGrid data-articles-list />
+  <PostGrid skeletons={6} data-articles-list />
 
   <div class="empty" hidden data-articles-empty>
     <span class="empty__tile" aria-hidden="true">

@@ -70,7 +70,7 @@ Senior-level judgment and restraint, for both `web/` and `server/`.
 
 - **Tokens:** `web/src/styles/tokens.css` mirrors the Figma variables exactly (`plum/500` is `--plum-500`, `bg/page` is `--bg-page`). Use the semantic tokens (`--bg-*`, `--text-*`, `--border-*`, `--space-*`, `--radius-*`, `--layout-*`). No hex values or one-off numbers in components. If the design uses a value with no token, ask before adding one.
 - **Text:** use the classes in `web/src/styles/typography.css` (`.t-display`, `.t-h1` to `.t-h4`, `.t-body-large`, `.t-body`, `.t-body-small`, `.t-eyebrow`, `.t-button`, `.t-stat`). They match the Figma text styles.
-- **Breakpoints:** mobile first; tablet from 768px, desktop from 1200px (already set in tokens.css).
+- **Breakpoints:** mobile first; tablet from 768px, desktop from 1200px with a fluid side margin max(40px, (width − 1200px)/2); always check 1280 and 1366 as well as 1440, 768 and 390.
 - **Pages** use `web/src/layouts/BaseLayout.astro` with a real `title` and `description`. Shared parts go in `web/src/components/`.
 - **API calls** go through `web/src/lib/api.ts` (`/api/...`).
 - **Radius:** cards 8 (`--radius-card`), buttons and fields 12 (`--radius-button`).
@@ -86,7 +86,7 @@ Senior-level judgment and restraint, for both `web/` and `server/`.
 
 - `npm install`, `npm run dev` (http://localhost:4321), `npm run build`, `npm run preview`.
 - Needs Node 22.22.0 or newer.
-- Do not run `npm install` in `server/`: its `node_modules` folder is committed, and cleaning that up is a later step.
+- `server/node_modules` is no longer in git (removed 19 Oct 2026; Render installs packages itself). Do not run `npm install` in `server/` unless a task needs the API running locally.
 - `npm run dev` forwards `/api` to `http://localhost:5000` by default. Do not point `API_PROXY_TARGET` at the live API when testing admin actions.
 
 ## Checking your work

@@ -4,21 +4,23 @@
   bottom of most pages. Photo and text side by side on tablet and desktop,
   stacked on mobile (buttons full width).
 
-  The photo is marked "AI placeholder" in Figma: replace it when OMWI
-  supplies a real one.
+  Photo (Figma key s-child: a mother with her young child): a stand-in
+  stock photo until Ifeanyi supplies the licensed one (UX review, 19 Oct
+  2026; the AI-generated image was removed). The same photo is used on the
+  Donate page, which has no call-out, so it never shows twice on a page.
 */
 import { Image } from 'astro:assets';
 import Eyebrow from './Eyebrow.astro';
 import Button from './Button.astro';
 import { paths } from '../config/navigation';
-import photo from '../assets/photos/ai-placeholder-mother-newborn.jpg';
+import photo from '../assets/photos/stock-mother-two-children.jpg';
 ---
 
 <section class="callout" aria-labelledby="callout-title" data-reveal>
   <div class="callout__photo">
     <Image
       src={photo}
-      alt="A mother holding her sleeping newborn by a window"
+      alt="A smiling mother with her two children, making a heart with their hands"
       widths={[400, 700, 1100]}
       sizes="(min-width: 1200px) 564px, (min-width: 768px) 300px, 100vw"
     />
@@ -108,7 +110,7 @@ import photo from '../assets/photos/ai-placeholder-mother-newborn.jpg';
   @media (min-width: 1200px) {
     .callout {
       gap: var(--layout-split-gap);
-      padding: var(--space-96) max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2));
+      padding: var(--space-96) var(--layout-page-padding);
     }
     .callout__photo {
       width: var(--size-callout-photo-width);

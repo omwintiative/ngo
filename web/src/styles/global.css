@@ -105,8 +105,7 @@ h6 {
   display: flex;
   flex-direction: column;
   gap: var(--layout-section-gap);
-  padding: var(--layout-section-padding)
-    max(var(--layout-page-padding), calc((100% - var(--layout-content-width)) / 2));
+  padding: var(--layout-section-padding) var(--layout-page-padding);
 }
 .section--tint {
   background: var(--bg-tint);
@@ -129,6 +128,36 @@ h6 {
 .js [data-reveal].is-visible {
   opacity: 1;
   transform: none;
+}
+
+/*
+  Loading skeletons: grey shapes in the style of the Lo-fi wireframes, shown
+  where content is still coming from the API. `.skeleton-text` is one line
+  of text: a bar as tall as the letters inside a box as tall as the line, so
+  the skeleton takes the same space as the real text. Set --skeleton-size and
+  --skeleton-line to the text style's tokens. Without JavaScript nothing
+  would replace them, so they are hidden.
+*/
+.skeleton {
+  display: block;
+  border-radius: var(--radius-loader-bar);
+  background: var(--bg-skeleton);
+  animation: skeleton-pulse 1200ms ease-in-out infinite alternate;
+}
+.skeleton-text {
+  --skeleton-size: var(--type-body-small-size);
+  --skeleton-line: var(--type-body-small-line);
+  height: var(--skeleton-line);
+  padding-block: calc((var(--skeleton-line) - var(--skeleton-size)) / 2);
+  background-clip: content-box;
+}
+html:not(.js) [data-skeleton] {
+  display: none;
+}
+@keyframes skeleton-pulse {
+  to {
+    opacity: 0.5;
+  }
 }
 
 /* Respect the visitor's reduced-motion setting everywhere */

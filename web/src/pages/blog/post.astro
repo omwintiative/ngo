@@ -20,10 +20,16 @@ import facebook from '../../assets/icons/facebook-plum.svg';
 import whatsapp from '../../assets/icons/whatsapp-plum.svg';
 import linkedin from '../../assets/icons/linkedin-plum.svg';
 
+/*
+  Share links (no SDKs, no tracking scripts). The script below fills in the
+  page address, encoded. WhatsApp gets the title and the address as its
+  message text (`withTitle`); Facebook and LinkedIn read the title from the
+  page itself.
+*/
 const share = [
-  { name: 'Facebook', icon: facebook, base: 'https://www.facebook.com/sharer/sharer.php?u=' },
-  { name: 'WhatsApp', icon: whatsapp, base: 'https://wa.me/?text=' },
-  { name: 'LinkedIn', icon: linkedin, base: 'https://www.linkedin.com/sharing/share-offsite/?url=' },
+  { name: 'Facebook', icon: facebook, base: 'https://www.facebook.com/sharer/sharer.php?u=', withTitle: false },
+  { name: 'WhatsApp', icon: whatsapp, base: 'https://wa.me/?text=', withTitle: true },
+  { name: 'LinkedIn', icon: linkedin, base: 'https://www.linkedin.com/sharing/share-offsite/?url=', withTitle: false },
 ];
 ---
 
@@ -31,6 +37,21 @@ const share = [
   <PageBanner title="Blog" crumbs={[{ label: 'Blog', href: paths.blog }, { label: '' }]} />
 
   <section class="section article-section" aria-label="Article" data-post>
+    <!-- Skeleton while the post loads: meta line, photo, paragraphs -->
+    <div class="article" aria-hidden="true" data-skeleton data-post-skeleton>
+      <span class="skeleton skeleton-text article__skeleton-meta"></span>
+      <span class="skeleton article__photo"></span>
+      {
+        [0, 1].map(() => (
+          <span class="article__skeleton-paragraph">
+            <span class="skeleton skeleton-text article__skeleton-line" />
+            <span class="skeleton skeleton-text article__skeleton-line" />
+            <span class="skeleton skeleton-text article__skeleton-line" />
+            <span class="skeleton skeleton-text article__skeleton-line article__skeleton-short" />
+          </span>
+        ))
+      }
+    </div>
     <article class="article" hidden data-post-article>
       <p class="t-body-small article__meta" data-post-meta></p>
       <div class="article__photo" hidden data-post-photo>
@@ -43,7 +64,14 @@ const share = [
         <p class="t-button">Share this article</p>
         {
           share.map((s) => (
-            <a class="share__button" href="#" target="_blank" rel="noopener" data-share={s.base}>
+            <a
+              class="share__button"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-share={s.base}
+              data-share-title={s.withTitle ? '' : undefined}
+            >
               <img src={s.icon.src} width="22" height="22" alt="" />
               <span class="visually-hidden">Share on {s.name} (opens in a new tab)</span>
             </a>
@@ -114,6 +142,23 @@ const share = [
   .article__fade {
     background: linear-gradient(180deg, var(--photo-fade-color) 0%, transparent 72%);
   }
+  .article__photo.skeleton {
+    background: var(--bg-skeleton);
+  }
+  .article__skeleton-meta {
+    width: 40%;
+  }
+  .article__skeleton-paragraph {
+    display: flex;
+    flex-direction: column;
+  }
+  .article__skeleton-line {
+    --skeleton-size: var(--type-body-large-size);
+    --skeleton-line: var(--type-body-large-line);
+  }
+  .article__skeleton-short {
+    width: 60%;
+  }
   .article__body {
     display: flex;
     flex-direction: column;
@@ -177,11 +222,13 @@ const share = [
 
   const id = new URLSearchParams(location.search).get('id');
   const article = document.querySelector<HTMLElement>('[data-post-article]')!;
+  const skeleton = document.querySelector<HTMLElement>('[data-post-skeleton]')!;
   const missing = document.querySelector<HTMLElement>('[data-post-missing]')!;
   const title = document.querySelector<HTMLElement>('[data-banner-title]');
   const current = document.querySelector<HTMLElement>('[data-banner-current]');
 
   const showMissing = () => {
+    skeleton.hidden = true;
     missing.hidden = false;
     if (title) title.textContent = 'Page Not Found';
     if (current) current.textContent = '404';
@@ -222,9 +269,13 @@ const share = [
       }),
     );
 
-    const url = encodeURIComponent(location.href);
-    document.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((a) => (a.href = `${a.dataset.share}${url}`));
+    const url = location.href;
+    document.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((a) => {
+      const value = 'shareTitle' in a.dataset ? `${post.title} ${url}` : url;
+      a.href = `${a.dataset.share}${encodeURIComponent(value)}`;
+    });
 
+    skeleton.hidden = true;
     article.hidden = false;
 
     try {

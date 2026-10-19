@@ -75,6 +75,47 @@ web/
 
 ## Deploying (not set up yet)
 
-Plan: a Vercel project that imports this repo with **Root Directory = `web`**.
-Vercel detects Astro, and a static Astro site needs no adapter.
-Who owns that Vercel project, and on which plan, is still to be agreed with OMWI.
+| Part | Host | Settings |
+| --- | --- | --- |
+| This site (`web/`) | Vercel, a **new** project | Root Directory `web`, Node.js 22.x. Vercel detects Astro; a static site needs no adapter. Preview from the `redesign` branch. |
+| API (`../server`) | Render (existing) | Root Directory `server`, Build Command `npm install`, Start Command `npm start` |
+| Domain `omwinitiative.org` | GoDaddy (registrar and email) | DNS records only, see below |
+
+Never deploy this site to `ngo-xi-dusky.vercel.app`: that project is the old live site.
+Who owns the new Vercel project, and on which plan, is still to be agreed with OMWI.
+
+### Connecting the GoDaddy domain
+
+1. In the new Vercel project: Settings → Domains → add `omwinitiative.org`, `www.omwinitiative.org`
+   and `admin.omwinitiative.org` (the admin area; a subdomain costs nothing extra).
+2. Vercel then shows the exact DNS records to create. In GoDaddy (My Products → the domain → DNS),
+   add those records exactly as shown (an A record for the root, a CNAME for `www`, a CNAME for
+   `admin`), replacing the records that point at the old site.
+3. Keep GoDaddy's nameservers, and do not touch the MX or other email records, so
+   `info@omwinitiative.org` keeps working.
+4. Wait until Vercel shows both domains as valid (DNS can take up to a few hours).
+
+### Launch checklist
+
+Before merging `redesign` into `main`:
+
+- [x] Render: Settings shows Build Command `npm install` in `server/` (checked 19 Oct 2026).
+      (`server/node_modules` is no longer in git, so Render must install the packages itself.)
+- [ ] The API upgrades and the admin are built and tested (roadmap steps 5 and 7).
+- [ ] `site` is set to `https://omwinitiative.org` in `astro.config.mjs`.
+- [ ] The new Vercel project's preview has been checked page by page.
+
+On launch day:
+
+- [ ] Point the GoDaddy DNS at the new Vercel project (above).
+- [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org` and
+      `https://www.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
+- [ ] Paystack dashboard: callback and webhook URLs updated to the new domain.
+- [ ] Make a test donation, send a test contact message, and sign in to the admin.
+
+After launch, delete the old site:
+
+- [ ] Root `*.html`, `*.css`, `*.js`, `images/`, the root `vercel.json`, `frontend-config.js`
+      and `API.txt`; rewrite the root `README.md` for the new setup.
+- [ ] In `server/src/server.js`, the `SERVE_STATIC_FRONTEND` option (it serves the old root files).
+- [ ] The old Vercel project (`ngo-xi-dusky`), once nothing points at it.

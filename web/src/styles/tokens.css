@@ -127,6 +127,17 @@
 
   --size-button-height: 52px;
   --size-icon-button: 44px;
+  --size-touch-target: 44px; /* smallest tap target on phones (WCAG 2.5.5) */
+
+  /* Page loader (Figma Loader 118:693) and loading skeletons */
+  --size-loader-mark-width: 88px;
+  --size-loader-mark-height: 80px;
+  --size-loader-track: 160px;
+  --size-loader-bar: 64px;
+  --size-loader-bar-height: 4px;
+  --radius-loader-bar: 2px;
+  --bg-loader-track: var(--neutral-200);
+  --bg-skeleton: var(--neutral-200); /* same grey as the loader track */
   --size-logo-width: 129px; /* logo lockup, 129 x 48 */
   --size-logo-width-compact: 105.78px; /* 105.78 x 39.36, tablet/mobile header */
   --size-dropdown-width: 240px;
@@ -254,6 +265,14 @@
   --size-overlay-width: 480px; /* 350 on mobile */
   --shadow-overlay: 0 24px 64px color-mix(in srgb, var(--plum-950) 35%, transparent);
 
+  /* Donate (94:5622), Amount chip (45:194), Checkbox (45:212), Check item (44:170) */
+  --size-amount-chip-height: 56px;
+  --size-checkbox: 24px;
+  --radius-checkbox: 6px;
+  --border-width-checkbox: 1.5px;
+  --size-check-item-tick: 24px;
+  --size-donate-photo-desktop: 300px;
+
   /* Gallery page (93:3395) and lightbox (211:7675 / 211:7725) */
   --size-gallery-photo-height: 128px; /* 248 tablet, 288 desktop */
   --size-gallery-photo-height-tablet: 248px;
@@ -333,6 +352,7 @@
   /* Not Figma variables yet (step 4): read from the Header and Footer
      components and the "Read me" (1200 content area). */
   --layout-content-width: 1200px;
+  --layout-page-padding-min: 40px; /* smallest desktop side margin */
   --layout-header-height: 72px;
   --layout-footer-padding-top: 56px;
   --layout-section-gap: 36px; /* section heading to content */
@@ -366,6 +386,7 @@
     --layout-gap: 24px;
     --layout-split-gap: 40px;
     --layout-hero-height: 640px;
+    --layout-hero-padding-top: 248px; /* Figma Home Tablet: hero eyebrow at 248 */
     --layout-banner-height: 300px;
     --layout-footer-padding-top: 64px;
     --layout-section-gap: 48px;
@@ -387,7 +408,14 @@
     --type-stat-size: 52px;
     --type-stat-line: 58px;
 
-    --layout-page-padding: 120px;
+    /* Fluid side margin (Ifeanyi, 19 Oct 2026): 120 at 1440 (Figma), a
+       1200 content width down to a 1280 window, 1120 at 1200, never under
+       40. The % is resolved against the element that uses this token, so
+       use it only on full-width elements (padding, or offsets inside one). */
+    --layout-page-padding: max(
+      var(--layout-page-padding-min),
+      calc((100% - var(--layout-content-width)) / 2)
+    );
     --layout-section-padding: 120px;
     --layout-split-gap: 72px;
     --layout-hero-height: 720px;
