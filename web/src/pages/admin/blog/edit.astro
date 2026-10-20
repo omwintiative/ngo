@@ -255,7 +255,7 @@ const tools = [
 <script>
   import { api, ApiError } from '../../../lib/api';
   import { adminPaths } from '../../../config/admin';
-  import { requireAdmin, confirmAction, postBadge, badge, type AdminPost } from '../../../lib/admin';
+  import { requireAdmin, confirmAction, postBadge, badge, preparePhoto, type AdminPost } from '../../../lib/admin';
   import { renderPostText, postTextFrom, safeHref } from '../../../lib/postText';
 
   const form = document.querySelector<HTMLFormElement>('[data-post-form]')!;

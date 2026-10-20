@@ -203,7 +203,7 @@ import trash from '../../assets/icons/admin/trash-red.svg';
 
 <script>
   import { api, ApiError } from '../../lib/api';
-  import { requireAdmin, confirmAction, badge, el } from '../../lib/admin';
+  import { requireAdmin, confirmAction, badge, el, preparePhoto } from '../../lib/admin';
   import { sizedPhoto, type GalleryPhoto } from '../../lib/gallery';
   import dotsSmall from '../../assets/icons/admin/drag-dots-16.svg';
 
@@ -219,9 +219,6 @@ import trash from '../../assets/icons/admin/trash-red.svg';
     caption: string;
     onHome: boolean;
   }
-
-  const MAX_BYTES = 5 * 1024 * 1024;
-  const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
   const grid = document.querySelector<HTMLElement>('[data-grid]')!;
   const columns = document.querySelector<HTMLElement>('[data-columns]')!;
@@ -507,25 +504,24 @@ import trash from '../../assets/icons/admin/trash-red.svg';
   grid.addEventListener('dragend', () => (dragged = null));
 
   // ----- Choosing files -----
-  const addFiles = (files: FileList | File[]) => {
+  const addFiles = async (files: FileList | File[]) => {
     const refused: string[] = [];
     const added: Pending[] = [];
-    [...files].forEach((file) => {
-      if (!TYPES.includes(file.type) || file.size > MAX_BYTES) {
-        refused.push(file.name);
-        return;
+    for (const chosen of [...files]) {
+      const file = await preparePhoto(chosen);
+      if (!file) {
+        refused.push(chosen.name);
+        continue;
       }
       pendingCount += 1;
       added.push({
         key: `new-${pendingCount}`,
         file,
         preview: URL.createObjectURL(file),
-        name: file.name.replace(/\.[^.]+$/, ''),
+        name: chosen.name.replace(/\.[^.]+$/, ''),
       });
-    });
-    alertEl.textContent = refused.length
-      ? `Not added (use JPEG, PNG or WebP photos of up to 5 MB): ${refused.join(', ')}.`
-      : '';
+    }
+    alertEl.textContent = refused.length ? `Not added (use JPEG, PNG or WebP photos): ${refused.join(', ')}.` : '';
     if (!added.length) return;
     pending = [...added, ...pending];
     filter = 'all';
@@ -539,8 +535,9 @@ import trash from '../../assets/icons/admin/trash-red.svg';
   document.querySelector('[data-choose]')!.addEventListener('click', () => fileInput.click());
   drop.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => {
-    if (fileInput.files?.length) addFiles(fileInput.files);
+    const files = [...(fileInput.files ?? [])];
     fileInput.value = '';
+    if (files.length) addFiles(files);
   });
   drop.addEventListener('dragover', (event) => {
     if (!event.dataTransfer?.types.includes('Files')) return;
