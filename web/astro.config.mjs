@@ -19,8 +19,8 @@ const postRewrite = (req, _res, next) => {
 };
 
 export default defineConfig({
-  // TODO before launch: set `site` to the live address (needed for canonical
-  // URLs and a sitemap). Confirm it in the Vercel project's Domains list.
+  // The live address: canonical and social-preview links point here.
+  site: 'https://omwinitiative.org',
   output: 'static',
   vite: {
     plugins: [

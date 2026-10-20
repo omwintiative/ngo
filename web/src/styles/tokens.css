@@ -172,6 +172,7 @@
 
   /* "Page not found" message card (Figma 404 page, 128:7212) */
   --size-message-card-width: 640px;
+  --size-message-card-skeleton: 320px; /* Thank you: placeholder while the payment is checked (not in Figma) */
   --size-icon-tile-large: 72px;
   --size-icon-large: 36px;
 

@@ -39,6 +39,9 @@ export const paths = {
   partner: '/partner-or-sponsor',
   contact: '/contact',
   donate: '/donate',
+  // Where Paystack sends donors back (PAYSTACK_CALLBACK_URL on Render)
+  thankYou: '/donate/thank-you',
+  paymentFailed: '/donate/payment-failed',
   contributors: '/contributors',
   privacy: '/privacy-policy',
 } as const;

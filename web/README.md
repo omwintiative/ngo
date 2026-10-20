@@ -119,7 +119,7 @@ Before merging `redesign` into `main`:
 - [x] Render: Settings shows Build Command `npm install` in `server/` (checked 19 Oct 2026).
       (`server/node_modules` is no longer in git, so Render must install the packages itself.)
 - [ ] The API upgrades and the admin are built and tested (roadmap steps 5 and 7).
-- [ ] `site` is set to `https://omwinitiative.org` in `astro.config.mjs`.
+- [x] `site` is set to `https://omwinitiative.org` in `astro.config.mjs` (20 Oct 2026).
 - [ ] Privacy Policy: every `[bracketed]` line in `src/pages/privacy-policy.astro` replaced with
       wording approved by OMWI, and its `noindex` removed.
 - [ ] The new Vercel project's preview has been checked page by page.

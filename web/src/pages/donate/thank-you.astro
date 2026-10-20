@@ -1,0 +1,92 @@
+---
+/*
+  Thank you, from Figma Thank you (Desktop 94:6055, Tablet 94:6139, Mobile
+  94:6214). Paystack sends donors here after paying (PAYSTACK_CALLBACK_URL
+  on Render = https://<site>/donate/thank-you), with ?reference=.
+
+  The page asks the API whether the payment really went through (GET
+  /api/payments/paystack/verify/:reference) before thanking anyone:
+  - paid: the message shows;
+  - failed or not completed: Payment failed;
+  - still processing: asked again a few times, then Payment failed (its
+    text tells donors to contact OMWI if money has left their account);
+  - no reference (opened directly): back to Donate.
+*/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import MessageCard from '../../components/MessageCard.astro';
+import Button from '../../components/Button.astro';
+import { paths } from '../../config/navigation';
+import banner from '../../assets/photos/stock-banner-thank-you.jpg';
+import check from '../../assets/icons/check-plum-36.svg';
+---
+
+<BaseLayout title="Thank You" description="Thank you for your donation to the Ọmụgwọ Maternal Welfare Initiative." noindex>
+  <PageBanner
+    title="Thank You"
+    crumbs={[{ label: 'Donate', href: paths.donate }, { label: 'Thank you' }]}
+    image={banner}
+    imagePosition="center"
+  />
+  <section class="section message-section" aria-label="Your donation">
+    <div class="skeleton message-skeleton" aria-hidden="true" data-checking></div>
+    <p class="visually-hidden" role="status" data-status>Checking your payment.</p>
+    <MessageCard
+      icon={check}
+      title="Thank you for your donation."
+      text="Your donation has been received. A receipt has been sent to your email."
+      hidden
+      data-thanks
+    >
+      <Button href={paths.home}>Back to Home</Button>
+      <Button href={paths.contributors} variant="outline">See Our Contributors</Button>
+    </MessageCard>
+  </section>
+</BaseLayout>
+
+<style>
+  .message-section {
+    align-items: center;
+  }
+  .message-skeleton {
+    width: 100%;
+    max-width: var(--size-message-card-width);
+    height: var(--size-message-card-skeleton);
+    border-radius: var(--radius-card);
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { paths } from '../../config/navigation';
+
+  const params = new URLSearchParams(location.search);
+  const reference = params.get('reference') || params.get('trxref');
+  const TRIES = 4;
+  const WAIT_MS = 3000;
+
+  const failed = () => location.replace(paths.paymentFailed);
+
+  async function check() {
+    if (!reference) return location.replace(paths.donate);
+    for (let attempt = 1; attempt <= TRIES; attempt += 1) {
+      try {
+        const { status } = await api<{ status: string }>(`/payments/paystack/verify/${encodeURIComponent(reference)}`);
+        if (status === 'paid') {
+          document.querySelector<HTMLElement>('[data-checking]')!.hidden = true;
+          document.querySelector<HTMLElement>('[data-thanks]')!.hidden = false;
+          document.querySelector('[data-status]')!.textContent = 'Your donation has been received.';
+          return;
+        }
+        if (status === 'failed' || status === 'not-completed') return failed();
+      } catch (error) {
+        // An unknown reference will not turn up later.
+        if (error instanceof ApiError && error.status === 404) return failed();
+      }
+      if (attempt < TRIES) await new Promise((resolve) => setTimeout(resolve, WAIT_MS));
+    }
+    failed();
+  }
+
+  check();
+</script>
