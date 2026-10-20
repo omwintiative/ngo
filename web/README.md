@@ -127,10 +127,10 @@ Before merging `redesign` into `main`:
 On launch day:
 
 - [ ] Point the GoDaddy DNS at the new Vercel project (above).
-- [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org` and
-      `https://www.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
+- [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org`,
+      `https://www.omwinitiative.org` and `https://admin.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
 - [ ] Render environment, email (see `server/.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`,
-      `MESSAGE_ALERT_TO=info@omwinitiative.org`, `ADMIN_SITE_URL=https://admin.omwinitiative.org`.
+      `MESSAGE_ALERT_TO=info@omwinitiative.org`, `ADMIN_SITE_URL=https://admin.omwinitiative.org/admin`.
       `omwinitiative.org` must show as verified in Resend.
 - [ ] Email wording: OMWI approves the reset email and the new-message alert
       (`server/src/routes/authRoutes.js`, `contactRoutes.js`; not in the Figma file).
