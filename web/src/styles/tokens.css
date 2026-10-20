@@ -149,6 +149,8 @@
   --size-admin-col-listing: 170px;
   --size-admin-col-view: 48px;
   --size-admin-search: 360px;
+  --size-admin-inbox: 440px; /* Messages: list beside the open message (desktop) */
+  --size-admin-message-width: 800px; /* Message page card */
   --size-admin-icon: 22px; /* sidebar, menu and top bar icons */
   --size-admin-account-menu: 200px; /* "Your account" dropdown: not in Figma */
   --space-admin-mobile-bottom: 36px; /* phone page bottom padding (Figma Body) */

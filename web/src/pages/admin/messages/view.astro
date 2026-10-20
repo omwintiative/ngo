@@ -1,0 +1,66 @@
+---
+/*
+  Admin · Message (Figma 351:3116), opened with ?id=: one message on its
+  own page (tablet and phones open this from the list; desktop shows the
+  message beside the list, and this page also works there).
+*/
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { adminPaths } from '../../../config/admin';
+import arrowLeft from '../../../assets/icons/admin/arrow-left-plum.svg';
+---
+
+<AdminLayout title="Message" section="messages">
+  <a class="admin-back t-button" href={adminPaths.messages}>
+    <img src={arrowLeft.src} width="20" height="20" alt="" />
+    Back to messages
+  </a>
+  <h1 class="t-h3" data-title>Message</h1>
+  <section class="admin-card message-card" aria-label="Message" hidden data-card></section>
+</AdminLayout>
+
+<style>
+  .message-card {
+    max-width: var(--size-admin-message-width);
+  }
+  @media (min-width: 768px) {
+    .message-card {
+      padding: var(--space-32);
+    }
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../../lib/api';
+  import { adminPaths } from '../../../config/admin';
+  import { requireAdmin } from '../../../lib/admin';
+  import { renderMessage, type AdminMessage } from '../../../lib/adminMessages';
+
+  const id = new URLSearchParams(window.location.search).get('id') ?? '';
+  const card = document.querySelector<HTMLElement>('[data-card]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+
+  const show = (message: AdminMessage) => {
+    const subject = message.subject || '(no subject)';
+    document.title = `${subject} | OMWI website admin`;
+    document.querySelector('[data-title]')!.textContent = subject;
+    card.replaceChildren(
+      renderMessage(message, {
+        onChange: show,
+        onDeleted: () => window.location.assign(adminPaths.messages),
+        onError: (text) => (alertEl.textContent = text),
+      }),
+    );
+    card.hidden = false;
+  };
+
+  requireAdmin().then(async () => {
+    try {
+      show((await api<{ message: AdminMessage }>(`/admin/messages/${encodeURIComponent(id)}`)).message);
+    } catch (error) {
+      alertEl.textContent =
+        error instanceof ApiError && error.status === 404
+          ? 'We could not find that message. It may have been deleted.'
+          : 'The message could not load. Please refresh the page.';
+    }
+  });
+</script>

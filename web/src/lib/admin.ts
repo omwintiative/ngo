@@ -107,7 +107,7 @@ export function methodLabel(d: DonationLike): string {
   return channel ? `Paystack · ${channel}` : 'Paystack';
 }
 
-export type BadgeTone = 'success' | 'warning' | 'error';
+export type BadgeTone = 'success' | 'warning' | 'error' | 'neutral';
 
 /** Status badge text and colour (Figma Admin/Badge: Success, Warning or Error). */
 export function statusBadge(d: DonationLike): { label: string; tone: BadgeTone } {
