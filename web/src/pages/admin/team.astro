@@ -34,15 +34,15 @@ import { team as builtInTeam } from '../../data/team';
         </p>
         <ul class="gallery-grid" aria-label="Cards on the website now">
           {
-            builtInTeam.map((m) => (
+            builtInTeam.map((m, i) => (
               <li class="gallery-tile">
-                <div class="gallery-tile__button team-builtin__tile">
+                <button type="button" class="gallery-tile__button" data-builtin-index={i}>
                   <span class="gallery-photo gallery-tile__photo" />
                   <span class="gallery-tile__meta">
                     <span class="t-button">{m.name}</span>
                     <span class="t-body-small admin-muted">{m.role}</span>
                   </span>
-                </div>
+                </button>
               </li>
             ))
           }
@@ -92,9 +92,6 @@ import { team as builtInTeam } from '../../data/team';
   .team-builtin .gallery-grid {
     align-self: stretch;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .team-builtin__tile {
-    cursor: default;
   }
   .team-edit__photo {
     height: var(--size-admin-gallery-edit-photo);
@@ -339,11 +336,13 @@ import { team as builtInTeam } from '../../data/team';
       alertEl.textContent = problem(error, 'The new order was not saved. Please try again.');
     }
   };
-  // Saves the built-in cards as real team members, in order, so they can be edited.
+  // Saves all the built-in cards (once one is saved, the website shows only saved
+  // people), then opens the chosen card for editing.
   const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-builtin]')!;
-  copyButton.addEventListener('click', async () => {
+  const builtInButtons = [...emptyEl.querySelectorAll<HTMLButtonElement>('[data-builtin-index]')];
+  const copyBuiltIn = async (open: number) => {
     alertEl.textContent = '';
-    copyButton.disabled = true;
+    [copyButton, ...builtInButtons].forEach((b) => (b.disabled = true));
     try {
       for (const tile of emptyEl.querySelectorAll('.gallery-tile__meta')) {
         const [name, role] = [...tile.children].map((c) => c.textContent ?? '');
@@ -356,11 +355,14 @@ import { team as builtInTeam } from '../../data/team';
     } catch (error) {
       alertEl.textContent = problem(error, 'The cards were not all copied. Please try again.');
     } finally {
-      copyButton.disabled = false;
+      [copyButton, ...builtInButtons].forEach((b) => (b.disabled = false));
       render();
-      select(members[0]?.id ?? null);
+      select((members[open] ?? members[0])?.id ?? null);
+      if (current()) nameField.focus();
     }
-  });
+  };
+  copyButton.addEventListener('click', () => copyBuiltIn(0));
+  builtInButtons.forEach((b) => b.addEventListener('click', () => copyBuiltIn(Number(b.dataset.builtinIndex))));
 
   earlier.addEventListener('click', () => move(-1, earlier));
   later.addEventListener('click', () => move(1, later));
