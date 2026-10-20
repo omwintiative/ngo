@@ -1,0 +1,40 @@
+---
+/*
+  Payment failed, from Figma Payment failed (Desktop 94:6290, Tablet
+  94:6374, Mobile 94:6449). Thank you sends donors here when Paystack
+  reports the payment as failed or not completed.
+*/
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import MessageCard from '../../components/MessageCard.astro';
+import Button from '../../components/Button.astro';
+import { paths } from '../../config/navigation';
+import banner from '../../assets/photos/stock-banner-payment.jpg';
+import x from '../../assets/icons/x-accent-36.svg';
+---
+
+<BaseLayout title="Payment Not Completed" description="Your donation to the Ọmụgwọ Maternal Welfare Initiative was not completed." noindex>
+  <PageBanner
+    title="Payment Not Completed"
+    crumbs={[{ label: 'Donate', href: paths.donate }, { label: 'Payment' }]}
+    image={banner}
+    imagePosition="center"
+  />
+  <section class="section message-section" aria-label="Your payment">
+    <MessageCard
+      icon={x}
+      tone="accent"
+      title="Your payment did not go through."
+      text="Your donation was not completed. Please try again or use a different payment method. If money has left your account, contact us and we will help."
+    >
+      <Button href={paths.donate}>Try Again</Button>
+      <Button href={paths.contact} variant="outline">Contact Us</Button>
+    </MessageCard>
+  </section>
+</BaseLayout>
+
+<style>
+  .message-section {
+    align-items: center;
+  }
+</style>

@@ -100,7 +100,7 @@ router.post("/logout", (req, res) => {
 // Password reset by email (Figma Admin · Forgot password, Check your email,
 // Set a new password). The link holds a random token; only its SHA-256 hash
 // is stored, it works once and expires after an hour. Links point at
-// ADMIN_SITE_URL (https://admin.omwinitiative.org, or the local admin).
+// ADMIN_SITE_URL (https://admin.omwinitiative.org/admin, or the local admin).
 const RESET_LINK_MS = 60 * 60 * 1000;
 const RESETS_PER_HOUR = 3;
 const FORGOT_ANSWER = {

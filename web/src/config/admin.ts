@@ -1,7 +1,8 @@
 /*
   Admin addresses and menu (Figma Admin page 1:5). Every admin page lives
-  under /admin. On admin.omwinitiative.org a Vercel rewrite serves the same
-  pages (web/vercel.json, set up at launch), so these links work there too.
+  under /admin. The live admin is admin.omwinitiative.org: web/vercel.json
+  sends its home page to /admin and forwards omwinitiative.org/admin there,
+  so these links work unchanged on that address.
   Pages that read a record use ?id= (the site is static, so there is one
   page per screen, not one per record).
 */

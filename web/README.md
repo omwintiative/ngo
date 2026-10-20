@@ -119,7 +119,7 @@ Before merging `redesign` into `main`:
 - [x] Render: Settings shows Build Command `npm install` in `server/` (checked 19 Oct 2026).
       (`server/node_modules` is no longer in git, so Render must install the packages itself.)
 - [ ] The API upgrades and the admin are built and tested (roadmap steps 5 and 7).
-- [ ] `site` is set to `https://omwinitiative.org` in `astro.config.mjs`.
+- [x] `site` is set to `https://omwinitiative.org` in `astro.config.mjs` (20 Oct 2026).
 - [ ] Privacy Policy: every `[bracketed]` line in `src/pages/privacy-policy.astro` replaced with
       wording approved by OMWI, and its `noindex` removed.
 - [ ] The new Vercel project's preview has been checked page by page.
@@ -127,10 +127,10 @@ Before merging `redesign` into `main`:
 On launch day:
 
 - [ ] Point the GoDaddy DNS at the new Vercel project (above).
-- [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org` and
-      `https://www.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
+- [ ] Render environment: `CORS_ORIGIN` includes `https://omwinitiative.org`,
+      `https://www.omwinitiative.org` and `https://admin.omwinitiative.org`; `PAYSTACK_CALLBACK_URL` points at the new Thank you page.
 - [ ] Render environment, email (see `server/.env.example`): `RESEND_API_KEY`, `EMAIL_FROM`,
-      `MESSAGE_ALERT_TO=info@omwinitiative.org`, `ADMIN_SITE_URL=https://admin.omwinitiative.org`.
+      `MESSAGE_ALERT_TO=info@omwinitiative.org`, `ADMIN_SITE_URL=https://admin.omwinitiative.org/admin`.
       `omwinitiative.org` must show as verified in Resend.
 - [ ] Email wording: OMWI approves the reset email and the new-message alert
       (`server/src/routes/authRoutes.js`, `contactRoutes.js`; not in the Figma file).

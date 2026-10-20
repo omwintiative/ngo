@@ -1,4 +1,24 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "admin.omwinitiative.org" }],
+      "destination": "/admin",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [{ "type": "host", "value": "omwinitiative.org" }],
+      "destination": "https://admin.omwinitiative.org/admin/:path*",
+      "permanent": false
+    },
+    {
+      "source": "/admin/:path*",
+      "has": [{ "type": "host", "value": "www.omwinitiative.org" }],
+      "destination": "https://admin.omwinitiative.org/admin/:path*",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

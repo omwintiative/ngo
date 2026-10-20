@@ -1,7 +1,7 @@
 ---
 /*
   "Meet the team" (Home and About), from Figma Section / Our team (91:6781).
-  2 columns on mobile and tablet, 4 on desktop. People come from
+  1 column on phones, 2 on tablets, 4 on desktop. People come from
   src/data/team.ts.
 */
 import SectionHeading from './SectionHeading.astro';
@@ -17,10 +17,16 @@ import { team } from '../data/team';
 </section>
 
 <style>
+  /* Phones: one card per row (Ifeanyi, 20 Oct 2026; Figma shows 2) */
   .team__grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: var(--layout-gap);
+  }
+  @media (min-width: 768px) {
+    .team__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
   @media (min-width: 1200px) {
     .team__grid {
