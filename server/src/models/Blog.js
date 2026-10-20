@@ -17,7 +17,7 @@ const blogSchema = new mongoose.Schema(
       default: "",
     },
     // The post's text, in the limited formatting the editor writes (## heading,
-    // **bold**, *italic*, [link](https://…), - and 1. lists, > quote). The
+    // **bold**, _italic_, [link](https://…), - and 1. lists, > quote). The
     // website escapes everything else, so no HTML from here ever runs.
     description: {
       type: String,

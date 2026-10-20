@@ -7,6 +7,10 @@
     {
       "source": "/uploads/(.*)",
       "destination": "https://ngo-3bca.onrender.com/uploads/$1"
+    },
+    {
+      "source": "/blog/:slug([a-z0-9-]+)",
+      "destination": "/blog/post/"
     }
   ]
 }

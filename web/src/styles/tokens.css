@@ -149,6 +149,7 @@
   --size-admin-col-listing: 170px;
   --size-admin-col-view: 48px;
   --size-admin-search: 360px;
+  --size-admin-featured-photo: 180px; /* Edit post, Featured image (Figma) */
   --size-admin-inbox: 440px; /* Messages: list beside the open message (desktop) */
   --size-admin-message-width: 800px; /* Message page card */
   --size-admin-icon: 22px; /* sidebar, menu and top bar icons */

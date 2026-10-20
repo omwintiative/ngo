@@ -1,0 +1,156 @@
+---
+/*
+  Admin · Blog posts (Figma 342:1723): every post, drafts included, newest
+  first, with All / Published / Drafts and a title search. Drafts are only
+  visible here. A post's row opens Edit post.
+*/
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Button from '../../../components/Button.astro';
+import { adminPaths } from '../../../config/admin';
+import search from '../../../assets/icons/search-plum-20.svg';
+---
+
+<AdminLayout title="Blog posts" section="blog">
+  <div class="admin-page-top">
+    <div class="admin-page-header">
+      <h1 class="t-h3">Blog posts</h1>
+      <p class="t-body-small" data-counts>&nbsp;</p>
+    </div>
+    <div class="admin-page-top__actions">
+      <Button href={adminPaths.editPost}>Write a Blog Post</Button>
+    </div>
+  </div>
+
+  <div class="posts-toolbar">
+    <div class="admin-chips" role="group" aria-label="Show">
+      <button type="button" class="admin-chip t-body-small" aria-pressed="true" data-filter="all">All</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="published">Published</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="draft">Drafts</button>
+    </div>
+    <div class="admin-search admin-search--toolbar" role="search">
+      <img src={search.src} width="20" height="20" alt="" />
+      <label class="visually-hidden" for="post-search">Search posts</label>
+      <input class="t-body" id="post-search" type="search" placeholder="Search posts" autocomplete="off" data-search />
+    </div>
+  </div>
+
+  <p class="visually-hidden" aria-live="polite" data-status></p>
+
+  <div class="posts-list" data-list>
+    <div class="posts-list__head t-body-small" aria-hidden="true">
+      <span>Title</span>
+      <span class="posts-row__category">Category</span>
+      <span class="posts-row__author">Author</span>
+      <span class="posts-row__date">Date</span>
+      <span>Status</span>
+      <span>Edit</span>
+    </div>
+    <ul class="posts-list__rows" data-rows></ul>
+  </div>
+  <p class="t-body admin-empty" hidden data-empty>No posts match.</p>
+</AdminLayout>
+
+<style>
+  .posts-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  @media (min-width: 1200px) {
+    .posts-toolbar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+</style>
+
+<script>
+  import { api } from '../../../lib/api';
+  import { adminPaths } from '../../../config/admin';
+  import { requireAdmin, formatDate, publicName, postBadge, badge, el, type AdminPost } from '../../../lib/admin';
+  import pencil from '../../../assets/icons/admin/pencil-plum.svg';
+
+  const rowsEl = document.querySelector<HTMLElement>('[data-rows]')!;
+  const listEl = document.querySelector<HTMLElement>('[data-list]')!;
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')!;
+  const searchEl = document.querySelector<HTMLInputElement>('[data-search]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+
+  let all: AdminPost[] = [];
+  let filter = 'all';
+
+  const titleOf = (p: AdminPost) => p.title || 'Untitled draft';
+  const dateOf = (p: AdminPost) => (p.status === 'draft' ? 'Not published' : formatDate(p.publishAt || p.publishedAt || p.createdAt));
+
+  const matches = (p: AdminPost) => {
+    if (filter === 'draft' && p.status !== 'draft') return false;
+    if (filter === 'published' && p.status === 'draft') return false;
+    const q = searchEl.value.trim().toLowerCase();
+    return !q || titleOf(p).toLowerCase().includes(q);
+  };
+
+  const row = (p: AdminPost) => {
+    const item = el('li', 'posts-row');
+    const category = p.category || 'No category';
+
+    const title = el('div', 'posts-row__title');
+    const link = el('a', 'admin-table__link t-body', titleOf(p));
+    link.href = `${adminPaths.editPost}?id=${encodeURIComponent(p._id)}`;
+    title.append(link, el('span', 't-body-small admin-muted posts-row__sub', `${category} · ${dateOf(p)}`));
+
+    const status = el('div', 'posts-row__status');
+    const { label, tone } = postBadge(p);
+    status.append(badge(label, tone));
+
+    // The whole row is the link; the pencil only shows it can be edited.
+    const edit = el('span', 'admin-icon-link posts-row__edit');
+    edit.setAttribute('aria-hidden', 'true');
+    const icon = el('img');
+    icon.src = pencil.src;
+    icon.width = 22;
+    icon.height = 22;
+    icon.alt = '';
+    edit.append(icon);
+
+    item.append(
+      title,
+      el('span', 't-body posts-row__category', category),
+      el('span', 't-body posts-row__author', publicName(p.createdBy?.name ?? '')),
+      el('span', 't-body posts-row__date', dateOf(p)),
+      status,
+      edit,
+    );
+    return item;
+  };
+
+  const render = () => {
+    const found = all.filter(matches);
+    rowsEl.replaceChildren(...found.map(row));
+    listEl.hidden = found.length === 0;
+    emptyEl.hidden = found.length > 0;
+    statusEl.textContent = `${found.length} ${found.length === 1 ? 'post' : 'posts'} shown.`;
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((chip) =>
+    chip.addEventListener('click', () => {
+      filter = chip.dataset.filter!;
+      document.querySelectorAll('[data-filter]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      render();
+    }),
+  );
+  searchEl.addEventListener('input', render);
+
+  requireAdmin().then(async () => {
+    try {
+      all = (await api<{ posts: AdminPost[] }>('/admin/blogs')).posts;
+      const drafts = all.filter((p) => p.status === 'draft').length;
+      const published = all.length - drafts;
+      document.querySelector('[data-counts]')!.textContent = `${published} published, ${drafts} ${drafts === 1 ? 'draft' : 'drafts'}`;
+      render();
+    } catch {
+      alertEl.textContent = 'The blog posts could not load. Please refresh the page.';
+    }
+  });
+</script>

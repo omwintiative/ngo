@@ -110,13 +110,13 @@ export const footerColumns: { title: string; links: NavLink[] }[] = [
 export const legalLinks: NavLink[] = [{ label: 'Privacy Policy', href: paths.privacy }];
 
 /**
-  Address of one blog post. Posts come from the API at run time, so the
-  static site uses one page that reads the id from the address.
-  (Decide with the Blog page in step 6: per-post pages would need a rebuild
-  whenever a post is published.)
+  Address of one blog post: /blog/<web address>. Posts come from the API at
+  run time, so every such address is served by the one page at /blog/post
+  (a rewrite in vercel.json, and in astro.config.mjs for `npm run dev`).
+  Posts saved before web addresses existed use /blog/post?id=<id>.
 */
-export function postHref(id: string): string {
-  return `${paths.blog}/post?id=${encodeURIComponent(id)}`;
+export function postHref(post: { _id: string; slug?: string }): string {
+  return post.slug ? `${paths.blog}/${post.slug}` : `${paths.blog}/post?id=${encodeURIComponent(post._id)}`;
 }
 
 /** True when `href` is the page at `pathname` (ignores a trailing slash). */

@@ -61,7 +61,7 @@ import lock from '../../../assets/icons/admin/lock-plum-20.svg';
 
       <section class="admin-card" aria-labelledby="note-title">
         <h2 class="t-h4" id="note-title">Note for admins</h2>
-        <form class="admin-form" novalidate data-note-form>
+        <form class="admin-form" method="post" novalidate data-note-form>
           <FormField name="note" label="Note" type="textarea" placeholder="Add a note that only admins can see" />
           <p class="admin-alert" role="status" data-note-status></p>
           <Button type="submit" variant="outline" class="note__save" data-note-save>Save Note</Button>
