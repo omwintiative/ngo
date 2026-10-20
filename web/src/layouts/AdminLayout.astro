@@ -45,6 +45,10 @@ const { title, variant = 'shell', section } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- The OMWI emblem (Figma Logo/Mark 36:65), in public/ -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>{title} | OMWI website admin</title>
     <meta name="robots" content="noindex, nofollow" />
     <script is:inline>document.documentElement.classList.add('js');</script>
