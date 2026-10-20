@@ -777,9 +777,10 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
 @media (min-width: 1200px) {
   .donations-list__head,
   .donations-row {
+    /* Text columns may narrow on smaller desktops (1200-1440) instead of overflowing */
     grid-template-columns:
-      1fr var(--size-admin-col-amount) var(--size-admin-col-date) var(--size-admin-col-method-wide)
-      var(--size-admin-col-status-wide) var(--size-admin-col-listing) var(--size-admin-col-view);
+      minmax(0, 1fr) var(--size-admin-col-amount) var(--size-admin-col-date) minmax(0, var(--size-admin-col-method-wide))
+      var(--size-admin-col-status-wide) minmax(0, var(--size-admin-col-listing)) var(--size-admin-col-view);
   }
   .donations-row__amount {
     text-align: left;
@@ -796,7 +797,7 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
     display: none;
   }
   .admin-columns {
-    grid-template-columns: 1fr var(--size-admin-side-column);
+    grid-template-columns: minmax(0, 1fr) var(--size-admin-side-column);
   }
   .admin-search--toolbar {
     width: var(--size-admin-search);
@@ -1004,6 +1005,11 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
   .admin-menu {
     width: var(--size-admin-menu-panel);
   }
+  /* Block groups so each grid row spans the full card width */
+  .admin-table thead,
+  .admin-table tbody {
+    display: block;
+  }
   .admin-table thead {
     position: static;
     width: auto;
@@ -1073,6 +1079,15 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
     grid-template-columns: repeat(4, 1fr);
     gap: var(--space-24);
   }
+}
+
+/* The Method column needs a wide card (the 1440 design); narrower desktops
+   keep the tablet layout, with the method under the donor's name. 620px is
+   donor 150 + the three fixed columns, gaps and row padding. */
+.admin-card:has(> .admin-table) {
+  container-type: inline-size;
+}
+@container (min-width: 620px) {
   .admin-table thead tr,
   .admin-table tbody tr {
     grid-template-columns: 1fr var(--size-admin-col-amount) var(--size-admin-col-method) var(--size-admin-col-status);

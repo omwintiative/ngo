@@ -105,7 +105,7 @@ import { adminPaths } from '../../config/admin';
   }
   @media (min-width: 1200px) {
     .dashboard__columns {
-      grid-template-columns: 1fr var(--size-admin-side-column);
+      grid-template-columns: minmax(0, 1fr) var(--size-admin-side-column);
     }
   }
 </style>

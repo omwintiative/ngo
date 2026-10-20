@@ -105,8 +105,8 @@ const { title, variant = 'shell', section } = Astro.props;
                 <p class="t-body-small admin-topbar__title">OMWI website admin</p>
               </div>
               <div class="admin-topbar__right">
-                <a class="text-link-admin t-button admin-topbar__view-site" href="/" data-admin-view-site>
-                  View Site
+                <a class="text-link-admin t-button admin-topbar__view-site" href="/" target="_blank" rel="noopener" data-admin-view-site>
+                  View Site<span class="visually-hidden"> (opens in a new tab)</span>
                   <img src={arrowRight.src} width="18" height="18" alt="" />
                 </a>
                 <div class="admin-account">
@@ -157,9 +157,9 @@ const { title, variant = 'shell', section } = Astro.props;
                 </a>
               ))}
               <span class="admin-nav__spacer" />
-              <a class="admin-nav__item t-button" href="/" data-admin-view-site>
+              <a class="admin-nav__item t-button" href="/" target="_blank" rel="noopener" data-admin-view-site>
                 <img src={viewSiteIcon.src} width="22" height="22" alt="" />
-                View site
+                View site<span class="visually-hidden"> (opens in a new tab)</span>
               </a>
               <button type="button" class="admin-nav__item t-button" data-admin-sign-out>
                 <img src={signOutIcon.src} width="22" height="22" alt="" />
