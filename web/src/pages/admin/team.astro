@@ -9,6 +9,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import Button from '../../components/Button.astro';
 import FormField from '../../components/FormField.astro';
 import trash from '../../assets/icons/admin/trash-red.svg';
+import { team as builtInTeam } from '../../data/team';
 ---
 
 <AdminLayout title="Team" section="team">
@@ -27,7 +28,27 @@ import trash from '../../assets/icons/admin/trash-red.svg';
   <div class="admin-columns" data-columns>
     <div class="admin-columns__main">
       <ul class="gallery-grid" aria-label="Team" data-grid></ul>
-      <p class="t-body admin-empty" hidden data-empty>No team members yet.</p>
+      <div class="team-builtin" hidden data-empty>
+        <p class="t-body admin-empty">
+          No team members added yet. Until you add someone, the website shows these cards:
+        </p>
+        <ul class="gallery-grid" aria-label="Cards on the website now">
+          {
+            builtInTeam.map((m) => (
+              <li class="gallery-tile">
+                <div class="gallery-tile__button team-builtin__tile">
+                  <span class="gallery-photo gallery-tile__photo" />
+                  <span class="gallery-tile__meta">
+                    <span class="t-button">{m.name}</span>
+                    <span class="t-body-small admin-muted">{m.role}</span>
+                  </span>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+        <Button variant="outline" data-copy-builtin>Edit These Cards</Button>
+      </div>
     </div>
 
     <div class="admin-columns__side">
@@ -59,6 +80,21 @@ import trash from '../../assets/icons/admin/trash-red.svg';
 </AdminLayout>
 
 <style>
+  .team-builtin {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+  .team-builtin[hidden] {
+    display: none;
+  }
+  .team-builtin .gallery-grid {
+    align-self: stretch;
+  }
+  .team-builtin__tile {
+    cursor: default;
+  }
   .team-edit__photo {
     height: var(--size-admin-gallery-edit-photo);
   }
@@ -302,6 +338,29 @@ import trash from '../../assets/icons/admin/trash-red.svg';
       alertEl.textContent = problem(error, 'The new order was not saved. Please try again.');
     }
   };
+  // Saves the built-in cards as real team members, in order, so they can be edited.
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-builtin]')!;
+  copyButton.addEventListener('click', async () => {
+    alertEl.textContent = '';
+    copyButton.disabled = true;
+    try {
+      for (const tile of emptyEl.querySelectorAll('.gallery-tile__meta')) {
+        const [name, role] = [...tile.children].map((c) => c.textContent ?? '');
+        const form = new FormData();
+        form.set('name', name);
+        form.set('role', role);
+        members = [...members, (await api<{ member: Member }>('/admin/team', { method: 'POST', body: form })).member];
+      }
+      statusEl.textContent = 'The cards are ready to edit.';
+    } catch (error) {
+      alertEl.textContent = problem(error, 'The cards were not all copied. Please try again.');
+    } finally {
+      copyButton.disabled = false;
+      render();
+      select(members[0]?.id ?? null);
+    }
+  });
+
   earlier.addEventListener('click', () => move(-1, earlier));
   later.addEventListener('click', () => move(1, later));
 

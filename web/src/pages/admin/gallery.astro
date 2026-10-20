@@ -15,6 +15,8 @@ import shield from '../../assets/icons/admin/shield-check-plum-20.svg';
 import upload from '../../assets/icons/admin/upload-plum-24.svg';
 import dots from '../../assets/icons/admin/drag-dots-18.svg';
 import trash from '../../assets/icons/admin/trash-red.svg';
+import { Image } from 'astro:assets';
+import { galleryPhotos } from '../../data/gallery';
 ---
 
 <AdminLayout title="Gallery" section="gallery">
@@ -46,6 +48,28 @@ import trash from '../../assets/icons/admin/trash-red.svg';
   </button>
 
   <p class="visually-hidden" aria-live="polite" data-status></p>
+
+  <section class="gallery-builtin" aria-labelledby="builtin-title" hidden data-builtin>
+    <h2 class="t-h4" id="builtin-title">On the website now</h2>
+    <p class="t-body admin-muted">
+      No photos added yet. Until you add some, the Gallery page and the Home photo strip show these:
+    </p>
+    <ul class="gallery-grid" aria-label="Photos on the website now">
+      {
+        galleryPhotos.map((p, i) => (
+          <li class="gallery-tile" data-builtin-photo={p.src.src} data-alt={p.alt} data-on-home={String(i < 6)}>
+            <div class="gallery-tile__button gallery-builtin__tile">
+              <span class="gallery-photo gallery-tile__photo">
+                <Image src={p.src} width={600} alt="" loading="lazy" />
+              </span>
+              <span class="gallery-tile__meta t-body-small">{p.alt}</span>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+    <Button variant="outline" data-copy-builtin>Edit These Photos</Button>
+  </section>
 
   <div class="admin-columns" hidden data-columns>
     <div class="admin-columns__main gallery-main">
@@ -199,6 +223,21 @@ import trash from '../../assets/icons/admin/trash-red.svg';
       justify-content: space-between;
     }
   }
+  .gallery-builtin {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+  .gallery-builtin[hidden] {
+    display: none;
+  }
+  .gallery-builtin .gallery-grid {
+    align-self: stretch;
+  }
+  .gallery-builtin__tile {
+    cursor: default;
+  }
 </style>
 
 <script>
@@ -238,6 +277,7 @@ import trash from '../../assets/icons/admin/trash-red.svg';
   const altError = document.querySelector<HTMLElement>('[data-error-for="alt"]')!;
   const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
   const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+  const builtIn = document.querySelector<HTMLElement>('[data-builtin]')!;
 
   altField.maxLength = 250;
   captionField.maxLength = 200;
@@ -306,6 +346,7 @@ import trash from '../../assets/icons/admin/trash-red.svg';
     grid.hidden = tiles.length === 0;
     emptyEl.hidden = tiles.length > 0;
     columns.hidden = saved.length + pending.length === 0;
+    builtIn.hidden = saved.length + pending.length > 0;
     showCounts();
   };
 
@@ -559,6 +600,34 @@ import trash from '../../assets/icons/admin/trash-red.svg';
       select(selected);
     }),
   );
+
+  // Uploads the built-in photos so they can be edited. New uploads go first, so go last to first.
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-builtin]')!;
+  copyButton.addEventListener('click', async () => {
+    alertEl.textContent = '';
+    copyButton.disabled = true;
+    const items = [...builtIn.querySelectorAll<HTMLElement>('[data-builtin-photo]')].reverse();
+    try {
+      for (const item of items) {
+        const src = item.dataset.builtinPhoto!;
+        const blob = await (await fetch(src)).blob();
+        // "/_astro/outreach-1.Ab12.jpg" -> "outreach-1.jpg"
+        const fileName = `${new URL(src, location.href).pathname.split('/').pop()!.split('.')[0]}.jpg`;
+        const form = new FormData();
+        form.set('photo', new File([blob], fileName, { type: blob.type || 'image/jpeg' }));
+        form.set('alt', item.dataset.alt!);
+        form.set('onHome', item.dataset.onHome!);
+        saved = [(await api<{ photo: GalleryPhoto }>('/admin/gallery', { method: 'POST', body: form })).photo, ...saved];
+      }
+      statusEl.textContent = 'The photos are ready to edit.';
+    } catch (error) {
+      showError(error, 'The photos were not all copied. Please try again.');
+    } finally {
+      copyButton.disabled = false;
+      render();
+      select(saved[0]?.id ?? null);
+    }
+  });
 
   // Photos waiting for a description, or unsaved edits, are lost on leaving.
   window.addEventListener('beforeunload', (event) => {
