@@ -150,6 +150,8 @@
   --size-admin-col-view: 48px;
   --size-admin-search: 360px;
   --size-admin-featured-photo: 180px; /* Edit post, Featured image (Figma) */
+  --size-admin-gallery-tile-photo: 150px; /* Admin · Gallery photo tile (Figma) */
+  --size-admin-gallery-edit-photo: 200px; /* Admin · Gallery, Edit photo (Figma) */
   --size-admin-inbox: 440px; /* Messages: list beside the open message (desktop) */
   --size-admin-message-width: 800px; /* Message page card */
   --size-admin-icon: 22px; /* sidebar, menu and top bar icons */

@@ -47,7 +47,10 @@ const main = async () => {
         publicId: uploaded.public_id,
         width: uploaded.width,
         height: uploaded.height,
+        // "outreach-1.jpg" -> "outreach-1"; the first six fill the Home photo strip.
+        name: file.replace(/\.[^.]+$/, ""),
         alt,
+        onHome: index < GalleryPhoto.HOME_LIMIT,
         order: index,
       });
       console.log(`Added ${file}`);

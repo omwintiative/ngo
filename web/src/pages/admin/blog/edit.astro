@@ -255,7 +255,7 @@ const tools = [
 <script>
   import { api, ApiError } from '../../../lib/api';
   import { adminPaths } from '../../../config/admin';
-  import { requireAdmin, confirmAction, postBadge, badge, type AdminPost } from '../../../lib/admin';
+  import { requireAdmin, confirmAction, postBadge, badge, preparePhoto, type AdminPost } from '../../../lib/admin';
   import { renderPostText, postTextFrom, safeHref } from '../../../lib/postText';
 
   const form = document.querySelector<HTMLFormElement>('[data-post-form]')!;
@@ -425,13 +425,16 @@ const tools = [
 
   // Featured image: chosen here, uploaded with the next save.
   chooseImage.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (!file) return;
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-      alertEl.textContent = 'Choose a JPEG, PNG or WebP photo of up to 5 MB.';
+  fileInput.addEventListener('change', async () => {
+    const chosen = fileInput.files?.[0];
+    fileInput.value = '';
+    if (!chosen) return;
+    const file = await preparePhoto(chosen);
+    if (!file) {
+      alertEl.textContent = 'Choose a JPEG, PNG or WebP photo.';
       return;
     }
+    alertEl.textContent = '';
     imageFile = file;
     photo.src = URL.createObjectURL(file);
     photo.hidden = false;

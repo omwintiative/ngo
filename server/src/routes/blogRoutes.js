@@ -17,6 +17,7 @@ const uploadImages = imageUpload(IMAGE_FIELDS.map((name) => ({ name, maxCount: 1
 const BLOG_FOLDER = "young-heart-ngo/blogs";
 
 const notFound = (res) => res.status(404).json({ message: "Blog not found" });
+const PHOTO_FAILED = "The photo could not be uploaded, so the post was not saved. Please try again.";
 
 const collectUploadedImageUrls = async (files) => {
   const imageUrls = [];
@@ -164,7 +165,12 @@ router.post("/", auth, adminOnly, uploadImages, async (req, res) => {
     if (fields.error) return res.status(400).json({ message: fields.error });
     // The old site's form sends no status: its posts go live, as before.
     const blog = new Blog({ createdBy: req.user._id, status: "published" });
-    const images = await collectUploadedImageUrls(req.files || {});
+    let images;
+    try {
+      images = await collectUploadedImageUrls(req.files || {});
+    } catch (error) {
+      return serverError(res, error, PHOTO_FAILED);
+    }
     if (images.length) blog.images = images;
     const saved = await applyAndSave(blog, fields.values, res);
     if (!saved) return undefined;
@@ -190,7 +196,12 @@ router.put("/:id", auth, adminOnly, uploadImages, async (req, res) => {
     const fields = readPostFields(body);
     if (fields.error) return res.status(400).json({ message: fields.error });
 
-    const images = await collectUploadedImageUrls(req.files || {});
+    let images;
+    try {
+      images = await collectUploadedImageUrls(req.files || {});
+    } catch (error) {
+      return serverError(res, error, PHOTO_FAILED);
+    }
     if (images.length > 0) blog.images = images;
     const saved = await applyAndSave(blog, fields.values, res);
     if (!saved) return undefined;
