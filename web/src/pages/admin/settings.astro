@@ -19,7 +19,7 @@ import Button from '../../components/Button.astro';
   <div class="settings">
     <section class="admin-card" aria-labelledby="details-title">
       <h2 class="t-h4" id="details-title">Your details</h2>
-      <form class="admin-form" novalidate data-details-form>
+      <form class="admin-form" method="post" novalidate data-details-form>
         <FormField name="name" label="Name" autocomplete="name" required />
         <FormField
           name="email"
@@ -49,7 +49,7 @@ import Button from '../../components/Button.astro';
     <section class="admin-card" aria-labelledby="password-title">
       <h2 class="t-h4" id="password-title">Change password</h2>
       <p class="t-body-small admin-card__note">Choose a new password for this admin account.</p>
-      <form class="admin-form" novalidate data-password-form>
+      <form class="admin-form" method="post" novalidate data-password-form>
         <FormField
           name="currentPassword"
           label="Current password"

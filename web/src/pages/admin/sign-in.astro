@@ -16,7 +16,7 @@ import { adminPaths } from '../../config/admin';
 <AdminLayout title="Sign in" variant="auth">
   <h1 class="t-h3">Sign in</h1>
   <p class="admin-alert admin-alert--success" role="status" data-signin-notice></p>
-  <form class="admin-form" novalidate data-signin-form>
+  <form class="admin-form" method="post" novalidate data-signin-form>
     <FormField name="email" label="Email address" type="email" placeholder="name@example.com" autocomplete="username" required />
     <FormField name="password" label="Password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
     <Checkbox name="remember">Keep me signed in on this device</Checkbox>

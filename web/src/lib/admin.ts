@@ -119,6 +119,31 @@ export function statusBadge(d: DonationLike): { label: string; tone: BadgeTone }
 
 export const badge = (label: string, tone: BadgeTone) => el('span', `admin-badge admin-badge--${tone} t-body-small`, label);
 
+/** A blog post as the admin API returns it (GET /api/admin/blogs). */
+export interface AdminPost {
+  _id: string;
+  title: string;
+  description: string;
+  slug?: string;
+  summary: string;
+  category: string;
+  status: 'draft' | 'published';
+  publishAt?: string | null;
+  publishedAt?: string;
+  images: string[];
+  imageAlt: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: { name?: string };
+}
+
+/** Draft, Published, or Scheduled (published with a later date: hidden until then). */
+export function postBadge(post: Pick<AdminPost, 'status' | 'publishAt'>): { label: string; tone: BadgeTone } {
+  if (post.status === 'draft') return { label: 'Draft', tone: 'neutral' };
+  if (post.publishAt && new Date(post.publishAt) > new Date()) return { label: 'Scheduled', tone: 'warning' };
+  return { label: 'Published', tone: 'success' };
+}
+
 /** The name the Contributors page shows: "Adaeze Okafor" -> "Adaeze O." (same rule as the API). */
 export function publicName(fullName: string): string {
   const words = fullName.trim().split(/\s+/).filter(Boolean);

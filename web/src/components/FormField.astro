@@ -115,6 +115,11 @@ const describedBy = [helper && `${id}-helper`, `${id}-error`].filter(Boolean).jo
   .field__control::placeholder {
     color: var(--text-muted);
   }
+  /* Not in Figma: a field that cannot be changed (a published post's web address) */
+  .field__control:read-only:not(select) {
+    background: var(--bg-tint);
+    color: var(--text-muted);
+  }
   /* Not in Figma: focus uses the plum border and ring of the buttons */
   .field__control:focus-visible {
     outline: none;

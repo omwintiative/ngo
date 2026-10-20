@@ -1,13 +1,17 @@
 ---
 /*
   One blog post, from Figma Blog post (Desktop 93:4661, Tablet 93:4843,
-  Mobile 93:5017). Address: /blog/post?id=<post id>.
+  Mobile 93:5017). Address: /blog/<web address> (vercel.json sends every
+  such address to this page), or /blog/post?id=<id> for older posts.
 
-  The post loads from GET /api/blogs/:id in the browser, then the banner
-  title, breadcrumb and page title update. The text is the post's
-  description, split into paragraphs on line breaks. "More from the blog"
-  shows up to three other posts. If the post cannot be found, the 404
-  page's wording is shown.
+  The post loads from GET /api/blogs/:idOrSlug in the browser, then the
+  banner title, breadcrumb, page title and description update. The text is
+  shown with its formatting (lib/postText.ts). "More from the blog" shows
+  up to three other posts. If the post cannot be found, the 404 page's
+  wording is shown.
+
+  /blog/post?preview=1 shows the post the admin is editing, unsaved, from
+  this browser's storage (Admin · Edit post, Preview).
 */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageBanner from '../../components/PageBanner.astro';
@@ -153,10 +157,31 @@ const share = [
     flex-direction: column;
     gap: var(--space-24);
   }
-  .article__body :global(p) {
+  .article__body :global(:is(p, li)) {
     font-size: var(--type-body-large-size);
     line-height: var(--type-body-large-line);
-    white-space: pre-line;
+  }
+  .article__body :global(h2) {
+    font-size: var(--type-h4-size);
+    font-weight: 600;
+    line-height: var(--type-h4-line);
+  }
+  .article__body :global(:is(ul, ol)) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding-left: var(--space-24);
+  }
+  .article__body :global(blockquote) {
+    margin: 0;
+    padding-left: var(--space-20);
+    border-left: 3px solid var(--border-primary);
+    font-style: italic;
+  }
+  .article__body :global(a) {
+    color: var(--text-primary);
+    text-decoration: underline;
   }
 
   .share {
@@ -195,9 +220,14 @@ const share = [
 </style>
 
 <script>
-  import { fetchPost, fetchPosts, formatDate, renderPostCard, safeImage } from '../../lib/posts';
+  import { fetchPost, fetchPosts, formatDate, postDate, renderPostCard, safeImage, type Post } from '../../lib/posts';
+  import { renderPostText } from '../../lib/postText';
 
-  const id = new URLSearchParams(location.search).get('id');
+  const params = new URLSearchParams(location.search);
+  // /blog/<web address>, or ?id= for older links
+  const fromPath = location.pathname.match(/^\/blog\/([a-z0-9-]+)\/?$/)?.[1];
+  const key = fromPath && fromPath !== 'post' ? fromPath : params.get('id');
+  const preview = params.has('preview');
   const article = document.querySelector<HTMLElement>('[data-post-article]')!;
   const skeleton = document.querySelector<HTMLElement>('[data-post-skeleton]')!;
   const missing = document.querySelector<HTMLElement>('[data-post-missing]')!;
@@ -211,40 +241,49 @@ const share = [
     if (current) current.textContent = '404';
   };
 
-  async function load() {
-    if (!id) return showMissing();
-    let post;
+  // Written by Admin · Edit post when its Preview button is pressed.
+  const readPreview = (): Post | null => {
     try {
-      post = await fetchPost(id);
+      return JSON.parse(localStorage.getItem('omwi-post-preview') ?? 'null');
     } catch {
-      return showMissing();
+      return null;
     }
+  };
+
+  const findPost = async (): Promise<Post | null> => {
+    if (preview) return readPreview();
+    if (!key) return null;
+    try {
+      return await fetchPost(key);
+    } catch {
+      return null;
+    }
+  };
+
+  async function load() {
+    const post = await findPost();
+    if (!post) return showMissing();
 
     document.title = `${post.title} | Ọmụgwọ Maternal Welfare Initiative`;
+    if (post.summary) document.querySelector('meta[name="description"]')?.setAttribute('content', post.summary);
     if (title) title.textContent = post.title;
     if (current) current.textContent = post.category ?? post.title;
 
     // Meta line: category · date · author (each only when known)
-    const date = formatDate(post.createdAt);
+    const date = formatDate(postDate(post));
     const meta = [post.category, date?.text, post.createdBy?.name].filter(Boolean).join('  ·  ');
     document.querySelector('[data-post-meta]')!.textContent = meta;
 
     const src = safeImage(post.images?.[0]);
     if (src) {
       const photo = document.querySelector<HTMLElement>('[data-post-photo]')!;
-      photo.querySelector('img')!.src = src;
+      const img = photo.querySelector('img')!;
+      img.src = src;
+      img.alt = post.imageAlt ?? '';
       photo.hidden = false;
     }
 
-    const body = document.querySelector<HTMLElement>('[data-post-body]')!;
-    const paragraphs = post.description.split(/\n\s*\n/).map((text) => text.trim()).filter(Boolean);
-    body.replaceChildren(
-      ...paragraphs.map((text) => {
-        const p = document.createElement('p');
-        p.textContent = text;
-        return p;
-      }),
-    );
+    document.querySelector<HTMLElement>('[data-post-body]')!.replaceChildren(renderPostText(post.description));
 
     const url = location.href;
     document.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((a) => {

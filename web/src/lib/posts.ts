@@ -1,9 +1,7 @@
 /*
-  Blog posts from the API (GET /api/blogs, GET /api/blogs/:id), and the
-  shared post card used on Home, Blog and Blog post.
-
-  Posts have no category or excerpt yet (added with the blog fields in
-  step 5); the card shows a category only when a post has one.
+  Blog posts from the API (GET /api/blogs, GET /api/blogs/:idOrSlug), and
+  the shared post card used on Home, Blog and Blog post. The card shows a
+  category only when a post has one.
 */
 import { api } from './api';
 import { postHref } from '../config/navigation';
@@ -14,12 +12,20 @@ export interface Post {
   description: string;
   images?: string[];
   category?: string;
+  slug?: string;
+  summary?: string;
+  imageAlt?: string;
+  publishAt?: string | null;
+  publishedAt?: string;
   createdAt: string;
   createdBy?: { name?: string };
 }
 
 export const fetchPosts = () => api<Post[]>('/blogs');
-export const fetchPost = (id: string) => api<Post>(`/blogs/${encodeURIComponent(id)}`);
+export const fetchPost = (idOrSlug: string) => api<Post>(`/blogs/${encodeURIComponent(idOrSlug)}`);
+
+/** The date readers see: the publish date, or when it was written. */
+export const postDate = (post: Post) => post.publishAt || post.publishedAt || post.createdAt;
 
 const dateFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -48,7 +54,7 @@ export function renderPostCard(post: Post): HTMLElement {
   card.querySelector('[data-post-title]')!.textContent = post.title;
 
   const time = card.querySelector<HTMLTimeElement>('[data-post-date]')!;
-  const date = formatDate(post.createdAt);
+  const date = formatDate(postDate(post));
   if (date) {
     time.dateTime = date.iso;
     time.textContent = date.text;
@@ -60,7 +66,7 @@ export function renderPostCard(post: Post): HTMLElement {
   else img.remove();
 
   const link = card.querySelector<HTMLAnchorElement>('[data-post-link]')!;
-  link.href = postHref(post._id);
+  link.href = postHref(post);
   link.setAttribute('aria-label', `Read article: ${post.title}`);
   return card;
 }

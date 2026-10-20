@@ -121,6 +121,63 @@ test("blog: unknown categories, statuses and empty titles are refused", async ()
   assert.equal(await Blog.countDocuments(), 0);
 });
 
+test("blog: web addresses are made from the title, unique, and fixed once published", async () => {
+  const first = await api("POST", "/api/blogs", postForm({ title: "What Ọmụgwọ means!", description: "Text", status: "published" }));
+  assert.equal(first.body.slug, "what-omugwo-means");
+  const second = await api("POST", "/api/blogs", postForm({ title: "What ọmụgwọ means", description: "Text", status: "draft" }));
+  assert.equal(second.body.slug, "what-omugwo-means-2");
+
+  // Found by web address or by id; a draft's address is not public
+  assert.equal((await request(server.base, "GET", "/api/blogs/what-omugwo-means")).body.title, "What Ọmụgwọ means!");
+  assert.equal((await request(server.base, "GET", "/api/blogs/what-omugwo-means-2")).status, 404);
+  assert.equal((await request(server.base, "GET", "/api/blogs/Not%20An%20Address")).status, 404);
+
+  // A draft's address can be chosen, but not one already in use or badly formed
+  assert.equal((await api("PUT", `/api/blogs/${second.body._id}`, postForm({ status: "draft", slug: "what-omugwo-means" }))).status, 409);
+  assert.equal((await api("PUT", `/api/blogs/${second.body._id}`, postForm({ status: "draft", slug: "Bad Address" }))).status, 400);
+  const renamed = await api("PUT", `/api/blogs/${second.body._id}`, postForm({ status: "draft", slug: "/blog/caring-after-birth" }));
+  assert.equal(renamed.body.slug, "caring-after-birth");
+
+  // Published: the address stays even when the title changes
+  const locked = await api("PUT", `/api/blogs/${first.body._id}`, postForm({ status: "published", title: "A new title", slug: "a-new-title" }));
+  assert.equal(locked.status, 400);
+  const retitled = await api("PUT", `/api/blogs/${first.body._id}`, postForm({ status: "published", title: "A new title", slug: "what-omugwo-means" }));
+  assert.equal(retitled.status, 200);
+  assert.equal(retitled.body.slug, "what-omugwo-means");
+  assert.ok(retitled.body.publishedAt);
+});
+
+test("blog: drafts may be unfinished; publishing needs a title and text", async () => {
+  const empty = await api("POST", "/api/blogs", postForm({ status: "draft" }));
+  assert.equal(empty.status, 201);
+  assert.equal(empty.body.slug, undefined, "no address until there is a title");
+  const titled = await api("PUT", `/api/blogs/${empty.body._id}`, postForm({ status: "draft", title: "Half written", description: "" }));
+  assert.equal(titled.body.slug, "half-written");
+  const publish = await api("PUT", `/api/blogs/${empty.body._id}`, postForm({ status: "published", title: "Half written", description: "" }));
+  assert.equal(publish.status, 400);
+  assert.equal((await api("PUT", `/api/blogs/${empty.body._id}`, postForm({ status: "draft", summary: "x".repeat(301) }))).status, 400);
+  assert.equal((await api("PUT", `/api/blogs/${empty.body._id}`, postForm({ status: "draft", publishAt: "not a date" }))).status, 400);
+
+  // The admin can open any post, drafts included; the public cannot
+  const opened = await api("GET", `/api/admin/blogs/${empty.body._id}`);
+  assert.equal(opened.body.post.title, "Half written");
+  assert.equal((await api("GET", "/api/admin/blogs/000000000000000000000000")).status, 404);
+  assert.equal((await request(server.base, "GET", `/api/admin/blogs/${empty.body._id}`)).status, 401);
+});
+
+test("blog: a post scheduled for later stays hidden until its date", async () => {
+  const later = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const scheduled = await api("POST", "/api/blogs", postForm({ title: "Tomorrow", description: "Text", status: "published", publishAt: later, summary: "Short summary" }));
+  assert.equal(scheduled.status, 201);
+  assert.equal(scheduled.body.summary, "Short summary");
+  assert.equal((await request(server.base, "GET", "/api/blogs")).body.length, 0);
+  assert.equal((await request(server.base, "GET", "/api/blogs/tomorrow")).status, 404);
+
+  const now = await api("PUT", `/api/blogs/${scheduled.body._id}`, postForm({ status: "published", publishAt: "" }));
+  assert.equal(now.body.publishAt, null);
+  assert.equal((await request(server.base, "GET", "/api/blogs/tomorrow")).status, 200);
+});
+
 test("gallery: upload with a description, newest first, public list", async () => {
   const first = await api("POST", "/api/admin/gallery", photoForm("Mothers at an outreach"));
   assert.equal(first.status, 201);

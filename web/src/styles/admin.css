@@ -777,9 +777,10 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
 @media (min-width: 1200px) {
   .donations-list__head,
   .donations-row {
+    /* Text columns may narrow on smaller desktops (1200-1440) instead of overflowing */
     grid-template-columns:
-      1fr var(--size-admin-col-amount) var(--size-admin-col-date) var(--size-admin-col-method-wide)
-      var(--size-admin-col-status-wide) var(--size-admin-col-listing) var(--size-admin-col-view);
+      minmax(0, 1fr) var(--size-admin-col-amount) var(--size-admin-col-date) minmax(0, var(--size-admin-col-method-wide))
+      var(--size-admin-col-status-wide) minmax(0, var(--size-admin-col-listing)) var(--size-admin-col-view);
   }
   .donations-row__amount {
     text-align: left;
@@ -796,7 +797,7 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
     display: none;
   }
   .admin-columns {
-    grid-template-columns: 1fr var(--size-admin-side-column);
+    grid-template-columns: minmax(0, 1fr) var(--size-admin-side-column);
   }
   .admin-search--toolbar {
     width: var(--size-admin-search);
@@ -1004,6 +1005,11 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
   .admin-menu {
     width: var(--size-admin-menu-panel);
   }
+  /* Block groups so each grid row spans the full card width */
+  .admin-table thead,
+  .admin-table tbody {
+    display: block;
+  }
   .admin-table thead {
     position: static;
     width: auto;
@@ -1073,6 +1079,15 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
     grid-template-columns: repeat(4, 1fr);
     gap: var(--space-24);
   }
+}
+
+/* The Method column needs a wide card (the 1440 design); narrower desktops
+   keep the tablet layout, with the method under the donor's name. 620px is
+   donor 150 + the three fixed columns, gaps and row padding. */
+.admin-card:has(> .admin-table) {
+  container-type: inline-size;
+}
+@container (min-width: 620px) {
   .admin-table thead tr,
   .admin-table tbody tr {
     grid-template-columns: 1fr var(--size-admin-col-amount) var(--size-admin-col-method) var(--size-admin-col-status);
@@ -1081,6 +1096,130 @@ body[data-auth='pending'] .admin-content > :not(.admin-alert) {
     display: block;
   }
   .admin-table__inline-method {
+    display: none;
+  }
+}
+
+/* Keyboard focus on a row's link outlines the whole row (the link covers it). */
+.donations-row:has(.admin-table__link:focus-visible),
+.posts-row:has(.admin-table__link:focus-visible) {
+  box-shadow: inset 0 0 0 var(--focus-ring-width) var(--focus-ring);
+}
+
+/*
+  Blog posts list (Figma Admin · Blog posts). Phone: one card per post.
+  Tablet: Title (with category and date under it), Status and Edit.
+  Desktop: Title, Category, Author, Date, Status, Edit. The title links to
+  Edit post and covers the row; the pencil is a visual cue for the same link.
+*/
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.posts-list__head,
+.posts-row__category,
+.posts-row__author,
+.posts-row__date {
+  display: none;
+}
+.posts-list__rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.posts-row {
+  position: relative;
+  display: grid;
+  grid-template-areas:
+    'title title'
+    'status edit';
+  grid-template-columns: 1fr auto;
+  gap: var(--space-12);
+  align-items: center;
+  padding: var(--space-14);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+}
+.posts-row:hover {
+  background: var(--bg-tint);
+}
+.posts-row__title {
+  grid-area: title;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.posts-row__title .admin-table__link {
+  font-weight: 600;
+}
+.posts-row__status {
+  grid-area: status;
+}
+.posts-row__edit {
+  grid-area: edit;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .posts-list {
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+  }
+  .posts-list__rows {
+    gap: 0;
+  }
+  .posts-list__head,
+  .posts-row {
+    display: grid;
+    grid-template-areas: none;
+    grid-template-columns: 1fr var(--size-admin-col-amount) var(--size-admin-col-view);
+    gap: var(--space-16);
+    align-items: center;
+    padding: var(--space-12) var(--space-20);
+    border: 0;
+    border-bottom: 1px solid var(--border-default);
+    border-radius: 0;
+  }
+  .posts-list__head {
+    padding-block: var(--space-10);
+    background: var(--bg-tint);
+    color: var(--text-muted);
+  }
+  .posts-row:last-child {
+    border-bottom: 0;
+  }
+  .posts-row > * {
+    grid-area: auto;
+  }
+  .posts-row__title .admin-table__link {
+    font-weight: 400;
+  }
+}
+
+@media (min-width: 1200px) {
+  .posts-list__head,
+  .posts-row {
+    /* Figma: Category 170, Author 120, Date 130, Status 110, Edit 48. Text
+       columns may narrow on smaller desktops instead of overflowing. */
+    grid-template-columns:
+      minmax(0, 1fr) minmax(0, var(--size-admin-col-listing)) minmax(0, var(--size-admin-col-date))
+      var(--size-admin-col-status) var(--size-admin-col-amount) var(--size-admin-col-view);
+  }
+  .posts-row__category,
+  .posts-row__author,
+  .posts-row__date {
+    display: block;
+  }
+  .posts-row__sub {
     display: none;
   }
 }

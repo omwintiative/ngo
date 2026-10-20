@@ -3,18 +3,44 @@ const mongoose = require("mongoose");
 // Categories match the tabs on the public Blog page (Figma Admin · Blog posts).
 const CATEGORIES = ["Maternal Health", "Newborn Care", "Menstrual Health", "Mental Wellness", "OMWI News"];
 
+// Web addresses: lower-case letters, digits and single hyphens.
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const blogSchema = new mongoose.Schema(
   {
+    // A draft may be unfinished; publishing needs a title and text (checked
+    // in the routes).
     title: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 200,
+      default: "",
     },
+    // The post's text, in the limited formatting the editor writes (## heading,
+    // **bold**, _italic_, [link](https://…), - and 1. lists, > quote). The
+    // website escapes everything else, so no HTML from here ever runs.
     description: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
+    },
+    // Web address: /blog/<slug>. Made from the title; it can change only
+    // until the post is first published (Figma Admin · Edit post).
+    slug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      maxlength: 80,
+      match: SLUG_PATTERN,
+      unique: true,
+      sparse: true,
+    },
+    // "Shown on the Blog page and in search results" (Figma).
+    summary: {
+      type: String,
+      trim: true,
+      maxlength: 300,
+      default: "",
     },
     images: {
       type: [String],
@@ -37,6 +63,10 @@ const blogSchema = new mongoose.Schema(
       enum: ["draft", "published"],
       default: "published",
     },
+    // A published post with a later publishAt is scheduled: hidden until then.
+    publishAt: { type: Date },
+    // When the post first went live; after that its web address is fixed.
+    publishedAt: { type: Date },
     // Describes the first photo for screen readers.
     imageAlt: {
       type: String,
@@ -55,5 +85,10 @@ const blogSchema = new mongoose.Schema(
 
 module.exports = mongoose.model("Blog", blogSchema);
 module.exports.CATEGORIES = CATEGORIES;
-// Public queries: published, including old posts with no status.
-module.exports.PUBLISHED = { status: { $ne: "draft" } };
+module.exports.SLUG_PATTERN = SLUG_PATTERN;
+// Public queries: published (old posts have no status) and not scheduled
+// for later.
+module.exports.publishedNow = () => ({
+  status: { $ne: "draft" },
+  $or: [{ publishAt: null }, { publishAt: { $lte: new Date() } }],
+});

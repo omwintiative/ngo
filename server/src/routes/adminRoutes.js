@@ -4,6 +4,7 @@
 // (adminDonationRoutes.js, adminMessageRoutes.js, galleryRoutes.js).
 const express = require("express");
 const bcrypt = require("bcryptjs");
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Donation = require("../models/Donation");
 const Message = require("../models/Message");
@@ -111,12 +112,25 @@ router.get("/blogs", async (req, res) => {
     const { status, category, q } = req.query;
     const filter = {};
     if (status === "draft") filter.status = "draft";
-    else if (status === "published") Object.assign(filter, Blog.PUBLISHED);
+    // Published includes posts scheduled for later (old posts have no status).
+    else if (status === "published") filter.status = { $ne: "draft" };
     if (typeof category === "string" && Blog.CATEGORIES.includes(category)) filter.category = category;
     const pattern = searchPattern(q);
     if (pattern) filter.title = pattern;
     const posts = await Blog.find(filter).sort({ createdAt: -1 }).populate("createdBy", "name");
     return res.json({ posts, total: posts.length });
+  } catch (error) {
+    return serverError(res, error);
+  }
+});
+
+// One post, drafts included: for the Edit post screen and the preview.
+router.get("/blogs/:id", async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return res.status(404).json({ message: "Blog not found" });
+    const post = await Blog.findById(req.params.id).populate("createdBy", "name");
+    if (!post) return res.status(404).json({ message: "Blog not found" });
+    return res.json({ post });
   } catch (error) {
     return serverError(res, error);
   }
@@ -149,7 +163,7 @@ router.get("/summary", async (req, res) => {
       }));
 
     const [publishedPosts, draftPosts, newMessages, latestMessages] = await Promise.all([
-      Blog.countDocuments(Blog.PUBLISHED),
+      Blog.countDocuments({ status: { $ne: "draft" } }),
       Blog.countDocuments({ status: "draft" }),
       Message.countDocuments({ status: "new" }),
       Message.find({}, { name: 1, subject: 1, status: 1, createdAt: 1 }).sort({ createdAt: -1 }).limit(3).lean(),
