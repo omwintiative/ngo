@@ -129,6 +129,44 @@
   --size-icon-button: 44px;
   --size-touch-target: 44px; /* smallest tap target on phones (WCAG 2.5.5) */
 
+  /* Admin (Figma Admin page 1:5) */
+  --size-admin-sidebar: 264px; /* desktop */
+  --size-admin-sidebar-slim: 80px; /* tablet: icons only */
+  --size-admin-menu-panel: 320px; /* tablet menu overlay */
+  --size-admin-nav-item: 48px;
+  --size-admin-auth-card: 440px; /* sign in and password cards */
+  --size-admin-side-column: 360px; /* dashboard right column */
+  --size-admin-form-column: 720px; /* settings and form pages */
+  --size-admin-badge-height: 28px;
+  --size-select-caret: 20px; /* Figma Input, Type=Select */
+  --size-admin-dialog: 480px; /* confirm delete (Figma Overlay / Admin confirm delete) */
+  --size-switch-width: 44px; /* Figma Admin/Toggle */
+  --size-switch-height: 24px;
+  --size-switch-knob: 18px;
+  --size-admin-col-date: 120px; /* Donations table (Figma Admin · Donations) */
+  --size-admin-col-method-wide: 200px;
+  --size-admin-col-status-wide: 140px;
+  --size-admin-col-listing: 170px;
+  --size-admin-col-view: 48px;
+  --size-admin-search: 360px;
+  --size-admin-inbox: 440px; /* Messages: list beside the open message (desktop) */
+  --size-admin-message-width: 800px; /* Message page card */
+  --size-admin-icon: 22px; /* sidebar, menu and top bar icons */
+  --size-admin-account-menu: 200px; /* "Your account" dropdown: not in Figma */
+  --space-admin-mobile-bottom: 36px; /* phone page bottom padding (Figma Body) */
+  --size-admin-col-amount: 110px; /* donation table columns (Figma Table) */
+  --size-admin-col-method: 190px;
+  --size-admin-col-status: 130px;
+  --size-logo-mark-small-width: 36px; /* admin phone top bar */
+  --size-logo-mark-small-height: 33px;
+  --size-icon-tile-medium: 56px; /* "Check your email" envelope */
+  --bg-admin-brand: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--plum-500) 40%, transparent) 0%,
+      transparent 85%
+    ),
+    var(--bg-dark); /* sign-in brand panel */
+
   /* "Page not found" message card (Figma 404 page, 128:7212) */
   --size-message-card-width: 640px;
   --size-icon-tile-large: 72px;

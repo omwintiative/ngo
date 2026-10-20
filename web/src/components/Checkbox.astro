@@ -1,0 +1,67 @@
+---
+/*
+  Checkbox, from Figma Checkbox (45:212): a 24px box that turns plum with a
+  white tick when checked, and its label. A real <input type="checkbox">
+  sits underneath, so it works with the keyboard, screen readers and forms.
+*/
+import checkWhite from '../assets/icons/check-white.svg';
+
+interface Props {
+  name: string;
+  checked?: boolean;
+  class?: string;
+  [attr: string]: unknown;
+}
+
+const { name, checked = false, class: className, ...rest } = Astro.props;
+---
+
+<label class:list={['checkbox', className]}>
+  <input type="checkbox" name={name} checked={checked} {...rest} />
+  <span class="checkbox__box" aria-hidden="true">
+    <img src={checkWhite.src} width="16" height="16" alt="" />
+  </span>
+  <span class="t-body"><slot /></span>
+</label>
+
+<style>
+  .checkbox {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+    cursor: pointer;
+  }
+  .checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: var(--size-checkbox);
+    height: var(--size-checkbox);
+    margin: 0;
+  }
+  .checkbox__box {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-checkbox);
+    height: var(--size-checkbox);
+    margin-top: 1px;
+    border: var(--border-width-checkbox) solid var(--border-field);
+    border-radius: var(--radius-checkbox);
+    background: var(--bg-field);
+  }
+  .checkbox__box img {
+    visibility: hidden;
+  }
+  .checkbox input:checked + .checkbox__box {
+    border-color: var(--bg-primary);
+    background: var(--bg-primary);
+  }
+  .checkbox input:checked + .checkbox__box img {
+    visibility: visible;
+  }
+  .checkbox input:focus-visible + .checkbox__box {
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+</style>

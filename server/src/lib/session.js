@@ -7,13 +7,18 @@ const jwt = require("jsonwebtoken");
 
 const COOKIE_NAME = "omwi_session";
 
+// "Keep me signed in on this device" (Figma Admin · Sign in): 30 days on
+// that device. Without it, the session ends when the browser closes, and
+// after 12 hours (JWT_EXPIRES_IN) at most.
+const REMEMBER_FOR = "30d";
+
 // `v` is the user's sessionVersion: changing the password raises it, which
 // signs out every other session.
-const signToken = (user) =>
+const signToken = (user, { remember = false } = {}) =>
   jwt.sign(
     { id: user._id, role: user.role, v: user.sessionVersion || 0 },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN || "12h" },
+    { expiresIn: remember ? REMEMBER_FOR : process.env.JWT_EXPIRES_IN || "12h" },
   );
 
 // Secure is always on: browsers treat http://localhost as secure, so local
@@ -25,9 +30,11 @@ const cookieOptions = {
   path: "/",
 };
 
-const setSessionCookie = (res, token) => {
+// `remember`: keep the cookie until the token expires; otherwise it is a
+// browser-session cookie.
+const setSessionCookie = (res, token, { remember = false } = {}) => {
   const { exp } = jwt.decode(token);
-  res.cookie(COOKIE_NAME, token, { ...cookieOptions, expires: new Date(exp * 1000) });
+  res.cookie(COOKIE_NAME, token, remember ? { ...cookieOptions, expires: new Date(exp * 1000) } : cookieOptions);
 };
 
 const clearSessionCookie = (res) => res.clearCookie(COOKIE_NAME, cookieOptions);

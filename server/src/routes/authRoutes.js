@@ -78,8 +78,9 @@ router.post("/login", async (req, res) => {
     }
 
     loginLimiter.clearFailures(normalisedEmail);
-    const token = signToken(user);
-    setSessionCookie(res, token);
+    const remember = req.body.remember === true;
+    const token = signToken(user, { remember });
+    setSessionCookie(res, token, { remember });
     // TODO at launch: stop returning the token; only the old site reads it.
     return res.json({
       message: "Login successful",

@@ -1,0 +1,182 @@
+---
+/*
+  Admin · Messages (Figma 351:2881): every contact-form message, newest
+  first, with All / New / Handled and a search by name, email or subject.
+  Desktop: the list on the left and the chosen message on the right.
+  Tablet and phones: tapping a message opens Admin · Message.
+*/
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import search from '../../../assets/icons/search-plum-20.svg';
+---
+
+<AdminLayout title="Messages" section="messages">
+  <div class="admin-page-header">
+    <h1 class="t-h3">Messages</h1>
+    <p class="t-body-small" data-new-count>&nbsp;</p>
+  </div>
+
+  <div class="messages-toolbar">
+    <div class="admin-chips" role="group" aria-label="Show">
+      <button type="button" class="admin-chip t-body-small" aria-pressed="true" data-filter="all">All</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="new">New</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="handled">Handled</button>
+    </div>
+    <div class="admin-search admin-search--toolbar" role="search">
+      <img src={search.src} width="20" height="20" alt="" />
+      <label class="visually-hidden" for="message-search">Search by name, email or subject</label>
+      <input class="t-body" id="message-search" type="search" placeholder="Search by name, email or subject" autocomplete="off" data-search />
+    </div>
+  </div>
+
+  <p class="visually-hidden" aria-live="polite" data-status></p>
+
+  <div class="messages-columns">
+    <ul class="admin-inbox" aria-label="Messages" data-inbox></ul>
+    <p class="t-body admin-empty" hidden data-empty>No messages match.</p>
+    <section class="admin-card messages-reader" aria-label="Message" hidden data-reader></section>
+  </div>
+</AdminLayout>
+
+<style>
+  .messages-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  .messages-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-24);
+    align-items: start;
+  }
+  /* The reader is a desktop feature: smaller screens open the Message page */
+  .messages-reader {
+    display: none;
+  }
+  @media (min-width: 1200px) {
+    .messages-toolbar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .messages-columns {
+      grid-template-columns: var(--size-admin-inbox) 1fr;
+    }
+    .messages-reader:not([hidden]) {
+      display: flex;
+      padding: var(--space-32);
+    }
+  }
+</style>
+
+<script>
+  import { api } from '../../../lib/api';
+  import { adminPaths } from '../../../config/admin';
+  import { requireAdmin, el, formatDateTime } from '../../../lib/admin';
+  import { renderMessage, messageBadge, type AdminMessage } from '../../../lib/adminMessages';
+
+  const inbox = document.querySelector<HTMLElement>('[data-inbox]')!;
+  const reader = document.querySelector<HTMLElement>('[data-reader]')!;
+  const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+  const searchEl = document.querySelector<HTMLInputElement>('[data-search]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+  const desktop = window.matchMedia('(min-width: 1200px)');
+
+  let all: AdminMessage[] = [];
+  let filter = 'all';
+  let selectedId = new URLSearchParams(window.location.search).get('id');
+
+  const pageHref = (m: AdminMessage) => `${adminPaths.message}?id=${encodeURIComponent(m.id)}`;
+  const matches = (m: AdminMessage) => {
+    if (filter !== 'all' && m.status !== filter) return false;
+    const q = searchEl.value.trim().toLowerCase();
+    return !q || `${m.name} ${m.email} ${m.subject}`.toLowerCase().includes(q);
+  };
+
+  const showCount = () => {
+    const n = all.filter((m) => m.status === 'new').length;
+    document.querySelector('[data-new-count]')!.textContent = `${n} new ${n === 1 ? 'message' : 'messages'} from the contact form`;
+  };
+
+  const select = (id: string | null) => {
+    selectedId = id;
+    const message = all.find((m) => m.id === id);
+    // Highlight the open message only where it is shown beside the list
+    inbox.querySelectorAll('[data-id]').forEach((li) =>
+      li.setAttribute('aria-current', String(desktop.matches && li.getAttribute('data-id') === id)),
+    );
+    reader.hidden = !message;
+    if (!message) return;
+    reader.replaceChildren(
+      renderMessage(
+        message,
+        {
+          onChange: (updated) => {
+            all = all.map((m) => (m.id === updated.id ? updated : m));
+            statusEl.textContent = updated.status === 'handled' ? 'Marked as handled.' : 'Moved back to New.';
+            showCount();
+            render();
+          },
+          onDeleted: (gone) => {
+            all = all.filter((m) => m.id !== gone.id);
+            statusEl.textContent = 'Message deleted.';
+            showCount();
+            selectedId = null;
+            render();
+          },
+          onError: (text) => (alertEl.textContent = text),
+        },
+        { withSubject: true },
+      ),
+    );
+  };
+
+  const item = (m: AdminMessage) => {
+    const li = el('li', 'admin-inbox__item');
+    li.dataset.id = m.id;
+    const top = el('div', 'admin-inbox__top');
+    const link = el('a', 'admin-table__link t-button', m.name);
+    link.href = pageHref(m);
+    // Desktop: show it beside the list instead of opening the page.
+    link.addEventListener('click', (event) => {
+      if (!desktop.matches) return;
+      event.preventDefault();
+      history.replaceState(null, '', `?id=${encodeURIComponent(m.id)}`);
+      select(m.id);
+    });
+    top.append(link, messageBadge(m));
+    li.append(top, el('p', 't-body', m.subject || '(no subject)'), el('p', 't-body-small admin-muted', formatDateTime(m.createdAt)));
+    return li;
+  };
+
+  const render = () => {
+    const found = all.filter(matches);
+    inbox.replaceChildren(...found.map(item));
+    inbox.hidden = found.length === 0;
+    empty.hidden = found.length > 0;
+    // Desktop shows the chosen message, or the newest one in the list.
+    const keep = found.find((m) => m.id === selectedId) ?? found[0];
+    select(keep ? keep.id : null);
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((chip) =>
+    chip.addEventListener('click', () => {
+      filter = chip.dataset.filter!;
+      document.querySelectorAll('[data-filter]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      render();
+    }),
+  );
+  searchEl.addEventListener('input', render);
+  desktop.addEventListener('change', render);
+
+  requireAdmin().then(async () => {
+    try {
+      all = (await api<{ messages: AdminMessage[] }>('/admin/messages')).messages;
+      showCount();
+      render();
+    } catch {
+      alertEl.textContent = 'The messages could not load. Please refresh the page.';
+    }
+  });
+</script>

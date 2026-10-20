@@ -1,0 +1,271 @@
+---
+/*
+  Admin · Donation details (Figma 340:2282), opened with ?id=.
+  Paystack donations: read-only payment facts; the admin changes only the
+  Contributors switch and a private note. Recorded bank transfers and cash
+  gifts also get Edit Transfer (the record form, filled in) and Delete
+  (with the shared confirmation), per the Figma note.
+*/
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Button from '../../../components/Button.astro';
+import FormField from '../../../components/FormField.astro';
+import { adminPaths } from '../../../config/admin';
+import arrowLeft from '../../../assets/icons/admin/arrow-left-plum.svg';
+import lock from '../../../assets/icons/admin/lock-plum-20.svg';
+---
+
+<AdminLayout title="Donation" section="donations">
+  <a class="admin-back t-button" href={adminPaths.donations}>
+    <img src={arrowLeft.src} width="20" height="20" alt="" />
+    All donations
+  </a>
+
+  <div class="admin-page-header">
+    <h1 class="t-h3" data-title>Donation</h1>
+    <p class="t-body-small" data-subtitle>&nbsp;</p>
+  </div>
+
+  <div class="admin-columns" hidden data-content>
+    <div class="admin-columns__main">
+      <section class="admin-card details-card" aria-labelledby="payment-title">
+        <h2 class="t-h4" id="payment-title">Payment</h2>
+        <dl class="admin-details" data-payment></dl>
+        <p class="admin-notice t-body-small" hidden data-paystack-note>
+          <img src={lock.src} width="20" height="20" alt="" />
+          <span>Amount and status come from Paystack, so they can’t be changed here. Refunds are made in the Paystack dashboard.</span>
+        </p>
+        <div class="admin-form__actions" hidden data-recorded-actions>
+          <Button variant="outline" data-edit>Edit Transfer</Button>
+          <button type="button" class="admin-danger t-button" data-delete>Delete</button>
+        </div>
+      </section>
+
+      <section class="admin-card details-card" aria-labelledby="donor-title">
+        <h2 class="t-h4" id="donor-title">Donor</h2>
+        <dl class="admin-details" data-donor></dl>
+      </section>
+    </div>
+
+    <div class="admin-columns__side">
+      <section class="admin-card" aria-labelledby="listing-title">
+        <h2 class="t-h4" id="listing-title">Contributors page</h2>
+        <div class="listing" data-listing>
+          <div class="listing__text">
+            <p class="t-body" id="listing-label">Show on the Contributors page</p>
+            <p class="t-body-small admin-muted" data-listing-note></p>
+          </div>
+          <button type="button" class="admin-switch" role="switch" aria-checked="false" aria-labelledby="listing-label" data-listing-switch></button>
+        </div>
+        <p class="t-body-small admin-muted" hidden data-listing-off></p>
+      </section>
+
+      <section class="admin-card" aria-labelledby="note-title">
+        <h2 class="t-h4" id="note-title">Note for admins</h2>
+        <form class="admin-form" novalidate data-note-form>
+          <FormField name="note" label="Note" type="textarea" placeholder="Add a note that only admins can see" />
+          <p class="admin-alert" role="status" data-note-status></p>
+          <Button type="submit" variant="outline" class="note__save" data-note-save>Save Note</Button>
+        </form>
+      </section>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .details-card {
+    gap: var(--space-8);
+  }
+  .listing {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+  .listing__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .note__save {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .note__save {
+      align-self: flex-start;
+      width: auto;
+    }
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../../lib/api';
+  import { adminPaths } from '../../../config/admin';
+  import {
+    requireAdmin,
+    formatNaira,
+    formatDate,
+    formatDateTime,
+    formatMonth,
+    methodLabel,
+    statusBadge,
+    donorLabel,
+    publicName,
+    badge,
+    confirmAction,
+    el,
+    type DonationLike,
+  } from '../../../lib/admin';
+
+  interface Donation extends DonationLike {
+    id: string;
+    donorEmail: string;
+    phone: string;
+    amount: number;
+    date: string;
+    paystackReference: string;
+    bankReference: string;
+    showOnContributors: boolean;
+    note: string;
+    editable: boolean;
+  }
+
+  const id = new URLSearchParams(window.location.search).get('id') ?? '';
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+  const content = document.querySelector<HTMLElement>('[data-content]')!;
+  const switchEl = document.querySelector<HTMLButtonElement>('[data-listing-switch]')!;
+  const failure = (error: unknown) => (error instanceof ApiError ? error.message : 'Something went wrong. Please try again.');
+
+  let donation: Donation;
+
+  const detailRows = (target: string, rows: [string, string | HTMLElement][]) => {
+    const list = document.querySelector<HTMLElement>(target)!;
+    list.replaceChildren(
+      ...rows.map(([label, value]) => {
+        const row = el('div', 'admin-details__row');
+        const dd = el('dd', 't-body');
+        dd.append(value);
+        row.append(el('dt', 't-body-small', label), dd);
+        return row;
+      }),
+    );
+  };
+
+  const showListing = () => {
+    const listable = donation.status === 'paid' && !donation.anonymous;
+    document.querySelector<HTMLElement>('[data-listing]')!.hidden = !listable;
+    const off = document.querySelector<HTMLElement>('[data-listing-off]')!;
+    off.hidden = listable;
+    off.textContent = donation.anonymous
+      ? 'The donor asked to stay anonymous, so they are not listed.'
+      : 'Only completed gifts can be listed.';
+    switchEl.setAttribute('aria-checked', String(donation.showOnContributors));
+    document.querySelector('[data-listing-note]')!.textContent =
+      `Shown as “${publicName(donation.donorName)} · ${formatMonth(donation.date)}”. The amount is never shown.`;
+  };
+
+  const render = () => {
+    const paystack = donation.method === 'paystack';
+    const recorded = !paystack;
+    const label = donorLabel(donation);
+    document.title = `Donation from ${label} | OMWI website admin`;
+    document.querySelector('[data-title]')!.textContent = `Donation from ${label}`;
+    const subtitle =
+      donation.status === 'paid'
+        ? paystack
+          ? `Paid on ${formatDate(donation.date)} at ${formatDateTime(donation.date).split(', ').pop()}`
+          : `Received on ${formatDate(donation.date)}`
+        : `Started on ${formatDateTime(donation.date)}`;
+    document.querySelector('[data-subtitle]')!.textContent = subtitle;
+
+    const { label: statusLabel, tone } = statusBadge(donation);
+    detailRows('[data-payment]', [
+      ['Amount', formatNaira(donation.amount)],
+      ['Status', badge(statusLabel, tone)],
+      [paystack ? 'Paid with' : 'How it was paid', methodLabel(donation)],
+      [paystack ? 'Date and time' : 'Date received', paystack ? formatDateTime(donation.date) : formatDate(donation.date)],
+      ['Reference', (paystack ? donation.paystackReference : donation.bankReference) || '—'],
+    ]);
+    detailRows('[data-donor]', [
+      ['Name', donation.donorName],
+      ['Email', donation.donorEmail || '—'],
+      ...(donation.phone ? ([['Phone', donation.phone]] as [string, string][]) : []),
+      ['Gave anonymously', donation.anonymous ? 'Yes' : 'No'],
+    ]);
+    document.querySelector<HTMLElement>('[data-paystack-note]')!.hidden = !paystack;
+    document.querySelector<HTMLElement>('[data-recorded-actions]')!.hidden = !recorded;
+    showListing();
+    (document.querySelector('#field-note') as HTMLTextAreaElement).value = donation.note;
+    content.hidden = false;
+  };
+
+  const patch = async (body: Record<string, unknown>) => {
+    const result = await api<{ donation: Donation }>(`/admin/donations/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    });
+    donation = result.donation;
+  };
+
+  switchEl.addEventListener('click', async () => {
+    switchEl.disabled = true;
+    alertEl.textContent = '';
+    try {
+      await patch({ showOnContributors: switchEl.getAttribute('aria-checked') !== 'true' });
+      showListing();
+    } catch (error) {
+      alertEl.textContent = failure(error);
+    } finally {
+      switchEl.disabled = false;
+    }
+  });
+
+  const noteForm = document.querySelector<HTMLFormElement>('[data-note-form]')!;
+  const noteStatus = document.querySelector<HTMLElement>('[data-note-status]')!;
+  noteForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const save = noteForm.querySelector<HTMLButtonElement>('[data-note-save]')!;
+    save.disabled = true;
+    noteStatus.textContent = '';
+    noteStatus.classList.add('admin-alert--success');
+    try {
+      await patch({ note: (noteForm.elements.namedItem('note') as HTMLTextAreaElement).value });
+      noteStatus.textContent = 'Note saved.';
+    } catch (error) {
+      noteStatus.classList.remove('admin-alert--success');
+      noteStatus.textContent = failure(error);
+    } finally {
+      save.disabled = false;
+    }
+  });
+
+  document.querySelector('[data-edit]')!.addEventListener('click', () => {
+    window.location.assign(`${adminPaths.recordTransfer}?id=${encodeURIComponent(id)}`);
+  });
+
+  document.querySelector('[data-delete]')!.addEventListener('click', async () => {
+    const ok = await confirmAction({
+      title: 'Delete this bank transfer?',
+      text: `The gift from ${donorLabel(donation)} (${formatNaira(donation.amount)}) will be removed for good. This can't be undone.`,
+      confirmLabel: 'Delete Bank Transfer',
+    });
+    if (!ok) return;
+    try {
+      await api(`/admin/donations/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      window.location.assign(adminPaths.donations);
+    } catch (error) {
+      alertEl.textContent = failure(error);
+    }
+  });
+
+  requireAdmin().then(async () => {
+    try {
+      donation = (await api<{ donation: Donation }>(`/admin/donations/${encodeURIComponent(id)}`)).donation;
+      render();
+    } catch (error) {
+      alertEl.textContent =
+        error instanceof ApiError && error.status === 404
+          ? 'We could not find that donation. It may have been deleted.'
+          : 'The donation could not load. Please refresh the page.';
+    }
+  });
+</script>

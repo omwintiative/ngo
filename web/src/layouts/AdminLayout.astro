@@ -1,0 +1,251 @@
+---
+/*
+  Layout for every admin page (Figma Admin page 1:5). Kept out of search
+  engines and separate from the public site's header and footer.
+
+  variant="shell" (default): signed-in pages. Sidebar (full on desktop,
+  icons only on tablet), top bar with View Site and "Your account", and a
+  menu <dialog> on tablet and phones. Before anything shows, the script asks
+  the API who is signed in; anyone else goes to Sign in, and comes back here
+  afterwards. Page scripts call requireAdmin() from src/lib/admin.ts.
+
+  variant="auth": Sign in and the password screens. Brand panel and a card.
+*/
+import '@fontsource-variable/montserrat';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import '../styles/typography.css';
+import '../styles/admin.css';
+import Button from '../components/Button.astro';
+import { adminNav, adminPaths, type AdminSection } from '../config/admin';
+import logoOnDark from '../assets/logo/omwi-on-dark.svg';
+import mark from '../assets/logo/omwi-mark.svg';
+import listWhite from '../assets/icons/list-white.svg';
+import listPlum from '../assets/icons/admin/list-plum.svg';
+import closeWhite from '../assets/icons/x-white.svg';
+import signOutIcon from '../assets/icons/admin/nav-sign-out.svg';
+import viewSiteIcon from '../assets/icons/admin/nav-view-site.svg';
+import userIcon from '../assets/icons/admin/user-plum.svg';
+import caretDown from '../assets/icons/admin/caret-down-plum.svg';
+import arrowRight from '../assets/icons/arrow-right-plum.svg';
+
+interface Props {
+  /** Page name, e.g. "Dashboard". */
+  title: string;
+  variant?: 'shell' | 'auth';
+  /** Which sidebar item is current. */
+  section?: AdminSection;
+}
+
+const { title, variant = 'shell', section } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} | OMWI website admin</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body class="admin" data-auth={variant === 'shell' ? 'pending' : undefined}>
+    <a class="skip-link" href="#admin-content">Skip to content</a>
+
+    {
+      variant === 'auth' ? (
+        <div class="admin-auth">
+          <div class="admin-auth__brand">
+            <img src={logoOnDark.src} width="129" height="48" alt="Ọmụgwọ Maternal Welfare Initiative" />
+            <p class="t-h2">OMWI website admin</p>
+            <p class="t-body-large">Record donations, publish blog posts, manage photos and reply to messages.</p>
+          </div>
+          <main class="admin-auth__panel" id="admin-content" tabindex="-1">
+            <div class="admin-auth__card">
+              <slot />
+            </div>
+          </main>
+        </div>
+      ) : (
+        <div class="admin-shell">
+          <nav class="admin-sidebar" aria-label="Admin">
+            <img class="admin-sidebar__logo admin-logo" src={logoOnDark.src} width="129" height="48" alt="OMWI" />
+            <button type="button" class="admin-sidebar__open" aria-controls="admin-menu" aria-expanded="false" data-admin-menu-open>
+              <img src={listWhite.src} width="22" height="22" alt="" />
+              <span class="visually-hidden">Open menu</span>
+            </button>
+            <div class="admin-nav">
+              {adminNav.map((item) => (
+                <a
+                  class="admin-nav__item t-button"
+                  href={item.href}
+                  aria-current={item.section === section ? 'page' : undefined}
+                  title={item.label}
+                >
+                  <img src={item.icon.src} width="22" height="22" alt="" />
+                  <span class="admin-nav__label">{item.label}</span>
+                </a>
+              ))}
+              <span class="admin-nav__spacer" />
+              <button type="button" class="admin-nav__item t-button" title="Sign out" data-admin-sign-out>
+                <img src={signOutIcon.src} width="22" height="22" alt="" />
+                <span class="admin-nav__label">Sign out</span>
+              </button>
+            </div>
+          </nav>
+
+          <div class="admin-main">
+            <header class="admin-topbar">
+              <div class="admin-topbar__left">
+                <button type="button" class="admin-icon-button admin-topbar__menu" aria-controls="admin-menu" aria-expanded="false" data-admin-menu-open>
+                  <img src={listPlum.src} width="22" height="22" alt="" />
+                  <span class="visually-hidden">Open menu</span>
+                </button>
+                <img class="admin-topbar__mark" src={mark.src} width="36" height="33" alt="" />
+                <p class="t-body-small admin-topbar__title">OMWI website admin</p>
+              </div>
+              <div class="admin-topbar__right">
+                <a class="text-link-admin t-button admin-topbar__view-site" href="/" data-admin-view-site>
+                  View Site
+                  <img src={arrowRight.src} width="18" height="18" alt="" />
+                </a>
+                <div class="admin-account">
+                  <button type="button" class="admin-account__button" aria-expanded="false" aria-controls="admin-account-menu" data-admin-account>
+                    <span class="admin-avatar"><img src={userIcon.src} width="22" height="22" alt="" /></span>
+                    <span class="t-button admin-account__label">Your account</span>
+                    <img class="admin-account__caret" src={caretDown.src} width="16" height="16" alt="" />
+                    <span class="visually-hidden admin-account__sr">Your account</span>
+                  </button>
+                  <div class="admin-account__menu" id="admin-account-menu" hidden>
+                    <a class="t-body" href={adminPaths.settings}>Account settings</a>
+                    <button type="button" class="t-body" data-admin-sign-out>Sign out</button>
+                  </div>
+                </div>
+              </div>
+            </header>
+            <main class="admin-content" id="admin-content" tabindex="-1">
+              <p class="admin-alert" role="alert" data-admin-alert></p>
+              <slot />
+            </main>
+          </div>
+
+          {/* Shared "Delete …?" confirmation (Figma Overlay / Admin confirm delete); see confirmAction() */}
+          <dialog class="admin-dialog" aria-labelledby="admin-confirm-title" data-admin-confirm>
+            <form method="dialog" class="admin-dialog__body">
+              <h2 class="t-h4" id="admin-confirm-title" data-confirm-title></h2>
+              <p class="t-body admin-dialog__text" data-confirm-text></p>
+              <div class="admin-dialog__buttons">
+                <Button type="submit" variant="outline" value="cancel">Cancel</Button>
+                <button type="submit" class="admin-danger t-button" value="confirm" data-confirm-button></button>
+              </div>
+            </form>
+          </dialog>
+
+          <dialog class="admin-menu" id="admin-menu" aria-label="Menu" data-admin-menu>
+            <div class="admin-menu__top">
+              <img class="admin-logo" src={logoOnDark.src} width="129" height="48" alt="OMWI" />
+              <button type="button" class="admin-menu__close" data-admin-menu-close>
+                <img src={closeWhite.src} width="22" height="22" alt="" />
+                <span class="visually-hidden">Close menu</span>
+              </button>
+            </div>
+            <div class="admin-nav">
+              {adminNav.map((item) => (
+                <a class="admin-nav__item t-button" href={item.href} aria-current={item.section === section ? 'page' : undefined}>
+                  <img src={item.icon.src} width="22" height="22" alt="" />
+                  {item.label}
+                </a>
+              ))}
+              <span class="admin-nav__spacer" />
+              <a class="admin-nav__item t-button" href="/" data-admin-view-site>
+                <img src={viewSiteIcon.src} width="22" height="22" alt="" />
+                View site
+              </a>
+              <button type="button" class="admin-nav__item t-button" data-admin-sign-out>
+                <img src={signOutIcon.src} width="22" height="22" alt="" />
+                Sign out
+              </button>
+            </div>
+          </dialog>
+        </div>
+      )
+    }
+
+    <script>
+      import { requireAdmin, signOut, publicSiteHome } from '../lib/admin';
+
+      // "View site" goes to the public site, also from admin.omwinitiative.org.
+      document.querySelectorAll<HTMLAnchorElement>('[data-admin-view-site]').forEach((a) => (a.href = publicSiteHome()));
+      document.querySelectorAll('[data-admin-sign-out]').forEach((b) => b.addEventListener('click', () => signOut()));
+
+      // Menu (tablet and phones)
+      const menu = document.querySelector<HTMLDialogElement>('[data-admin-menu]');
+      const openers = document.querySelectorAll<HTMLButtonElement>('[data-admin-menu-open]');
+      openers.forEach((button) =>
+        button.addEventListener('click', () => {
+          menu?.showModal();
+          openers.forEach((b) => b.setAttribute('aria-expanded', 'true'));
+        }),
+      );
+      menu?.querySelector('[data-admin-menu-close]')?.addEventListener('click', () => menu.close());
+      menu?.addEventListener('close', () => openers.forEach((b) => b.setAttribute('aria-expanded', 'false')));
+      // A click on the dimmed area outside the panel closes it (Figma note)
+      menu?.addEventListener('click', (event) => {
+        if (event.target === menu) {
+          const r = menu.getBoundingClientRect();
+          const inside = event.clientX >= r.left && event.clientX <= r.right && event.clientY >= r.top && event.clientY <= r.bottom;
+          if (!inside) menu.close();
+        }
+      });
+
+      // "Your account" menu: click or keyboard; Escape or a click elsewhere closes it
+      const accountButton = document.querySelector<HTMLButtonElement>('[data-admin-account]');
+      const accountMenu = document.getElementById('admin-account-menu');
+      const setAccount = (open: boolean) => {
+        if (!accountButton || !accountMenu) return;
+        accountMenu.hidden = !open;
+        accountButton.setAttribute('aria-expanded', String(open));
+      };
+      accountButton?.addEventListener('click', () => setAccount(accountMenu?.hidden ?? false));
+      document.addEventListener('click', (event) => {
+        if (accountMenu && !accountMenu.hidden && !(event.target as Element).closest('.admin-account')) setAccount(false);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && accountMenu && !accountMenu.hidden) {
+          setAccount(false);
+          accountButton?.focus();
+        }
+      });
+
+      // Signed-in pages: check who is signed in before showing anything
+      if (document.body.dataset.auth === 'pending') {
+        requireAdmin()
+          .then(() => (document.body.dataset.auth = 'ready'))
+          .catch(() => {
+            const alert = document.querySelector<HTMLElement>('[data-admin-alert]');
+            if (alert) alert.textContent = 'The admin cannot reach the server right now. Check your connection and try again.';
+          });
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* "View Site" link in the top bar (Figma Link, Tone=Default) */
+  .text-link-admin {
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-12) 0;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+  .text-link-admin:hover {
+    text-decoration: underline;
+  }
+  /* The extra screen-reader label is only needed when "Your account" is hidden */
+  @media (min-width: 1200px) {
+    .admin-account__sr {
+      display: none;
+    }
+  }
+</style>

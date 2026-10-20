@@ -39,6 +39,20 @@ All API calls go to `/api/...` on the same site (see `src/lib/api.ts`).
   `API_PROXY_TARGET` first. If you point it at the live API, anything you do in the admin
   changes real data.
 
+## Try the admin on your computer
+
+The admin (`/admin`) needs the engine (`../server`) running too. Locally it always uses the
+**test** database from `server/.env.test`, never the live one.
+
+1. Once only: open `server/.env.test` and fill in `ADMIN_EMAIL=` and `ADMIN_PASSWORD=` (at least
+   12 characters). This becomes your local admin account the first time the engine starts.
+2. Terminal 1, in `server/`: `npm install` (first time only), then `npm run local`.
+   Wait for "Server running on port 5000".
+3. Terminal 2, in `web/`: `npm run dev`.
+4. Open http://localhost:4321/admin and sign in.
+
+Password reset emails are not sent locally (no Resend key); the engine notes that in its log.
+
 ## Folder guide
 
 ```

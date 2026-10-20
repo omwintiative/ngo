@@ -29,14 +29,26 @@ test("account routes need a signed-in admin", async () => {
   assert.equal(notAdmin.status, 403);
 });
 
-test("changing name and email needs the current password", async () => {
+test("changing the email needs the current password; the name alone does not", async () => {
   const { cookie } = await signIn(server.base);
   const wrong = await request(server.base, "PATCH", "/api/admin/account", {
     cookie,
-    body: { name: "New Name", currentPassword: "not it" },
+    body: { email: "someone.else@example.com", currentPassword: "not it" },
   });
   assert.equal(wrong.status, 400);
-  assert.equal((await User.findOne({ email: ADMIN.email })).name, ADMIN.name);
+  const missing = await request(server.base, "PATCH", "/api/admin/account", {
+    cookie,
+    body: { email: "someone.else@example.com" },
+  });
+  assert.equal(missing.status, 400);
+  assert.equal(await User.countDocuments({ email: "someone.else@example.com" }), 0);
+
+  const nameOnly = await request(server.base, "PATCH", "/api/admin/account", { cookie, body: { name: "New Name" } });
+  assert.equal(nameOnly.status, 200);
+  assert.equal(nameOnly.body.user.name, "New Name");
+  // Sending the same email back is not a change
+  const sameEmail = await request(server.base, "PATCH", "/api/admin/account", { cookie, body: { email: ADMIN.email, name: "Again" } });
+  assert.equal(sameEmail.status, 200);
 });
 
 test("name and email change, and the new email signs in", async () => {

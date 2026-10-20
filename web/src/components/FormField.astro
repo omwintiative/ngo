@@ -1,19 +1,25 @@
 ---
 /*
   Form field, from Figma Input (45:187): label, field (Text or Textarea)
-  and an error line (Type=Error: red 2px border, red message). The error
-  shows when the form script sets `aria-invalid="true"` on the field and
-  fills the error line.
+  an optional helper line, and an error line (Type=Error: red 2px border,
+  red message). The error shows when the form script sets
+  `aria-invalid="true"` on the field and fills the error line.
 */
+import caret from '../assets/icons/admin/caret-down-plum-20.svg';
+
 interface Props {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'textarea';
+  type?: 'text' | 'email' | 'tel' | 'password' | 'date' | 'textarea' | 'select';
+  /** For type="select": the choices, in order. */
+  options?: { value: string; label: string }[];
   placeholder?: string;
   autocomplete?: string;
   /** Keyboard on phones, e.g. "numeric" for amounts. */
   inputmode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email';
   required?: boolean;
+  /** Muted line under the field (Figma "Helper"). */
+  helper?: string;
   class?: string;
 }
 
@@ -25,21 +31,37 @@ const {
   autocomplete,
   inputmode,
   required = false,
+  helper,
+  options = [],
   class: className,
 } = Astro.props;
 const id = `field-${name}`;
+const describedBy = [helper && `${id}-helper`, `${id}-error`].filter(Boolean).join(' ');
 ---
 
 <div class:list={['field', className]}>
   <label class="t-button field__label" for={id}>{label}</label>
   {
-    type === 'textarea' ? (
+    type === 'select' ? (
+      <select
+        class="t-body field__control field__control--select"
+        style={`--select-caret: url("${caret.src}")`}
+        id={id}
+        name={name}
+        aria-describedby={describedBy}
+        aria-required={required ? 'true' : undefined}
+      >
+        {options.map((option) => (
+          <option value={option.value}>{option.label}</option>
+        ))}
+      </select>
+    ) : type === 'textarea' ? (
       <textarea
         class="t-body field__control field__control--area"
         id={id}
         name={name}
         placeholder={placeholder}
-        aria-describedby={`${id}-error`}
+        aria-describedby={describedBy}
         aria-required={required ? 'true' : undefined}
       />
     ) : (
@@ -51,11 +73,12 @@ const id = `field-${name}`;
         placeholder={placeholder}
         autocomplete={autocomplete}
         inputmode={inputmode}
-        aria-describedby={`${id}-error`}
+        aria-describedby={describedBy}
         aria-required={required ? 'true' : undefined}
       />
     )
   }
+  {helper && <p class="t-body-small field__helper" id={`${id}-helper`}>{helper}</p>}
   <p class="t-body-small field__error" id={`${id}-error`} data-error-for={name}></p>
 </div>
 
@@ -83,6 +106,12 @@ const id = `field-${name}`;
     padding: var(--space-14) var(--space-16);
     resize: vertical;
   }
+  /* Figma Input, Type=Select: caret on the right */
+  .field__control--select {
+    padding-right: calc(var(--space-16) * 2 + var(--size-select-caret));
+    background: var(--bg-field) var(--select-caret) no-repeat right var(--space-16) center / var(--size-select-caret);
+    appearance: none;
+  }
   .field__control::placeholder {
     color: var(--text-muted);
   }
@@ -95,6 +124,9 @@ const id = `field-${name}`;
   .field__control[aria-invalid='true'] {
     border: var(--border-width-error) solid var(--border-error);
     padding-inline: calc(var(--space-16) - 1px);
+  }
+  .field__helper {
+    color: var(--text-muted);
   }
   .field__error {
     color: var(--text-error);

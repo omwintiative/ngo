@@ -34,7 +34,9 @@ const confirmPassword = async (req, res) => {
   return user;
 };
 
-// Name and sign-in email. The sign-in email is also where reset links go.
+// Name and sign-in email. The sign-in email is also where reset links go, so
+// changing it needs the current password (someone using a stolen session
+// could otherwise take over the account); the name alone does not.
 router.patch("/account", async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -51,10 +53,11 @@ router.patch("/account", async (req, res) => {
       return res.status(400).json({ message: "Enter a valid email address." });
     }
 
-    const user = await confirmPassword(req, res);
+    const emailChanges = newEmail !== undefined && newEmail !== req.user.email;
+    const user = emailChanges ? await confirmPassword(req, res) : await User.findById(req.user._id);
     if (!user) return undefined;
 
-    if (newEmail !== undefined && newEmail !== user.email) {
+    if (emailChanges) {
       if (await User.exists({ email: newEmail, _id: { $ne: user._id } })) {
         return res.status(409).json({ message: "Another account already uses that email address." });
       }

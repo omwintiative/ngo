@@ -1,0 +1,42 @@
+/*
+  Admin addresses and menu (Figma Admin page 1:5). Every admin page lives
+  under /admin. On admin.omwinitiative.org a Vercel rewrite serves the same
+  pages (web/vercel.json, set up at launch), so these links work there too.
+  Pages that read a record use ?id= (the site is static, so there is one
+  page per screen, not one per record).
+*/
+import type { ImageMetadata } from 'astro';
+import dashboard from '../assets/icons/admin/nav-dashboard.svg';
+import donations from '../assets/icons/admin/nav-donations.svg';
+import blog from '../assets/icons/admin/nav-blog.svg';
+import gallery from '../assets/icons/admin/nav-gallery.svg';
+import messages from '../assets/icons/admin/nav-messages.svg';
+import settings from '../assets/icons/admin/nav-settings.svg';
+
+export const adminPaths = {
+  dashboard: '/admin',
+  signIn: '/admin/sign-in',
+  forgotPassword: '/admin/forgot-password',
+  checkEmail: '/admin/check-email',
+  resetPassword: '/admin/reset-password',
+  donations: '/admin/donations',
+  donation: '/admin/donations/details',
+  recordTransfer: '/admin/donations/record',
+  blog: '/admin/blog',
+  editPost: '/admin/blog/edit',
+  gallery: '/admin/gallery',
+  messages: '/admin/messages',
+  message: '/admin/messages/view',
+  settings: '/admin/settings',
+} as const;
+
+export type AdminSection = 'dashboard' | 'donations' | 'blog' | 'gallery' | 'messages' | 'settings';
+
+export const adminNav: { section: AdminSection; label: string; href: string; icon: ImageMetadata }[] = [
+  { section: 'dashboard', label: 'Dashboard', href: adminPaths.dashboard, icon: dashboard },
+  { section: 'donations', label: 'Donations', href: adminPaths.donations, icon: donations },
+  { section: 'blog', label: 'Blog posts', href: adminPaths.blog, icon: blog },
+  { section: 'gallery', label: 'Gallery', href: adminPaths.gallery, icon: gallery },
+  { section: 'messages', label: 'Messages', href: adminPaths.messages, icon: messages },
+  { section: 'settings', label: 'Settings', href: adminPaths.settings, icon: settings },
+];

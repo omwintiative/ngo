@@ -1,0 +1,350 @@
+---
+/*
+  Admin · Donations (Figma 340:1900): every gift in one list, newest first.
+  Filters: All, Paystack, Bank transfers (recorded gifts), Hidden from
+  Contributors; search by donor name or email. Each row's switch puts the
+  donor on or off the public Contributors page (only for completed gifts
+  from donors who did not ask to stay anonymous). Export CSV downloads the
+  rows that match the current filter and search. 20 rows per page.
+*/
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import Button from '../../../components/Button.astro';
+import { adminPaths } from '../../../config/admin';
+import checkCircle from '../../../assets/icons/admin/check-circle-plum.svg';
+import search from '../../../assets/icons/search-plum-20.svg';
+---
+
+<AdminLayout title="Donations" section="donations">
+  <div class="admin-page-top">
+    <div class="admin-page-header">
+      <h1 class="t-h3">Donations</h1>
+      <p class="t-body-small" data-year-count>&nbsp;</p>
+    </div>
+    <div class="admin-page-top__actions">
+      <Button variant="outline" data-export>Export CSV</Button>
+      <Button href={adminPaths.recordTransfer}>Record a Bank Transfer</Button>
+    </div>
+  </div>
+
+  <p class="admin-notice t-body-small">
+    <img src={checkCircle.src} width="20" height="20" alt="" />
+    <span>
+      Paystack donations appear here by themselves once Paystack confirms the payment. Add bank transfers and cash
+      gifts with Record a Bank Transfer.
+    </span>
+  </p>
+
+  <div class="donations-toolbar">
+    <div class="admin-chips" role="group" aria-label="Show">
+      <button type="button" class="admin-chip t-body-small" aria-pressed="true" data-filter="all">All</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="paystack">Paystack</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="recorded">Bank transfers</button>
+      <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="hidden">Hidden from Contributors</button>
+    </div>
+    <div class="admin-search admin-search--toolbar" role="search">
+      <img src={search.src} width="20" height="20" alt="" />
+      <label class="visually-hidden" for="donation-search">Search by donor name or email</label>
+      <input class="t-body" id="donation-search" type="search" placeholder="Search by donor name or email" autocomplete="off" data-search />
+    </div>
+  </div>
+
+  <p class="visually-hidden" aria-live="polite" data-status></p>
+
+  <div class="donations-list" data-list>
+    <div class="donations-list__head t-body-small" aria-hidden="true">
+      <span>Donor</span>
+      <span>Amount</span>
+      <span class="donations-row__date">Date</span>
+      <span class="donations-row__method">Method</span>
+      <span>Status</span>
+      <span><span class="donations-head__wide">On Contributors page</span><span class="donations-head__short">On site</span></span>
+      <span class="donations-row__view">View</span>
+    </div>
+    <ul class="donations-list__rows" data-rows></ul>
+  </div>
+  <p class="t-body admin-empty" hidden data-empty>No donations match.</p>
+
+  <div class="admin-pager" data-pager>
+    <p class="t-body-small admin-muted" data-showing></p>
+    <div class="admin-pager__buttons">
+      <Button variant="outline" data-prev>Previous</Button>
+      <Button variant="outline" data-next>Next</Button>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .donations-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  .donations-list__rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* "Anonymous" in the On Contributors column on desktop, a dash on tablet,
+     nothing on phones (Figma) */
+  :global(.donations-row__no-listing),
+  :global(.donations-row__anon-word) {
+    display: none;
+  }
+  .donations-head__short {
+    display: none;
+  }
+  @media (min-width: 768px) {
+    .donations-list__rows {
+      gap: 0;
+    }
+    :global(.donations-row__no-listing) {
+      display: inline;
+    }
+    .donations-head__wide {
+      display: none;
+    }
+    .donations-head__short {
+      display: inline;
+    }
+  }
+  @media (min-width: 1200px) {
+    .donations-toolbar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .donations-head__wide {
+      display: inline;
+    }
+    .donations-head__short {
+      display: none;
+    }
+    :global(.donations-row__anon-word) {
+      display: inline;
+    }
+    :global(.donations-row__anon-word + .donations-row__no-listing) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../../lib/api';
+  import { adminPaths } from '../../../config/admin';
+  import {
+    requireAdmin,
+    formatNaira,
+    formatDate,
+    methodLabel,
+    statusBadge,
+    donorLabel,
+    badge,
+    makeSwitch,
+    el,
+    type DonationLike,
+  } from '../../../lib/admin';
+  import chevron from '../../../assets/icons/admin/chevron-right-plum.svg';
+  import pencil from '../../../assets/icons/admin/pencil-plum.svg';
+
+  interface Donation extends DonationLike {
+    id: string;
+    donorEmail: string;
+    amount: number;
+    currency: string;
+    date: string;
+    paystackReference: string;
+    bankReference: string;
+    showOnContributors: boolean;
+    note: string;
+  }
+
+  const PAGE_SIZE = 20;
+  const rowsEl = document.querySelector<HTMLElement>('[data-rows]')!;
+  const listEl = document.querySelector<HTMLElement>('[data-list]')!;
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')!;
+  const pagerEl = document.querySelector<HTMLElement>('[data-pager]')!;
+  const showingEl = document.querySelector<HTMLElement>('[data-showing]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const searchEl = document.querySelector<HTMLInputElement>('[data-search]')!;
+  const prev = document.querySelector<HTMLButtonElement>('[data-prev]')!;
+  const next = document.querySelector<HTMLButtonElement>('[data-next]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+
+  let all: Donation[] = [];
+  let filter = 'all';
+  let page = 0;
+
+  const detailsHref = (d: Donation) => `${adminPaths.donation}?id=${encodeURIComponent(d.id)}`;
+  // The switch only applies to completed gifts from donors who may be named.
+  const listable = (d: Donation) => d.status === 'paid' && !d.anonymous;
+
+  const matches = (d: Donation) => {
+    if (filter === 'paystack' && d.method !== 'paystack') return false;
+    if (filter === 'recorded' && d.method === 'paystack') return false;
+    if (filter === 'hidden' && (d.showOnContributors || !listable(d))) return false;
+    const q = searchEl.value.trim().toLowerCase();
+    return !q || `${d.donorName} ${d.donorEmail}`.toLowerCase().includes(q);
+  };
+
+  const toggleListing = async (d: Donation, button: HTMLButtonElement) => {
+    const on = button.getAttribute('aria-checked') !== 'true';
+    button.disabled = true;
+    try {
+      const { donation } = await api<{ donation: Donation }>(`/admin/donations/${encodeURIComponent(d.id)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ showOnContributors: on }),
+      });
+      d.showOnContributors = donation.showOnContributors;
+      button.setAttribute('aria-checked', String(d.showOnContributors));
+      statusEl.textContent = `${d.donorName} is ${d.showOnContributors ? 'now shown on' : 'now hidden from'} the Contributors page.`;
+    } catch (error) {
+      alertEl.textContent = error instanceof ApiError ? error.message : 'The change was not saved. Please try again.';
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  const row = (d: Donation) => {
+    const item = el('li', 'donations-row');
+    const anonymous = Boolean(d.anonymous);
+
+    const donor = el('div', 'donations-row__donor');
+    const link = el('a', 'admin-table__link t-body', donorLabel(d));
+    link.href = detailsHref(d);
+    donor.append(link);
+    donor.append(el('span', 't-body-small admin-muted donations-row__email', anonymous ? 'Asked to stay anonymous' : d.donorEmail));
+    donor.append(el('span', 't-body-small admin-muted donations-row__sub', `${formatDate(d.date)} · ${methodLabel(d)}`));
+
+    const { label, tone } = statusBadge(d);
+    const status = el('div', 'donations-row__status');
+    status.append(badge(label, tone));
+
+    const listing = el('div', 'donations-row__listing');
+    if (listable(d)) {
+      listing.append(el('span', 't-body-small admin-muted donations-row__listing-label', 'On site'));
+      const toggle = makeSwitch(d.showOnContributors, `Show ${d.donorName} on the Contributors page`);
+      toggle.style.position = 'relative';
+      toggle.style.zIndex = '1';
+      toggle.addEventListener('click', () => toggleListing(d, toggle));
+      listing.append(toggle);
+    } else {
+      if (anonymous && d.status === 'paid') listing.append(el('span', 't-body donations-row__anon-word', 'Anonymous'));
+      listing.append(el('span', 't-body donations-row__no-listing', '—'));
+      const edit = el('a', 'admin-icon-link donations-row__pencil');
+      edit.href = detailsHref(d);
+      edit.setAttribute('aria-label', `Open the donation from ${donorLabel(d)}`);
+      const icon = el('img');
+      icon.src = pencil.src;
+      icon.width = 22;
+      icon.height = 22;
+      icon.alt = '';
+      edit.append(icon);
+      listing.append(edit);
+    }
+
+    const view = el('a', 'admin-icon-link donations-row__view');
+    view.href = detailsHref(d);
+    view.setAttribute('aria-label', `View the donation from ${donorLabel(d)}`);
+    const chevronIcon = el('img');
+    chevronIcon.src = chevron.src;
+    chevronIcon.width = 22;
+    chevronIcon.height = 22;
+    chevronIcon.alt = '';
+    view.append(chevronIcon);
+
+    item.append(
+      donor,
+      el('span', 't-body donations-row__amount', formatNaira(d.amount)),
+      el('span', 't-body donations-row__date', formatDate(d.date)),
+      el('span', 't-body donations-row__method', methodLabel(d)),
+      status,
+      listing,
+      view,
+    );
+    return item;
+  };
+
+  const render = () => {
+    const found = all.filter(matches);
+    const pages = Math.max(1, Math.ceil(found.length / PAGE_SIZE));
+    page = Math.min(page, pages - 1);
+    const shown = found.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    rowsEl.replaceChildren(...shown.map(row));
+    listEl.hidden = found.length === 0;
+    emptyEl.hidden = found.length > 0;
+    pagerEl.hidden = found.length === 0;
+    showingEl.textContent = `Showing ${page * PAGE_SIZE + 1} to ${page * PAGE_SIZE + shown.length} of ${found.length}`;
+    prev.disabled = page === 0;
+    next.disabled = page >= pages - 1;
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((chip) =>
+    chip.addEventListener('click', () => {
+      filter = chip.dataset.filter!;
+      page = 0;
+      document.querySelectorAll('[data-filter]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      render();
+    }),
+  );
+  searchEl.addEventListener('input', () => {
+    page = 0;
+    render();
+  });
+  prev.addEventListener('click', () => {
+    page -= 1;
+    render();
+  });
+  next.addEventListener('click', () => {
+    page += 1;
+    render();
+  });
+
+  // CSV of the rows that match the current filter and search. Cells that a
+  // spreadsheet could treat as a formula get a leading apostrophe.
+  const csvCell = (value: string | number) => {
+    let text = String(value ?? '');
+    if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+    return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  document.querySelector('[data-export]')!.addEventListener('click', () => {
+    const header = ['Donor', 'Email', 'Amount (NGN)', 'Date', 'Method', 'Status', 'Anonymous', 'On Contributors page', 'Reference', 'Note'];
+    const lines = all.filter(matches).map((d) =>
+      [
+        d.donorName,
+        d.donorEmail,
+        d.amount,
+        formatDate(d.date),
+        methodLabel(d),
+        statusBadge(d).label,
+        d.anonymous ? 'Yes' : 'No',
+        listable(d) && d.showOnContributors ? 'Yes' : 'No',
+        d.paystackReference || d.bankReference,
+        d.note,
+      ]
+        .map(csvCell)
+        .join(','),
+    );
+    const blob = new Blob([[header.join(','), ...lines].join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = el('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `omwi-donations-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  requireAdmin().then(async () => {
+    try {
+      const { donations } = await api<{ donations: Donation[] }>('/admin/donations');
+      all = donations;
+      const year = new Date().getFullYear();
+      const thisYear = all.filter((d) => new Date(d.date).getFullYear() === year).length;
+      document.querySelector('[data-year-count]')!.textContent = `${thisYear} ${thisYear === 1 ? 'donation' : 'donations'} this year`;
+      render();
+    } catch {
+      alertEl.textContent = 'The donations could not load. Please refresh the page.';
+    }
+  });
+</script>

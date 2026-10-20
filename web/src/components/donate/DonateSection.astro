@@ -19,7 +19,7 @@ import FormField from '../FormField.astro';
 import Button from '../Button.astro';
 import photo from '../../assets/photos/stock-mother-two-children.jpg';
 import tick from '../../assets/icons/check-rust-14.svg';
-import checkWhite from '../../assets/icons/check-white.svg';
+import Checkbox from '../Checkbox.astro';
 import lock from '../../assets/icons/lock-plum.svg';
 
 // Figma note: sample amounts; the client needs to confirm the presets.
@@ -102,13 +102,7 @@ const points = [
       </div>
       <FormField name="phone" label="Phone number (optional)" type="tel" placeholder="+234" autocomplete="tel" />
 
-      <label class="checkbox">
-        <input type="checkbox" name="anonymous" />
-        <span class="checkbox__box" aria-hidden="true">
-          <img src={checkWhite.src} width="16" height="16" alt="" />
-        </span>
-        <span class="t-body">Make my donation anonymous</span>
-      </label>
+      <Checkbox name="anonymous">Make my donation anonymous</Checkbox>
 
       <div class="summary">
         <span class="t-body">Your donation</span>
@@ -242,47 +236,6 @@ const points = [
     color: var(--text-on-dark);
   }
   .chip:has(input:focus-visible) {
-    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
-  }
-
-  /* Checkbox drawn as Figma Checkbox */
-  .checkbox {
-    position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-12);
-    cursor: pointer;
-  }
-  .checkbox input {
-    position: absolute;
-    opacity: 0;
-    width: var(--size-checkbox);
-    height: var(--size-checkbox);
-    margin: 0;
-  }
-  .checkbox__box {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: var(--size-checkbox);
-    height: var(--size-checkbox);
-    margin-top: 1px;
-    border: var(--border-width-checkbox) solid var(--border-field);
-    border-radius: var(--radius-checkbox);
-    background: var(--bg-field);
-  }
-  .checkbox__box img {
-    visibility: hidden;
-  }
-  .checkbox input:checked + .checkbox__box {
-    border-color: var(--bg-primary);
-    background: var(--bg-primary);
-  }
-  .checkbox input:checked + .checkbox__box img {
-    visibility: visible;
-  }
-  .checkbox input:focus-visible + .checkbox__box {
     box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
   }
 
