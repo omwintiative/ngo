@@ -8,6 +8,10 @@
 
   The photos are listed twice so the loop never shows a gap; the second copy
   is hidden from screen readers.
+
+  The photos passed in show first. The Home strip photos from Admin ·
+  Gallery (GET /api/gallery) replace them between two steps when they
+  arrive; if the API cannot be reached or has no photos, the first ones stay.
 */
 import type { ImageMetadata } from 'astro';
 import Photo from './Photo.astro';
@@ -78,7 +82,12 @@ const { photos } = Astro.props;
 </style>
 
 <script>
+  import { fetchGallery, homePhotos, showPhoto, type GalleryPhoto } from '../lib/gallery';
+
   const STEP_MS = 2500;
+  // Figma widths, in order, repeated for longer rows.
+  const WIDTHS = ['square', 'wide', 'narrow', 'wide', 'square', 'narrow'];
+  const gallery = fetchGallery().then(homePhotos).catch((): GalleryPhoto[] => []);
   const MOVE_MS = 700;
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -86,6 +95,22 @@ const { photos } = Astro.props;
     const track = strip.querySelector<HTMLElement>('[data-strip-track]');
     if (!track) return;
     let paused = false;
+    let replacement: HTMLElement[] | null = null;
+
+    gallery.then((photos) => {
+      const model = track.querySelector<HTMLElement>('.strip__item');
+      if (!photos.length || !model) return;
+      replacement = [0, 1].flatMap((copy) =>
+        photos.map((photo, i) => {
+          const item = model.cloneNode(true) as HTMLElement;
+          item.className = item.className.replace(/strip__item--\w+/, `strip__item--${WIDTHS[i % WIDTHS.length]}`);
+          if (copy === 1) item.setAttribute('aria-hidden', 'true');
+          else item.removeAttribute('aria-hidden');
+          showPhoto(item.querySelector<HTMLImageElement>('.photo__img')!, photo, [300, 600, 900], copy === 1 ? '' : photo.alt);
+          return item;
+        }),
+      );
+    });
 
     const pause = () => (paused = true);
     const resume = () => (paused = false);
@@ -111,7 +136,13 @@ const { photos } = Astro.props;
       track.style.opacity = '0';
     };
     const step = () => {
-      if (moving || paused || document.hidden) return;
+      if (moving) return;
+      if (replacement) {
+        track.replaceChildren(...replacement);
+        replacement = null;
+        return;
+      }
+      if (paused || document.hidden) return;
       const first = track.firstElementChild as HTMLElement | null;
       if (!first) return;
       if (reduced.matches) return fadeStep(first);

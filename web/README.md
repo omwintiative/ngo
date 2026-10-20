@@ -53,6 +53,9 @@ The admin (`/admin`) needs the engine (`../server`) running too. Locally it alwa
 
 Password reset emails are not sent locally (no Resend key); the engine notes that in its log.
 
+Photos: with `LOCAL_UPLOADS=true` in `server/.env.test`, uploaded photos are kept in
+`server/uploads/local/` (not in git) instead of Cloudinary. Never set it on Render.
+
 ## Folder guide
 
 ```

@@ -5,7 +5,8 @@
   12; the site shows each once. Figma note: publish photos of mothers and
   infants only with their consent; outreach names, dates and places are
   still needed, so there are no captions or filters yet.
-  Later (step 5) the photos come from the admin Gallery through the API.
+  These show until the admin Gallery photos load from the API, and stay if
+  the API cannot be reached (GalleryGrid.astro).
 */
 import type { ImageMetadata } from 'astro';
 import care from '../assets/photos/outreach-1.jpg';

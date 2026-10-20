@@ -1,8 +1,18 @@
 // Image uploads for the blog and the gallery: JPEG, PNG or WebP, up to 5 MB
 // each, kept in memory and sent to Cloudinary. Upload problems become a
 // clear 400 instead of a server error.
+//
+// Trying the admin on your own computer without a Cloudinary account:
+// LOCAL_UPLOADS=true (only ever in server/.env.test, never on Render) keeps
+// the photos in server/uploads/local/ instead, served at /uploads/local/.
+const crypto = require("crypto");
+const fs = require("fs/promises");
+const path = require("path");
 const multer = require("multer");
 const cloudinary = require("../config/cloudinary");
+
+const LOCAL_DIR = path.join(__dirname, "../../uploads/local");
+const useLocal = () => process.env.LOCAL_UPLOADS === "true";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -33,9 +43,19 @@ const imageUpload = (fields) => {
     });
 };
 
+// A random file name that keeps the original's (made safe) for readability.
+const localName = (originalName) =>
+  `${crypto.randomBytes(6).toString("hex")}-${String(originalName).toLowerCase().replace(/[^a-z0-9.]+/g, "-").slice(-60)}`;
+
 // Resolves with Cloudinary's result: { secure_url, public_id, width, height, … }.
-const uploadToCloudinary = (fileBuffer, originalName, folder) =>
-  new Promise((resolve, reject) => {
+const uploadToCloudinary = async (fileBuffer, originalName, folder) => {
+  if (useLocal()) {
+    const name = localName(originalName);
+    await fs.mkdir(LOCAL_DIR, { recursive: true });
+    await fs.writeFile(path.join(LOCAL_DIR, name), fileBuffer);
+    return { secure_url: `/uploads/local/${name}`, public_id: `local/${name}` };
+  }
+  return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder,
@@ -48,7 +68,14 @@ const uploadToCloudinary = (fileBuffer, originalName, folder) =>
     );
     stream.end(fileBuffer);
   });
+};
 
-const deleteFromCloudinary = (publicId) => cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+const deleteFromCloudinary = async (publicId) => {
+  if (publicId.startsWith("local/")) {
+    await fs.rm(path.join(LOCAL_DIR, path.basename(publicId)), { force: true });
+    return;
+  }
+  await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+};
 
 module.exports = { imageUpload, uploadToCloudinary, deleteFromCloudinary };

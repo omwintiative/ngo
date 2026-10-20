@@ -1,0 +1,580 @@
+---
+/*
+  Admin · Gallery (Figma 350:2134). Photos here feed the public Gallery page
+  and the Home photo strip (up to 6). Upload with the button or by dropping
+  files on the upload area: new photos wait here as "No description" until
+  they are described and saved (every photo needs a description first).
+  Choose a photo to edit its description, caption and Home strip switch, or
+  to delete it. Drag photos to change their order; Move Earlier / Move Later
+  in the Edit photo card do the same from the keyboard or a phone.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Button from '../../components/Button.astro';
+import FormField from '../../components/FormField.astro';
+import shield from '../../assets/icons/admin/shield-check-plum-20.svg';
+import upload from '../../assets/icons/admin/upload-plum-24.svg';
+import dots from '../../assets/icons/admin/drag-dots-18.svg';
+import trash from '../../assets/icons/admin/trash-red.svg';
+---
+
+<AdminLayout title="Gallery" section="gallery">
+  <div class="admin-page-top">
+    <div class="admin-page-header">
+      <h1 class="t-h3">Gallery</h1>
+      <p class="t-body-small" data-counts>&nbsp;</p>
+    </div>
+    <div class="admin-page-top__actions">
+      <Button data-choose>Upload Photos</Button>
+    </div>
+  </div>
+
+  <p class="admin-notice t-body-small">
+    <img src={shield.src} width="20" height="20" alt="" />
+    <span>
+      Only add photos OMWI has permission to use. People who can be recognised should have agreed to appear on the
+      website.
+    </span>
+  </p>
+
+  <input class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple tabindex="-1" data-files />
+  <button type="button" class="gallery-drop" data-drop>
+    <span class="gallery-drop__icon"><img src={upload.src} width="24" height="24" alt="" /></span>
+    <span class="t-button">Drag photos here, or choose files</span>
+    <span class="t-body-small admin-muted">
+      Each photo needs a short description, so people using screen readers know what it shows.
+    </span>
+  </button>
+
+  <p class="visually-hidden" aria-live="polite" data-status></p>
+
+  <div class="admin-columns" hidden data-columns>
+    <div class="admin-columns__main gallery-main">
+      <div class="gallery-toolbar">
+        <div class="admin-chips" role="group" aria-label="Show">
+          <button type="button" class="admin-chip t-body-small" aria-pressed="true" data-filter="all">All</button>
+          <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="home">On the Home page</button>
+          <button type="button" class="admin-chip t-body-small" aria-pressed="false" data-filter="pending">Needs a description</button>
+        </div>
+        <p class="t-body-small admin-muted gallery-hint">
+          <img src={dots.src} width="18" height="18" alt="" />
+          Drag photos to change their order
+        </p>
+      </div>
+      <ul class="gallery-grid" aria-label="Photos" data-grid></ul>
+      <p class="t-body admin-empty" hidden data-empty>No photos match.</p>
+    </div>
+
+    <div class="admin-columns__side">
+      <section class="admin-card" aria-labelledby="edit-title" hidden data-edit>
+        <h2 class="t-h4" id="edit-title">Edit photo</h2>
+        <p class="t-body-small admin-muted gallery-edit__name" data-edit-name></p>
+        <div class="gallery-photo gallery-edit__photo"><img alt="" data-edit-img /></div>
+        <FormField
+          name="alt"
+          label="Description (alt text)"
+          type="textarea"
+          placeholder="Describe what the photo shows: who is there and what is happening."
+          helper="Required. One or two sentences is enough."
+        />
+        <FormField name="caption" label="Caption (optional)" placeholder="Add a caption" helper="Shown under the photo on the Gallery page." />
+        <div class="gallery-edit__toggle">
+          <div class="gallery-edit__toggle-text">
+            <p class="t-body" id="home-label">Show in the Home photo strip</p>
+            <p class="t-body-small admin-muted">The strip on the Home page holds up to 6 photos.</p>
+          </div>
+          <button type="button" class="admin-switch" role="switch" aria-checked="false" aria-labelledby="home-label" data-home></button>
+        </div>
+        <div class="gallery-edit__move" data-move>
+          <Button variant="outline" data-move-earlier>Move Earlier</Button>
+          <Button variant="outline" data-move-later>Move Later</Button>
+        </div>
+        <Button class="gallery-edit__save" data-save>Save Changes</Button>
+        <button type="button" class="gallery-edit__delete t-button" data-delete>
+          <img src={trash.src} width="20" height="20" alt="" />
+          Delete photo
+        </button>
+      </section>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .gallery-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-8);
+    width: 100%;
+    padding: var(--space-32);
+    border: 1px dashed var(--border-field);
+    border-radius: var(--radius-card);
+    background: var(--bg-surface);
+    color: var(--text-default);
+    text-align: center;
+    cursor: pointer;
+  }
+  .gallery-drop:hover,
+  .gallery-drop[data-over] {
+    border-color: var(--border-primary);
+    background: var(--bg-soft);
+  }
+  .gallery-drop:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .gallery-drop__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-tile-medium);
+    height: var(--size-icon-tile-medium);
+    border-radius: var(--radius-pill);
+    background: var(--bg-soft);
+  }
+  .gallery-main {
+    gap: var(--space-16);
+  }
+  .gallery-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+  .gallery-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+  }
+  .gallery-edit__name {
+    overflow-wrap: anywhere;
+  }
+  .gallery-edit__photo {
+    height: var(--size-admin-gallery-edit-photo);
+  }
+  .gallery-edit__toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-12);
+  }
+  .gallery-edit__toggle-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .gallery-edit__move {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+  .gallery-edit__delete {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--space-8);
+    min-height: var(--size-touch-target);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-error);
+    cursor: pointer;
+  }
+  .gallery-edit__delete:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  /* Phones: Save Changes fills the card (Figma) */
+  .admin-card :global(.gallery-edit__save) {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .admin-card :global(.gallery-edit__save) {
+      width: auto;
+      align-self: flex-start;
+    }
+  }
+  @media (min-width: 1200px) {
+    .gallery-toolbar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { requireAdmin, confirmAction, badge, el } from '../../lib/admin';
+  import { sizedPhoto, type GalleryPhoto } from '../../lib/gallery';
+  import dotsSmall from '../../assets/icons/admin/drag-dots-16.svg';
+
+  // A photo chosen here but not uploaded yet (it needs a description first).
+  interface Pending {
+    key: string;
+    file: File;
+    preview: string;
+    name: string;
+  }
+  interface Draft {
+    alt: string;
+    caption: string;
+    onHome: boolean;
+  }
+
+  const MAX_BYTES = 5 * 1024 * 1024;
+  const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+  const grid = document.querySelector<HTMLElement>('[data-grid]')!;
+  const columns = document.querySelector<HTMLElement>('[data-columns]')!;
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')!;
+  const fileInput = document.querySelector<HTMLInputElement>('[data-files]')!;
+  const drop = document.querySelector<HTMLElement>('[data-drop]')!;
+  const editCard = document.querySelector<HTMLElement>('[data-edit]')!;
+  const editName = document.querySelector<HTMLElement>('[data-edit-name]')!;
+  const editImg = document.querySelector<HTMLImageElement>('[data-edit-img]')!;
+  const altField = document.querySelector<HTMLTextAreaElement>('#field-alt')!;
+  const captionField = document.querySelector<HTMLInputElement>('#field-caption')!;
+  const homeSwitch = document.querySelector<HTMLButtonElement>('[data-home]')!;
+  const moveRow = document.querySelector<HTMLElement>('[data-move]')!;
+  const earlier = document.querySelector<HTMLButtonElement>('[data-move-earlier]')!;
+  const later = document.querySelector<HTMLButtonElement>('[data-move-later]')!;
+  const saveButton = document.querySelector<HTMLButtonElement>('[data-save]')!;
+  const altError = document.querySelector<HTMLElement>('[data-error-for="alt"]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+
+  altField.maxLength = 250;
+  captionField.maxLength = 200;
+
+  let saved: GalleryPhoto[] = [];
+  let pending: Pending[] = [];
+  const drafts = new Map<string, Draft>();
+  let selected: string | null = null;
+  let filter = 'all';
+  let pendingCount = 0;
+
+  const savedById = (key: string | null) => saved.find((p) => p.id === key);
+  const pendingByKey = (key: string | null) => pending.find((p) => p.key === key);
+
+  const showCounts = () => {
+    const home = saved.filter((p) => p.onHome).length;
+    document.querySelector('[data-counts]')!.textContent =
+      `${saved.length} ${saved.length === 1 ? 'photo' : 'photos'} · ${home} show in the Home photo strip`;
+  };
+
+  const tile = (key: string, name: string, src: string, badges: HTMLElement[], draggable: boolean) => {
+    const li = el('li', 'gallery-tile');
+    li.dataset.key = key;
+    li.draggable = draggable;
+    const button = el('button', 'gallery-tile__button');
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(key === selected));
+    const photo = el('span', 'gallery-photo gallery-tile__photo');
+    const img = el('img');
+    img.src = src;
+    img.alt = '';
+    img.loading = 'lazy';
+    photo.append(img);
+    const meta = el('span', 'gallery-tile__meta');
+    const title = el('span', 'gallery-tile__title t-body-small');
+    const handle = el('img');
+    handle.src = dotsSmall.src;
+    handle.width = 16;
+    handle.height = 16;
+    handle.alt = '';
+    title.append(handle, el('span', 'gallery-tile__name', name));
+    const badgeRow = el('span', 'gallery-tile__badges');
+    badgeRow.append(...badges);
+    meta.append(title, badgeRow);
+    button.append(photo, meta);
+    button.addEventListener('click', () => select(key));
+    li.append(button);
+    return li;
+  };
+
+  const render = () => {
+    const tiles: HTMLElement[] = [];
+    if (filter !== 'home') {
+      pending.forEach((p) => tiles.push(tile(p.key, p.name, p.preview, [badge('No description', 'warning')], false)));
+    }
+    if (filter !== 'pending') {
+      saved
+        .filter((p) => filter === 'all' || p.onHome)
+        .forEach((p) => {
+          const badges = [badge('Described', 'success')];
+          if (p.onHome) badges.push(badge('Home page', 'neutral'));
+          tiles.push(tile(p.id, p.name, sizedPhoto(p.url, 600), badges, filter === 'all'));
+        });
+    }
+    grid.replaceChildren(...tiles);
+    grid.hidden = tiles.length === 0;
+    emptyEl.hidden = tiles.length > 0;
+    columns.hidden = saved.length + pending.length === 0;
+    showCounts();
+  };
+
+  // ----- Edit photo card -----
+  const currentDraft = (key: string): Draft => {
+    const draft = drafts.get(key);
+    if (draft) return draft;
+    const photo = savedById(key);
+    return { alt: photo?.alt ?? '', caption: photo?.caption ?? '', onHome: photo?.onHome ?? false };
+  };
+
+  const select = (key: string | null) => {
+    selected = key;
+    grid.querySelectorAll<HTMLElement>('[data-key]').forEach((li) =>
+      li.querySelector('button')!.setAttribute('aria-pressed', String(li.dataset.key === key)),
+    );
+    const photo = savedById(key);
+    const waiting = pendingByKey(key);
+    editCard.hidden = !photo && !waiting;
+    if (!key || (!photo && !waiting)) return;
+    editName.textContent = photo?.name ?? waiting!.name;
+    editImg.src = photo ? sizedPhoto(photo.url, 800) : waiting!.preview;
+    const draft = currentDraft(key);
+    altField.value = draft.alt;
+    captionField.value = draft.caption;
+    homeSwitch.setAttribute('aria-checked', String(draft.onHome));
+    altField.removeAttribute('aria-invalid');
+    altError.textContent = '';
+    // Order changes apply to saved photos, in the full list.
+    moveRow.hidden = !photo;
+    const index = saved.findIndex((p) => p.id === key);
+    earlier.disabled = index <= 0;
+    later.disabled = index === -1 || index >= saved.length - 1;
+  };
+
+  const keepDraft = () => {
+    if (!selected) return;
+    drafts.set(selected, {
+      alt: altField.value,
+      caption: captionField.value,
+      onHome: homeSwitch.getAttribute('aria-checked') === 'true',
+    });
+  };
+  altField.addEventListener('input', () => {
+    altField.removeAttribute('aria-invalid');
+    altError.textContent = '';
+    keepDraft();
+  });
+  captionField.addEventListener('input', keepDraft);
+  homeSwitch.addEventListener('click', () => {
+    homeSwitch.setAttribute('aria-checked', String(homeSwitch.getAttribute('aria-checked') !== 'true'));
+    keepDraft();
+  });
+
+  const showError = (error: unknown, fallback: string) => {
+    alertEl.textContent = error instanceof ApiError ? error.message : fallback;
+  };
+
+  saveButton.addEventListener('click', async () => {
+    if (!selected) return;
+    const key = selected;
+    const draft = currentDraft(key);
+    alertEl.textContent = '';
+    if (!draft.alt.trim()) {
+      altField.setAttribute('aria-invalid', 'true');
+      altError.textContent = 'Describe the photo in a few words, for people using screen readers.';
+      altField.focus();
+      return;
+    }
+    saveButton.disabled = true;
+    try {
+      const waiting = pendingByKey(key);
+      if (waiting) {
+        const form = new FormData();
+        form.set('photo', waiting.file);
+        form.set('alt', draft.alt);
+        form.set('caption', draft.caption);
+        form.set('onHome', String(draft.onHome));
+        const { photo } = await api<{ photo: GalleryPhoto }>('/admin/gallery', { method: 'POST', body: form });
+        pending = pending.filter((p) => p.key !== key);
+        URL.revokeObjectURL(waiting.preview);
+        saved = [photo, ...saved];
+        drafts.delete(key);
+        render();
+        select(pending[0]?.key ?? photo.id);
+        statusEl.textContent = `${photo.name} saved.`;
+      } else {
+        const { photo } = await api<{ photo: GalleryPhoto }>(`/admin/gallery/${encodeURIComponent(key)}`, {
+          method: 'PATCH',
+          body: JSON.stringify(draft),
+        });
+        saved = saved.map((p) => (p.id === photo.id ? photo : p));
+        drafts.delete(key);
+        render();
+        select(photo.id);
+        statusEl.textContent = `${photo.name} saved.`;
+      }
+    } catch (error) {
+      showError(error, 'The photo was not saved. Please try again.');
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  document.querySelector('[data-delete]')!.addEventListener('click', async () => {
+    if (!selected) return;
+    const key = selected;
+    const waiting = pendingByKey(key);
+    if (waiting) {
+      // Not uploaded yet: nothing to remove from the site.
+      pending = pending.filter((p) => p.key !== key);
+      URL.revokeObjectURL(waiting.preview);
+      drafts.delete(key);
+      render();
+      select(pending[0]?.key ?? saved[0]?.id ?? null);
+      statusEl.textContent = `${waiting.name} removed.`;
+      return;
+    }
+    const photo = savedById(key);
+    if (!photo) return;
+    const ok = await confirmAction({
+      title: 'Delete this photo?',
+      text: `${photo.name} will be removed from the Gallery page and the Home photo strip. This can't be undone.`,
+      confirmLabel: 'Delete Photo',
+    });
+    if (!ok) return;
+    try {
+      await api(`/admin/gallery/${encodeURIComponent(photo.id)}`, { method: 'DELETE' });
+      saved = saved.filter((p) => p.id !== photo.id);
+      drafts.delete(key);
+      render();
+      select(pending[0]?.key ?? saved[0]?.id ?? null);
+      statusEl.textContent = `${photo.name} deleted.`;
+    } catch (error) {
+      showError(error, 'The photo was not deleted. Please try again.');
+    }
+  });
+
+  // ----- Order -----
+  const saveOrder = async (next: GalleryPhoto[], keepFocus?: HTMLElement) => {
+    const before = saved;
+    saved = next;
+    render();
+    select(selected);
+    keepFocus?.focus();
+    try {
+      const { photos } = await api<{ photos: GalleryPhoto[] }>('/admin/gallery/order', {
+        method: 'PUT',
+        body: JSON.stringify({ ids: next.map((p) => p.id) }),
+      });
+      saved = photos;
+      statusEl.textContent = 'Order saved.';
+    } catch (error) {
+      saved = before;
+      render();
+      select(selected);
+      showError(error, 'The new order was not saved. Please try again.');
+    }
+  };
+
+  const move = (by: number, button: HTMLElement) => {
+    const index = saved.findIndex((p) => p.id === selected);
+    const to = index + by;
+    if (index < 0 || to < 0 || to >= saved.length) return;
+    const next = [...saved];
+    const [photo] = next.splice(index, 1);
+    next.splice(to, 0, photo);
+    saveOrder(next, button);
+  };
+  earlier.addEventListener('click', () => move(-1, earlier));
+  later.addEventListener('click', () => move(1, later));
+
+  let dragged: string | null = null;
+  grid.addEventListener('dragstart', (event) => {
+    const li = (event.target as HTMLElement).closest<HTMLElement>('[data-key]');
+    if (!li?.draggable) return;
+    dragged = li.dataset.key!;
+    event.dataTransfer?.setData('text/plain', dragged);
+  });
+  grid.addEventListener('dragover', (event) => {
+    if (dragged && (event.target as HTMLElement).closest('[draggable="true"]')) event.preventDefault();
+  });
+  grid.addEventListener('drop', (event) => {
+    const target = (event.target as HTMLElement).closest<HTMLElement>('[draggable="true"]');
+    if (!dragged || !target) return;
+    event.preventDefault();
+    const from = saved.findIndex((p) => p.id === dragged);
+    const to = saved.findIndex((p) => p.id === target.dataset.key);
+    dragged = null;
+    if (from < 0 || to < 0 || from === to) return;
+    const next = [...saved];
+    const [photo] = next.splice(from, 1);
+    next.splice(to, 0, photo);
+    saveOrder(next);
+  });
+  grid.addEventListener('dragend', () => (dragged = null));
+
+  // ----- Choosing files -----
+  const addFiles = (files: FileList | File[]) => {
+    const refused: string[] = [];
+    const added: Pending[] = [];
+    [...files].forEach((file) => {
+      if (!TYPES.includes(file.type) || file.size > MAX_BYTES) {
+        refused.push(file.name);
+        return;
+      }
+      pendingCount += 1;
+      added.push({
+        key: `new-${pendingCount}`,
+        file,
+        preview: URL.createObjectURL(file),
+        name: file.name.replace(/\.[^.]+$/, ''),
+      });
+    });
+    alertEl.textContent = refused.length
+      ? `Not added (use JPEG, PNG or WebP photos of up to 5 MB): ${refused.join(', ')}.`
+      : '';
+    if (!added.length) return;
+    pending = [...added, ...pending];
+    filter = 'all';
+    document.querySelectorAll('[data-filter]').forEach((c) => c.setAttribute('aria-pressed', String(c.getAttribute('data-filter') === 'all')));
+    render();
+    select(added[0].key);
+    statusEl.textContent = `${added.length} ${added.length === 1 ? 'photo' : 'photos'} added. Describe each one, then save it.`;
+    altField.focus();
+  };
+
+  document.querySelector('[data-choose]')!.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files?.length) addFiles(fileInput.files);
+    fileInput.value = '';
+  });
+  drop.addEventListener('dragover', (event) => {
+    if (!event.dataTransfer?.types.includes('Files')) return;
+    event.preventDefault();
+    drop.toggleAttribute('data-over', true);
+  });
+  drop.addEventListener('dragleave', () => drop.removeAttribute('data-over'));
+  drop.addEventListener('drop', (event) => {
+    event.preventDefault();
+    drop.removeAttribute('data-over');
+    if (event.dataTransfer?.files.length) addFiles(event.dataTransfer.files);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((chip) =>
+    chip.addEventListener('click', () => {
+      filter = chip.dataset.filter!;
+      document.querySelectorAll('[data-filter]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+      render();
+      select(selected);
+    }),
+  );
+
+  // Photos waiting for a description, or unsaved edits, are lost on leaving.
+  window.addEventListener('beforeunload', (event) => {
+    if (pending.length || drafts.size) event.preventDefault();
+  });
+
+  requireAdmin().then(async () => {
+    try {
+      saved = (await api<{ photos: GalleryPhoto[] }>('/admin/gallery')).photos;
+      render();
+      select(saved[0]?.id ?? null);
+    } catch {
+      alertEl.textContent = 'The gallery could not load. Please refresh the page.';
+    }
+  });
+</script>

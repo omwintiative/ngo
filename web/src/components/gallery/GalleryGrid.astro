@@ -10,6 +10,11 @@
 
   The lightbox shows the whole photo (Figma crops it to fill the frame).
   "Load More Photos" appears only when there are more than 12 photos.
+
+  Photos: the ones built into the site (src/data/gallery.ts) show first; the
+  photos from Admin · Gallery (GET /api/gallery) replace them when they
+  arrive. If the API cannot be reached or has no photos yet, the built-in
+  ones stay. A photo's caption shows under it.
 */
 import { getImage } from 'astro:assets';
 import SectionHeading from '../SectionHeading.astro';
@@ -38,10 +43,10 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
     data-reveal
   />
 
-  <ul class="gallery__grid">
+  <ul class="gallery__grid" data-gallery-grid>
     {
       items.map((photo, i) => (
-        <li hidden={i >= PAGE_SIZE} data-gallery-item>
+        <li class="gallery__item" hidden={i >= PAGE_SIZE} data-gallery-item>
           <button
             type="button"
             class="gallery__open"
@@ -59,20 +64,17 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
               sizes="(min-width: 1200px) 384px, 50vw"
             />
           </button>
+          <p class="t-body-small gallery__caption" hidden data-gallery-caption />
         </li>
       ))
     }
   </ul>
 
-  {
-    items.length > PAGE_SIZE && (
-      <div class="gallery__actions">
-        <Button variant="outline" class="gallery__more" data-gallery-more>
-          Load More Photos
-        </Button>
-      </div>
-    )
-  }
+  <div class="gallery__actions" hidden={items.length <= PAGE_SIZE} data-gallery-actions>
+    <Button variant="outline" class="gallery__more" data-gallery-more>
+      Load More Photos
+    </Button>
+  </div>
 
   <dialog class="lightbox" aria-label="Photo viewer" data-lightbox>
     <div class="lightbox__top">
@@ -106,6 +108,14 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .gallery__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .gallery__caption {
+    color: var(--text-muted);
   }
   .gallery__open {
     display: block;
@@ -217,32 +227,36 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
 </style>
 
 <script>
+  import { fetchGallery, showPhoto, sizedPhoto } from '../../lib/gallery';
+
   const PAGE_SIZE = 12;
   const root = document.querySelector<HTMLElement>('[data-gallery]');
   const dialog = root?.querySelector<HTMLDialogElement>('[data-lightbox]');
 
   if (root && dialog) {
-    const buttons = [...root.querySelectorAll<HTMLButtonElement>('.gallery__open')];
+    const grid = root.querySelector<HTMLElement>('[data-gallery-grid]')!;
+    const buttons = () => [...grid.querySelectorAll<HTMLButtonElement>('.gallery__open')];
     const img = dialog.querySelector<HTMLImageElement>('[data-lightbox-img]')!;
     const count = dialog.querySelector('[data-lightbox-count]')!;
     let current = 0;
     let opener: HTMLButtonElement | null = null;
 
     const show = (index: number) => {
-      current = (index + buttons.length) % buttons.length;
-      const button = buttons[current];
+      const all = buttons();
+      current = (index + all.length) % all.length;
+      const button = all[current];
       img.src = button.dataset.src ?? '';
       img.alt = button.dataset.alt ?? '';
-      count.textContent = `Photo ${current + 1} of ${buttons.length}`;
+      count.textContent = `Photo ${current + 1} of ${all.length}`;
     };
 
-    buttons.forEach((button, i) =>
-      button.addEventListener('click', () => {
-        opener = button;
-        show(i);
-        dialog.showModal();
-      }),
-    );
+    grid.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('.gallery__open');
+      if (!button) return;
+      opener = button;
+      show(buttons().indexOf(button));
+      dialog.showModal();
+    });
 
     dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', () => dialog.close());
     dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => show(current - 1));
@@ -258,10 +272,42 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
     dialog.addEventListener('close', () => opener?.focus());
 
     // Load more: show the next 12 hidden photos.
-    root.querySelector('[data-gallery-more]')?.addEventListener('click', (event) => {
-      const hidden = [...root.querySelectorAll<HTMLElement>('[data-gallery-item][hidden]')];
+    const actions = root.querySelector<HTMLElement>('[data-gallery-actions]')!;
+    root.querySelector('[data-gallery-more]')?.addEventListener('click', () => {
+      const hidden = [...grid.querySelectorAll<HTMLElement>('[data-gallery-item][hidden]')];
       hidden.slice(0, PAGE_SIZE).forEach((item) => (item.hidden = false));
-      if (hidden.length <= PAGE_SIZE) (event.currentTarget as HTMLElement).hidden = true;
+      if (hidden.length <= PAGE_SIZE) actions.hidden = true;
     });
+
+    // The admin's photos replace the built-in ones, each made from a copy of
+    // the first built-in item so it keeps the same look.
+    fetchGallery()
+      .then((photos) => {
+        const model = grid.querySelector<HTMLElement>('[data-gallery-item]');
+        if (!photos.length || !model) return;
+        const items = photos.map((photo, i) => {
+          const item = model.cloneNode(true) as HTMLElement;
+          item.hidden = i >= PAGE_SIZE;
+          const button = item.querySelector<HTMLButtonElement>('.gallery__open')!;
+          button.dataset.src = sizedPhoto(photo.url, 1920);
+          button.dataset.alt = photo.alt;
+          button.setAttribute('aria-label', `Open photo ${i + 1} of ${photos.length}: ${photo.alt}`);
+          showPhoto(item.querySelector<HTMLImageElement>('.photo__img')!, photo, [200, 400, 800], '');
+          // Fade alternates from the left and the top, as in Figma.
+          item.querySelector('.photo__fade')?.classList.replace(
+            i % 2 === 0 ? 'photo__fade--top' : 'photo__fade--left',
+            i % 2 === 0 ? 'photo__fade--left' : 'photo__fade--top',
+          );
+          const caption = item.querySelector<HTMLElement>('[data-gallery-caption]')!;
+          caption.textContent = photo.caption;
+          caption.hidden = !photo.caption;
+          return item;
+        });
+        grid.replaceChildren(...items);
+        actions.hidden = photos.length <= PAGE_SIZE;
+      })
+      .catch(() => {
+        // The built-in photos stay.
+      });
   }
 </script>

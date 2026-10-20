@@ -15,6 +15,7 @@ let admin;
 const uploads = [];
 const deletions = [];
 let failDelete = false;
+let failUpload = false;
 
 before(async () => {
   cloudinary.uploader.upload_stream = (options, callback) => {
@@ -25,6 +26,10 @@ before(async () => {
         done();
       },
       final(done) {
+        if (failUpload) {
+          callback(new Error("cloud_name is disabled"));
+          return done();
+        }
         callback(null, { secure_url: `https://res.cloudinary.com/test/${options.folder}/${n}.jpg`, public_id: `${options.folder}/${n}`, width: 1200, height: 800 });
         done();
       },
@@ -46,6 +51,7 @@ beforeEach(async () => {
   uploads.length = 0;
   deletions.length = 0;
   failDelete = false;
+  failUpload = false;
 });
 
 const api = (method, path, body) => request(server.base, method, path, { cookie, body });
@@ -165,6 +171,14 @@ test("blog: drafts may be unfinished; publishing needs a title and text", async 
   assert.equal((await request(server.base, "GET", `/api/admin/blogs/${empty.body._id}`)).status, 401);
 });
 
+test("blog: when the photo cannot be uploaded, the post is not saved and the admin is told why", async () => {
+  failUpload = true;
+  const res = await api("POST", "/api/blogs", postForm({ title: "With a photo", description: "Text", status: "draft" }, true));
+  assert.equal(res.status, 500);
+  assert.match(res.body.message, /photo could not be uploaded/);
+  assert.equal(await Blog.countDocuments(), 0);
+});
+
 test("blog: a post scheduled for later stays hidden until its date", async () => {
   const later = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   const scheduled = await api("POST", "/api/blogs", postForm({ title: "Tomorrow", description: "Text", status: "published", publishAt: later, summary: "Short summary" }));
@@ -233,4 +247,57 @@ test("gallery: edit the description, reorder, delete (with the file)", async () 
   assert.equal((await api("DELETE", `/api/admin/gallery/${ids[2]}`)).status, 200);
   assert.equal(await GalleryPhoto.countDocuments(), 1);
   assert.equal((await api("DELETE", `/api/admin/gallery/${ids[2]}`)).status, 404);
+});
+
+test("local uploads (LOCAL_UPLOADS=true): photos are kept on disk, served, and deleted with the photo", async () => {
+  process.env.LOCAL_UPLOADS = "true";
+  try {
+    const res = await api("POST", "/api/admin/gallery", photoForm("Kept on this computer"));
+    assert.equal(res.status, 201);
+    assert.match(res.body.photo.url, /^\/uploads\/local\/[0-9a-f]{12}-outreach\.jpg$/);
+    assert.equal(uploads.length, 0, "nothing went to Cloudinary");
+    const file = await fetch(`${server.base}${res.body.photo.url}`);
+    assert.equal(file.status, 200);
+    assert.equal((await api("DELETE", `/api/admin/gallery/${res.body.photo.id}`)).status, 200);
+    assert.equal((await fetch(`${server.base}${res.body.photo.url}`)).status, 404, "the file is gone too");
+  } finally {
+    delete process.env.LOCAL_UPLOADS;
+  }
+});
+
+test("gallery: name from the file, caption, and a Home strip of up to 6", async () => {
+  const form = photoForm("Mothers at an outreach");
+  form.append("caption", "Kubwa outreach");
+  form.append("onHome", "true");
+  const first = await api("POST", "/api/admin/gallery", form);
+  assert.equal(first.status, 201);
+  assert.equal(first.body.photo.name, "outreach", "the file name without its extension");
+  assert.equal(first.body.photo.caption, "Kubwa outreach");
+  assert.equal(first.body.photo.onHome, true);
+
+  const ids = [first.body.photo.id];
+  for (let i = 0; i < 6; i += 1) ids.push((await api("POST", "/api/admin/gallery", photoForm(`Photo ${i}`))).body.photo.id);
+  for (const id of ids.slice(1, 6)) assert.equal((await api("PATCH", `/api/admin/gallery/${id}`, { onHome: true })).status, 200);
+
+  // A 7th is refused, by edit or by upload; turning one off makes room
+  const seventh = await api("PATCH", `/api/admin/gallery/${ids[6]}`, { onHome: true });
+  assert.equal(seventh.status, 400);
+  assert.match(seventh.body.message, /up to 6/);
+  const upload = photoForm("One more");
+  upload.append("onHome", "true");
+  assert.equal((await api("POST", "/api/admin/gallery", upload)).status, 400);
+  // Saving a photo already in the strip is not blocked by the limit
+  assert.equal((await api("PATCH", `/api/admin/gallery/${ids[0]}`, { onHome: true, caption: "" })).status, 200);
+  assert.equal((await api("PATCH", `/api/admin/gallery/${ids[0]}`, { onHome: false })).status, 200);
+  assert.equal((await api("PATCH", `/api/admin/gallery/${ids[6]}`, { onHome: true })).status, 200);
+
+  // Fields left out stay as they were; captions are checked
+  const kept = await api("PATCH", `/api/admin/gallery/${ids[6]}`, { caption: "Abuja" });
+  assert.equal(kept.body.photo.alt, "Photo 5");
+  assert.equal(kept.body.photo.onHome, true);
+  assert.equal((await api("PATCH", `/api/admin/gallery/${ids[6]}`, { caption: "x".repeat(201) })).status, 400);
+
+  const list = (await request(server.base, "GET", "/api/gallery")).body;
+  assert.equal(list.filter((p) => p.onHome).length, 6);
+  assert.equal(list.find((p) => p.id === ids[0]).caption, "");
 });

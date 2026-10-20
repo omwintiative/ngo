@@ -119,6 +119,37 @@ export function statusBadge(d: DonationLike): { label: string; tone: BadgeTone }
 
 export const badge = (label: string, tone: BadgeTone) => el('span', `admin-badge admin-badge--${tone} t-body-small`, label);
 
+// The API takes JPEG, PNG or WebP photos of up to 5 MB.
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTO_EDGE = 2400;
+
+/**
+  A photo ready to upload: the file itself when it is small enough, or a
+  copy made smaller in the browser (at most 2400px on its longest side,
+  JPEG) when it is over 5 MB, so phone and stock photos just work.
+  Resolves null for files that are not JPEG, PNG or WebP photos.
+*/
+export async function preparePhoto(file: File): Promise<File | null> {
+  if (!PHOTO_TYPES.includes(file.type)) return null;
+  if (file.size <= MAX_PHOTO_BYTES) return file;
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return null;
+  const scale = Math.min(1, MAX_PHOTO_EDGE / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const context = canvas.getContext('2d')!;
+  // JPEG has no transparency: see-through parts of a PNG become white.
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+  if (!blob || blob.size > MAX_PHOTO_BYTES) return null;
+  return new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.jpg`, { type: 'image/jpeg' });
+}
+
 /** A blog post as the admin API returns it (GET /api/admin/blogs). */
 export interface AdminPost {
   _id: string;
