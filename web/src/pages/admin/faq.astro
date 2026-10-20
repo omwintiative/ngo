@@ -1,0 +1,324 @@
+---
+/*
+  Admin · FAQ (not in the Figma admin; added 20 Oct 2026, following Admin ·
+  Privacy Policy). The FAQ on Home and on Contact, each its own list. The
+  editor starts from the saved list, or from the questions the website shows
+  now (src/data/faqs.ts) until a list is first saved. Questions can be
+  edited, added, removed and moved; Save Changes saves the page shown.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Button from '../../components/Button.astro';
+import FormField from '../../components/FormField.astro';
+import { faqLists } from '../../data/faqs';
+
+const pages = [
+  { key: 'home', label: 'Home page', href: '/#faq-title' },
+  { key: 'contact', label: 'Contact page', href: '/contact#faq-title' },
+];
+---
+
+<AdminLayout title="FAQ" section="faq">
+  <div class="admin-page-top">
+    <div class="admin-page-header">
+      <h1 class="t-h3">FAQ</h1>
+      <p class="t-body-small" data-subtitle>&nbsp;</p>
+    </div>
+    <div class="admin-page-top__actions">
+      <Button href={pages[0].href} variant="outline" target="_blank" rel="noopener" data-view>
+        View Page<span class="visually-hidden"> (opens in a new tab)</span>
+      </Button>
+      <Button data-save>Save Changes</Button>
+    </div>
+  </div>
+
+  <p class="admin-alert admin-alert--success" role="status" data-status></p>
+
+  <div class="admin-chips" role="group" aria-label="FAQ on">
+    {
+      pages.map((p, i) => (
+        <button type="button" class="admin-chip t-body-small" aria-pressed={String(i === 0)} data-tab={p.key}>
+          {p.label}
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    pages.map((p) => (
+      <section class="admin-card faq-edit" aria-label={`FAQ on the ${p.label}`} hidden data-page={p.key} data-href={p.href}>
+        <ol class="faq-edit__list" data-list />
+        <Button variant="outline" class="faq-edit__add" data-add>
+          Add Question
+        </Button>
+      </section>
+    ))
+  }
+
+  <template data-item-template>
+    <li class="faq-edit__item">
+      <div class="faq-edit__head">
+        <h2 class="t-button" data-item-title>Question</h2>
+        <div class="faq-edit__actions">
+          <button type="button" class="t-body-small faq-edit__action" data-up>Move up</button>
+          <button type="button" class="t-body-small faq-edit__action" data-down>Move down</button>
+          <button type="button" class="t-body-small faq-edit__action faq-edit__action--remove" data-remove>Remove</button>
+        </div>
+      </div>
+      <FormField name="question" label="Question" required />
+      <FormField name="answer" label="Answer" type="textarea" required />
+    </li>
+  </template>
+
+  <script type="application/json" data-built-in set:html={JSON.stringify(faqLists)} />
+</AdminLayout>
+
+<style>
+  .faq-edit {
+    max-width: var(--size-admin-message-width);
+    margin-top: var(--space-16);
+  }
+  .faq-edit[hidden] {
+    display: none;
+  }
+  .faq-edit__list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .faq-edit__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    padding: var(--space-24) 0;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .faq-edit__item:first-child {
+    padding-top: 0;
+  }
+  .faq-edit__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-8) var(--space-16);
+  }
+  .faq-edit__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-16);
+  }
+  .faq-edit__action {
+    min-height: var(--size-touch-target);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .faq-edit__action:disabled {
+    color: var(--text-muted);
+    cursor: default;
+  }
+  .faq-edit__action--remove {
+    color: var(--text-error);
+  }
+  .faq-edit__action:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .faq-edit :global(.faq-edit__add) {
+    align-self: flex-start;
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { requireAdmin, formatDateTime } from '../../lib/admin';
+  import type { FaqItem, FaqKey } from '../../data/faqs';
+
+  interface Faq {
+    items: FaqItem[];
+    updatedAt: string;
+  }
+
+  const builtIn = JSON.parse(document.querySelector('[data-built-in]')!.textContent!) as Record<FaqKey, FaqItem[]>;
+  const template = document.querySelector<HTMLTemplateElement>('[data-item-template]')!;
+  const sections = [...document.querySelectorAll<HTMLElement>('[data-page]')];
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+  const subtitle = document.querySelector<HTMLElement>('[data-subtitle]')!;
+  const viewLink = document.querySelector<HTMLAnchorElement>('[data-view]')!;
+  const saveButton = document.querySelector<HTMLButtonElement>('[data-save]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+
+  const saved: Partial<Record<FaqKey, Faq | null>> = {};
+  const unsaved = new Set<FaqKey>();
+  let active = sections[0].dataset.page as FaqKey;
+  let itemCount = 0;
+
+  const section = (key: FaqKey) => sections.find((s) => s.dataset.page === key)!;
+  const list = (key: FaqKey) => section(key).querySelector<HTMLElement>('[data-list]')!;
+
+  const showSubtitle = () => {
+    const faq = saved[active];
+    const label = active === 'home' ? 'the Home page' : 'the Contact page';
+    subtitle.textContent = faq
+      ? `Last saved ${formatDateTime(faq.updatedAt)} · shown on ${label}`
+      : `Not saved yet · ${label} shows the questions below`;
+  };
+
+  // Numbers the questions and turns off moves that cannot happen.
+  const refresh = (key: FaqKey) => {
+    const items = [...list(key).children] as HTMLElement[];
+    items.forEach((item, i) => {
+      item.querySelector('[data-item-title]')!.textContent = `Question ${i + 1}`;
+      item.querySelector<HTMLButtonElement>('[data-up]')!.disabled = i === 0;
+      item.querySelector<HTMLButtonElement>('[data-down]')!.disabled = i === items.length - 1;
+      item.querySelector<HTMLButtonElement>('[data-remove]')!.disabled = items.length === 1;
+    });
+  };
+
+  const changed = (key: FaqKey) => {
+    unsaved.add(key);
+    refresh(key);
+  };
+
+  const newItem = (key: FaqKey, value: FaqItem) => {
+    const item = (template.content.firstElementChild as HTMLElement).cloneNode(true) as HTMLElement;
+    itemCount += 1;
+    // Each copy of the fields needs its own ids for its labels and messages.
+    item.querySelectorAll<HTMLElement>('[id]').forEach((node) => (node.id = `${node.id}-${itemCount}`));
+    item.querySelectorAll<HTMLElement>('[for]').forEach((node) => node.setAttribute('for', `${node.getAttribute('for')}-${itemCount}`));
+    item.querySelectorAll<HTMLElement>('[aria-describedby]').forEach((node) =>
+      node.setAttribute(
+        'aria-describedby',
+        node.getAttribute('aria-describedby')!.split(' ').map((id) => `${id}-${itemCount}`).join(' '),
+      ),
+    );
+    const question = item.querySelector<HTMLInputElement>('input[name="question"]')!;
+    const answer = item.querySelector<HTMLTextAreaElement>('textarea[name="answer"]')!;
+    question.maxLength = 200;
+    answer.maxLength = 2000;
+    question.value = value.question;
+    answer.value = value.answer;
+    [question, answer].forEach((field) =>
+      field.addEventListener('input', () => {
+        field.removeAttribute('aria-invalid');
+        item.querySelector(`[data-error-for="${field.name}"]`)!.textContent = '';
+        unsaved.add(key);
+      }),
+    );
+    const up = item.querySelector<HTMLButtonElement>('[data-up]')!;
+    const down = item.querySelector<HTMLButtonElement>('[data-down]')!;
+    // Keep focus on the button used, or on the other one when it is now off.
+    const moved = (used: HTMLButtonElement, other: HTMLButtonElement) => {
+      changed(key);
+      (used.disabled ? other : used).focus();
+    };
+    up.addEventListener('click', () => {
+      item.previousElementSibling?.before(item);
+      moved(up, down);
+    });
+    down.addEventListener('click', () => {
+      item.nextElementSibling?.after(item);
+      moved(down, up);
+    });
+    item.querySelector('[data-remove]')!.addEventListener('click', () => {
+      const next = (item.nextElementSibling ?? item.previousElementSibling) as HTMLElement | null;
+      item.remove();
+      changed(key);
+      next?.querySelector<HTMLInputElement>('input[name="question"]')?.focus();
+      statusEl.textContent = 'Question removed. Save Changes to update the website.';
+    });
+    return item;
+  };
+
+  const load = (key: FaqKey, items: FaqItem[]) => {
+    list(key).replaceChildren(...items.map((item) => newItem(key, item)));
+    refresh(key);
+  };
+
+  const show = (key: FaqKey) => {
+    active = key;
+    tabs.forEach((t) => t.setAttribute('aria-pressed', String(t.dataset.tab === key)));
+    sections.forEach((s) => (s.hidden = s.dataset.page !== key));
+    viewLink.href = section(key).dataset.href!;
+    showSubtitle();
+  };
+  tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab as FaqKey)));
+
+  sections.forEach((s) =>
+    s.querySelector('[data-add]')!.addEventListener('click', () => {
+      const key = s.dataset.page as FaqKey;
+      const item = newItem(key, { question: '', answer: '' });
+      list(key).append(item);
+      changed(key);
+      item.querySelector<HTMLInputElement>('input[name="question"]')!.focus();
+    }),
+  );
+
+  // Marks empty fields and returns the list, or null when something is missing.
+  const read = (key: FaqKey): FaqItem[] | null => {
+    let firstEmpty: HTMLElement | null = null;
+    const items = [...list(key).children].map((item) => {
+      const fields = [...item.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input, textarea')];
+      fields.forEach((field) => {
+        if (field.value.trim()) return;
+        field.setAttribute('aria-invalid', 'true');
+        item.querySelector(`[data-error-for="${field.name}"]`)!.textContent =
+          field.name === 'question' ? 'Write the question.' : 'Write the answer.';
+        firstEmpty ??= field;
+      });
+      const [question, answer] = fields.map((f) => f.value.trim());
+      return { question, answer };
+    });
+    if (firstEmpty) {
+      (firstEmpty as HTMLElement).focus();
+      return null;
+    }
+    return items;
+  };
+
+  saveButton.addEventListener('click', async () => {
+    alertEl.textContent = '';
+    statusEl.textContent = '';
+    const key = active;
+    const items = read(key);
+    if (!items) {
+      alertEl.textContent = 'Every question needs both a question and an answer.';
+      return;
+    }
+    saveButton.disabled = true;
+    try {
+      const { faq } = await api<{ faq: Faq }>(`/admin/faqs/${key}`, { method: 'PUT', body: JSON.stringify({ items }) });
+      saved[key] = faq;
+      unsaved.delete(key);
+      showSubtitle();
+      statusEl.textContent = `FAQ saved. It is now on ${key === 'home' ? 'the Home page' : 'the Contact page'}.`;
+    } catch (error) {
+      alertEl.textContent = error instanceof ApiError ? error.message : 'The changes were not saved. Please try again.';
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  window.addEventListener('beforeunload', (event) => {
+    if (unsaved.size) event.preventDefault();
+  });
+
+  requireAdmin().then(async () => {
+    try {
+      const keys = sections.map((s) => s.dataset.page as FaqKey);
+      const results = await Promise.all(keys.map((key) => api<{ faq: Faq | null }>(`/admin/faqs/${key}`)));
+      keys.forEach((key, i) => {
+        saved[key] = results[i].faq;
+        load(key, results[i].faq?.items ?? builtIn[key]);
+      });
+      show(active);
+    } catch {
+      alertEl.textContent = 'The FAQ could not load. Please refresh the page.';
+    }
+  });
+</script>

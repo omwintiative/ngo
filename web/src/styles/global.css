@@ -161,6 +161,38 @@ html:not(.js) [data-skeleton] {
 }
 
 /*
+  Photo hover (Gallery grid, Home photo strip): the photo's description
+  rises over a plum fade and the photo zooms slightly, on hover or keyboard
+  focus. Put .photo-hover on the photo's parent and .photo-hover__text in it.
+*/
+.photo-hover {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+}
+.photo-hover__text {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--space-40) var(--space-16) var(--space-16);
+  background: linear-gradient(0deg, var(--bg-backdrop) 0%, var(--bg-backdrop) 45%, transparent 100%);
+  color: var(--text-on-dark);
+  text-align: left;
+  opacity: 0;
+  transform: translateY(var(--space-8));
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+  pointer-events: none;
+}
+.photo-hover:is(:hover, :focus-visible) .photo-hover__text {
+  opacity: 1;
+  transform: none;
+}
+.photo-hover:is(:hover, :focus-visible) .photo__img {
+  transform: scale(1.05);
+}
+
+/*
   Reduced motion. Visitors who ask their device for less motion get no
   sliding, rising, zooming or smooth scrolling anywhere. The "gentle version"
   (Ifeanyi, 19 Oct 2026) keeps the site alive for them with fades only:
@@ -181,6 +213,9 @@ html:not(.js) [data-skeleton] {
     transform: none;
     transition: opacity 700ms ease !important;
     transition-delay: calc(var(--reveal-index, 0) * 80ms) !important;
+  }
+  .photo-hover:is(:hover, :focus-visible) .photo__img {
+    transform: none;
   }
 }
 @keyframes motion-fade-in {

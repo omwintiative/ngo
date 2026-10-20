@@ -49,7 +49,7 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
         <li class="gallery__item" hidden={i >= PAGE_SIZE} data-gallery-item>
           <button
             type="button"
-            class="gallery__open"
+            class="gallery__open photo-hover"
             data-index={i}
             data-src={photo.large}
             data-alt={photo.alt}
@@ -63,7 +63,7 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
               widths={[200, 400, 800]}
               sizes="(min-width: 1200px) 384px, 50vw"
             />
-            <span class="t-body-small gallery__hover" aria-hidden="true" data-gallery-hover>
+            <span class="t-body-small photo-hover__text" aria-hidden="true" data-gallery-hover>
               {photo.alt}
             </span>
           </button>
@@ -121,52 +121,15 @@ const items = galleryPhotos.map((p, i) => ({ ...p, large: large[i].src }));
     color: var(--text-muted);
   }
   .gallery__open {
-    position: relative;
     display: block;
     width: 100%;
     padding: 0;
-    overflow: hidden;
     border: 0;
-    border-radius: var(--radius-card);
     background: none;
     cursor: zoom-in;
   }
   .gallery__open :global(.gallery__photo) {
     height: var(--size-gallery-photo-height);
-  }
-  /* The photo's description, over a plum fade, on hover and keyboard focus */
-  .gallery__hover {
-    position: absolute;
-    inset: auto 0 0;
-    padding: var(--space-40) var(--space-16) var(--space-16);
-    background: linear-gradient(0deg, var(--bg-backdrop) 0%, var(--bg-backdrop) 45%, transparent 100%);
-    color: var(--text-on-dark);
-    text-align: left;
-    opacity: 0;
-    transform: translateY(var(--space-8));
-    transition:
-      opacity 300ms ease,
-      transform 300ms ease;
-    pointer-events: none;
-  }
-  .gallery__open:is(:hover, :focus-visible) .gallery__hover {
-    opacity: 1;
-    transform: none;
-  }
-  .gallery__open:is(:hover, :focus-visible) :global(.photo__img) {
-    transform: scale(1.05);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .gallery__hover,
-    .gallery__open :global(.photo__img) {
-      transition: none;
-    }
-    .gallery__hover {
-      transform: none;
-    }
-    .gallery__open:is(:hover, :focus-visible) :global(.photo__img) {
-      transform: none;
-    }
   }
   .gallery__actions {
     display: flex;

@@ -16,6 +16,7 @@ import settings from '../assets/icons/admin/nav-settings.svg';
 // Not in the Figma admin (added 20 Oct 2026): Phosphor Regular, the design's icon set.
 import team from '../assets/icons/admin/nav-team.svg';
 import privacy from '../assets/icons/admin/nav-privacy.svg';
+import faq from '../assets/icons/admin/nav-faq.svg';
 
 export const adminPaths = {
   dashboard: '/admin',
@@ -32,11 +33,21 @@ export const adminPaths = {
   messages: '/admin/messages',
   message: '/admin/messages/view',
   team: '/admin/team',
+  faq: '/admin/faq',
   privacy: '/admin/privacy-policy',
   settings: '/admin/settings',
 } as const;
 
-export type AdminSection = 'dashboard' | 'donations' | 'blog' | 'gallery' | 'messages' | 'team' | 'privacy' | 'settings';
+export type AdminSection =
+  | 'dashboard'
+  | 'donations'
+  | 'blog'
+  | 'gallery'
+  | 'messages'
+  | 'team'
+  | 'faq'
+  | 'privacy'
+  | 'settings';
 
 export const adminNav: { section: AdminSection; label: string; href: string; icon: ImageMetadata }[] = [
   { section: 'dashboard', label: 'Dashboard', href: adminPaths.dashboard, icon: dashboard },
@@ -45,6 +56,7 @@ export const adminNav: { section: AdminSection; label: string; href: string; ico
   { section: 'gallery', label: 'Gallery', href: adminPaths.gallery, icon: gallery },
   { section: 'messages', label: 'Messages', href: adminPaths.messages, icon: messages },
   { section: 'team', label: 'Team', href: adminPaths.team, icon: team },
+  { section: 'faq', label: 'FAQ', href: adminPaths.faq, icon: faq },
   { section: 'privacy', label: 'Privacy Policy', href: adminPaths.privacy, icon: privacy },
   { section: 'settings', label: 'Settings', href: adminPaths.settings, icon: settings },
 ];

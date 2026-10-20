@@ -28,7 +28,10 @@ const { photos } = Astro.props;
     {
       [0, 1].map((copy) =>
         photos.map((photo) => (
-          <li class:list={['strip__item', `strip__item--${photo.width}`]} aria-hidden={copy === 1 ? 'true' : undefined}>
+          <li
+            class:list={['strip__item', 'photo-hover', `strip__item--${photo.width}`]}
+            aria-hidden={copy === 1 ? 'true' : undefined}
+          >
             <Photo
               class="strip__photo"
               src={photo.src}
@@ -36,6 +39,9 @@ const { photos } = Astro.props;
               widths={[300, 600, 900]}
               sizes="420px"
             />
+            <span class="t-body-small photo-hover__text" aria-hidden="true">
+              {photo.alt}
+            </span>
           </li>
         )),
       )
@@ -107,6 +113,7 @@ const { photos } = Astro.props;
           if (copy === 1) item.setAttribute('aria-hidden', 'true');
           else item.removeAttribute('aria-hidden');
           showPhoto(item.querySelector<HTMLImageElement>('.photo__img')!, photo, [300, 600, 900], copy === 1 ? '' : photo.alt);
+          item.querySelector('.photo-hover__text')!.textContent = photo.alt;
           return item;
         }),
       );

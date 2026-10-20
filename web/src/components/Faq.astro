@@ -5,41 +5,46 @@
   the right; stacked on tablet and mobile. Each question is a native
   <details>, so it opens with a click, Enter or Space and needs no script.
   The first starts open, as in Figma.
+
+  Questions: the built-in list for the page (src/data/faqs.ts); the list
+  saved in Admin · FAQ (GET /api/faqs/:page) replaces it when it arrives.
 */
 import SectionHeading from './SectionHeading.astro';
 import TextLink from './TextLink.astro';
 import plus from '../assets/icons/plus-plum.svg';
 import minus from '../assets/icons/minus-plum.svg';
+import { faqLists, type FaqKey } from '../data/faqs';
 
 interface Props {
   lead: string;
-  items: { q: string; a: string }[];
+  page: FaqKey;
   /** Optional link under the intro (Home has "Contact us"). */
   link?: { label: string; href: string };
 }
 
-const { lead, items, link } = Astro.props;
+const { lead, page, link } = Astro.props;
+const items = faqLists[page];
 ---
 
-<section class="section" aria-labelledby="faq-title" data-reveal>
+<section class="section" aria-labelledby="faq-title" data-reveal data-faq={page}>
   <div class="faq">
     <div class="faq__intro">
       <SectionHeading id="faq-title" eyebrow="FAQ" title="Frequently asked questions" lead={lead} />
       {link && <TextLink href={link.href}>{link.label}</TextLink>}
     </div>
 
-    <div class="faq__list">
+    <div class="faq__list" data-faq-list>
       {
         items.map((item, i) => (
           <details class="faq__item" open={i === 0}>
             <summary class="faq__question">
-              <h3 class="t-h4">{item.q}</h3>
+              <h3 class="t-h4">{item.question}</h3>
               <span class="faq__toggle" aria-hidden="true">
                 <img class="faq__plus" src={plus.src} width="22" height="22" alt="" />
                 <img class="faq__minus" src={minus.src} width="22" height="22" alt="" />
               </span>
             </summary>
-            <p class="t-body faq__answer">{item.a}</p>
+            <p class="t-body faq__answer">{item.answer}</p>
           </details>
         ))
       }
@@ -125,3 +130,33 @@ const { lead, items, link } = Astro.props;
     }
   }
 </style>
+
+<script>
+  import { api } from '../lib/api';
+
+  interface Faq {
+    items: { question: string; answer: string }[];
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-faq]').forEach((section) => {
+    const list = section.querySelector<HTMLElement>('[data-faq-list]')!;
+    const model = list.querySelector<HTMLDetailsElement>('.faq__item');
+    if (!model) return;
+    api<Faq>(`/faqs/${encodeURIComponent(section.dataset.faq!)}`)
+      .then(({ items }) => {
+        if (!items.length) return;
+        list.replaceChildren(
+          ...items.map((item, i) => {
+            const details = model.cloneNode(true) as HTMLDetailsElement;
+            details.open = i === 0;
+            details.querySelector('h3')!.textContent = item.question;
+            details.querySelector('.faq__answer')!.textContent = item.answer;
+            return details;
+          }),
+        );
+      })
+      .catch(() => {
+        // Not saved yet in the admin (or the API is unreachable): the built-in questions stay.
+      });
+  });
+</script>
