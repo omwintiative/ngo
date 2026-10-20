@@ -19,8 +19,9 @@ const postRewrite = (req, _res, next) => {
 };
 
 export default defineConfig({
-  // The live address: canonical and social-preview links point here.
-  site: 'https://omwinitiative.org',
+  // The live address (omwinitiative.org forwards to www): canonical and
+  // social-preview links point here.
+  site: 'https://www.omwinitiative.org',
   output: 'static',
   vite: {
     plugins: [
