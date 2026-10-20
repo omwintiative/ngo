@@ -1,0 +1,102 @@
+---
+/*
+  Admin · Privacy Policy (not in the Figma admin; agreed 20 Oct 2026 to use
+  the Edit post editor). OMWI's privacy policy text: until it is first saved
+  the website shows the Figma template, and the editor starts from that
+  template so the bracketed lines can be replaced one by one.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Button from '../../components/Button.astro';
+import TextEditor from '../../components/admin/TextEditor.astro';
+---
+
+<AdminLayout title="Privacy Policy" section="privacy">
+  <div class="admin-page-top">
+    <div class="admin-page-header">
+      <h1 class="t-h3">Privacy Policy</h1>
+      <p class="t-body-small" data-subtitle>&nbsp;</p>
+    </div>
+    <div class="admin-page-top__actions">
+      <Button href="/privacy-policy" variant="outline" target="_blank" rel="noopener">
+        View Page<span class="visually-hidden"> (opens in a new tab)</span>
+      </Button>
+      <Button data-save>Save Changes</Button>
+    </div>
+  </div>
+
+  <p class="admin-alert admin-alert--success" role="status" data-status></p>
+
+  <section class="admin-card policy-card" aria-label="Privacy policy text" hidden data-card>
+    <TextEditor label="Policy text" />
+  </section>
+</AdminLayout>
+
+<style>
+  .policy-card {
+    max-width: var(--size-admin-message-width);
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { requireAdmin, formatDateTime } from '../../lib/admin';
+  import { setupTextEditor } from '../../lib/textEditor';
+  import { templateText } from '../../data/privacyPolicy';
+
+  interface Page {
+    body: string;
+    updatedAt: string;
+  }
+
+  const card = document.querySelector<HTMLElement>('[data-card]')!;
+  const subtitle = document.querySelector<HTMLElement>('[data-subtitle]')!;
+  const saveButton = document.querySelector<HTMLButtonElement>('[data-save]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+  let unsaved = false;
+
+  const editor = setupTextEditor(document.querySelector<HTMLElement>('[data-text-editor]')!, {
+    onChange: () => (unsaved = true),
+    onError: (message) => (alertEl.textContent = message),
+  });
+
+  const showSaved = (page: Page | null) => {
+    subtitle.textContent = page
+      ? `Last saved ${formatDateTime(page.updatedAt)} · shown on the website`
+      : 'Not saved yet · the website shows the template text below';
+  };
+
+  saveButton.addEventListener('click', async () => {
+    alertEl.textContent = '';
+    statusEl.textContent = '';
+    saveButton.disabled = true;
+    try {
+      const { page } = await api<{ page: Page }>('/admin/pages/privacy-policy', {
+        method: 'PUT',
+        body: JSON.stringify({ body: editor.text() }),
+      });
+      unsaved = false;
+      showSaved(page);
+      statusEl.textContent = 'Privacy Policy saved. It is now on the website.';
+    } catch (error) {
+      alertEl.textContent = error instanceof ApiError ? error.message : 'The changes were not saved. Please try again.';
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  window.addEventListener('beforeunload', (event) => {
+    if (unsaved) event.preventDefault();
+  });
+
+  requireAdmin().then(async () => {
+    try {
+      const { page } = await api<{ page: Page | null }>('/admin/pages/privacy-policy');
+      editor.load(page ? page.body : templateText);
+      showSaved(page);
+      card.hidden = false;
+    } catch {
+      alertEl.textContent = 'The Privacy Policy could not load. Please refresh the page.';
+    }
+  });
+</script>

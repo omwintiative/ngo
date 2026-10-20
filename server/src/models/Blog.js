@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
 
-// Categories match the tabs on the public Blog page (Figma Admin · Blog posts).
-const CATEGORIES = ["Maternal Health", "Newborn Care", "Menstrual Health", "Mental Wellness", "OMWI News"];
-
 // Web addresses: lower-case letters, digits and single hyphens.
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -50,10 +47,11 @@ const blogSchema = new mongoose.Schema(
       },
       default: [],
     },
-    // Optional: posts written before categories existed have none.
+    // One of the admin's categories (models/Category.js, checked in the
+    // routes), or empty: posts written before categories existed have none.
     category: {
       type: String,
-      enum: [...CATEGORIES, ""],
+      trim: true,
       default: "",
     },
     // Drafts are only visible in the admin. Posts saved before drafts existed
@@ -74,6 +72,13 @@ const blogSchema = new mongoose.Schema(
       maxlength: 250,
       default: "",
     },
+    // Shown as the post's author; empty means the admin account's name.
+    authorName: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+      default: "",
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -84,7 +89,6 @@ const blogSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Blog", blogSchema);
-module.exports.CATEGORIES = CATEGORIES;
 module.exports.SLUG_PATTERN = SLUG_PATTERN;
 // Public queries: published (old posts have no status) and not scheduled
 // for later.

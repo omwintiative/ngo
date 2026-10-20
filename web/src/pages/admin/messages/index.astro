@@ -74,6 +74,7 @@ import search from '../../../assets/icons/search-plum-20.svg';
   import { adminPaths } from '../../../config/admin';
   import { requireAdmin, el, formatDateTime } from '../../../lib/admin';
   import { renderMessage, messageBadge, type AdminMessage } from '../../../lib/adminMessages';
+  import { matchesSearch } from '../../../lib/search';
 
   const inbox = document.querySelector<HTMLElement>('[data-inbox]')!;
   const reader = document.querySelector<HTMLElement>('[data-reader]')!;
@@ -90,8 +91,7 @@ import search from '../../../assets/icons/search-plum-20.svg';
   const pageHref = (m: AdminMessage) => `${adminPaths.message}?id=${encodeURIComponent(m.id)}`;
   const matches = (m: AdminMessage) => {
     if (filter !== 'all' && m.status !== filter) return false;
-    const q = searchEl.value.trim().toLowerCase();
-    return !q || `${m.name} ${m.email} ${m.subject}`.toLowerCase().includes(q);
+    return matchesSearch(searchEl.value, m.name, m.email, m.subject);
   };
 
   const showCount = () => {

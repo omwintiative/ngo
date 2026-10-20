@@ -114,7 +114,7 @@ router.get("/blogs", async (req, res) => {
     if (status === "draft") filter.status = "draft";
     // Published includes posts scheduled for later (old posts have no status).
     else if (status === "published") filter.status = { $ne: "draft" };
-    if (typeof category === "string" && Blog.CATEGORIES.includes(category)) filter.category = category;
+    if (typeof category === "string" && category) filter.category = category;
     const pattern = searchPattern(q);
     if (pattern) filter.title = pattern;
     const posts = await Blog.find(filter).sort({ createdAt: -1 }).populate("createdBy", "name");

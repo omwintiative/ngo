@@ -1,19 +1,27 @@
 ---
 /*
   "Meet the team" (Home and About), from Figma Section / Our team (91:6781).
-  1 column on phones, 2 on tablets, 4 on desktop. People come from
-  src/data/team.ts.
+  1 column on phones, 2 on tablets, 4 on desktop.
+
+  People: the cards in src/data/team.ts show first; the team from
+  Admin · Team (GET /api/team) replaces them when it arrives. If the API
+  cannot be reached or the team is empty there, the built-in cards stay.
 */
 import SectionHeading from './SectionHeading.astro';
 import TeamCard from './TeamCard.astro';
 import { team } from '../data/team';
+import samplePortrait from '../assets/photos/outreach-1.jpg';
 ---
 
-<section class="section section--tint" aria-labelledby="team-title">
+<section class="section section--tint" aria-labelledby="team-title" data-team>
   <SectionHeading id="team-title" eyebrow="Our Team" title="Meet the team" align="center" data-reveal />
-  <div class="team__grid">
+  <div class="team__grid" data-team-grid>
     {team.map((member, i) => <TeamCard member={member} data-reveal style={`--reveal-index: ${i}`} />)}
   </div>
+  <!-- A card with a portrait, copied for people from the admin who have one -->
+  <template data-team-photo-card>
+    <TeamCard member={{ name: '', role: '', photo: samplePortrait, photoAlt: '' }} />
+  </template>
 </section>
 
 <style>
@@ -34,3 +42,47 @@ import { team } from '../data/team';
     }
   }
 </style>
+
+<script>
+  import { api } from '../lib/api';
+  import { sizedPhoto } from '../lib/gallery';
+
+  interface Member {
+    name: string;
+    role: string;
+    photoUrl: string;
+    photoAlt: string;
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-team]').forEach((section) => {
+    const grid = section.querySelector<HTMLElement>('[data-team-grid]')!;
+    const photoCard = section.querySelector<HTMLTemplateElement>('[data-team-photo-card]')!;
+    const placeholderCard = grid.querySelector('.team-card__placeholder')?.closest<HTMLElement>('.team-card');
+
+    api<Member[]>('/team')
+      .then((members) => {
+        if (!members.length) return;
+        const cards = members.map((m) => {
+          const model = m.photoUrl ? (photoCard.content.firstElementChild as HTMLElement) : placeholderCard;
+          if (!model) return null;
+          const card = model.cloneNode(true) as HTMLElement;
+          // Shown at once: the scroll reveal only watches the first cards.
+          card.removeAttribute('data-reveal');
+          card.removeAttribute('style');
+          card.querySelector('h3')!.textContent = m.name;
+          card.querySelector('.team-card__role')!.textContent = m.role;
+          const img = card.querySelector<HTMLImageElement>('.photo__img');
+          if (img && m.photoUrl) {
+            img.srcset = [300, 600].map((w) => `${sizedPhoto(m.photoUrl, w)} ${w}w`).join(', ');
+            img.src = sizedPhoto(m.photoUrl, 600);
+            img.alt = m.photoAlt || `Portrait of ${m.name}`;
+          }
+          return card;
+        });
+        if (cards.every(Boolean)) grid.replaceChildren(...(cards as HTMLElement[]));
+      })
+      .catch(() => {
+        // The built-in cards stay.
+      });
+  });
+</script>

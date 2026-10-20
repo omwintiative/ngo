@@ -1,34 +1,14 @@
 ---
 /*
-  Privacy Policy, from Figma (208:7806). The Figma page is a template: every
-  line in square brackets must be replaced with wording approved by OMWI
-  before launch (see the launch checklist in web/README.md). The headings show
-  what a policy for a donation site normally covers; they are not legal
-  wording. Kept out of search engines until the real text is in.
+  Privacy Policy, from Figma (208:7806). Shows the Figma template
+  (src/data/privacyPolicy.ts) until the admin saves OMWI's text in
+  Admin · Privacy Policy; then that text (GET /api/pages/privacy-policy)
+  replaces it, with its "Last updated" date. Kept out of search engines.
 */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
 import banner from '../assets/photos/stock-banner-privacy.jpg';
-
-// Copy from Figma, word for word. TODO before launch: OMWI's approved text.
-const sections = [
-  {
-    heading: 'What information we collect',
-    text: '[To be supplied. For example: the name, email address and phone number entered on the Donate and Contact forms.]',
-  },
-  { heading: 'How we use your information', text: '[To be supplied by OMWI.]' },
-  {
-    heading: 'Payments',
-    text: '[To be supplied. Payment is completed on Paystack’s checkout; confirm with Paystack what OMWI receives.]',
-  },
-  { heading: 'Who we share information with', text: '[To be supplied by OMWI.]' },
-  { heading: 'How long we keep it', text: '[To be supplied by OMWI.]' },
-  { heading: 'Your rights', text: '[To be supplied by OMWI.]' },
-  {
-    heading: 'Contact us about your data',
-    text: '[To be supplied: the person and email address for privacy questions.]',
-  },
-];
+import { intro, sections } from '../data/privacyPolicy';
 ---
 
 <BaseLayout
@@ -40,16 +20,18 @@ const sections = [
 
   <section class="section policy-section" aria-label="Privacy policy">
     <article class="policy">
-      <p class="t-body-small policy__updated">Last updated: [date to be supplied by OMWI]</p>
-      <p class="t-body-large">[OMWI to supply the policy text. The headings below are a starting structure only.]</p>
-      {
-        sections.map((s) => (
-          <>
-            <h2 class="t-h3">{s.heading}</h2>
-            <p class="t-body-large">{s.text}</p>
-          </>
-        ))
-      }
+      <p class="t-body-small policy__updated" data-updated>Last updated: [date to be supplied by OMWI]</p>
+      <div class="policy__body" data-policy-body>
+        <p class="t-body-large">{intro}</p>
+        {
+          sections.map((s) => (
+            <>
+              <h2>{s.heading}</h2>
+              <p class="t-body-large">{s.text}</p>
+            </>
+          ))
+        }
+      </div>
     </article>
   </section>
 </BaseLayout>
@@ -68,4 +50,51 @@ const sections = [
   .policy__updated {
     color: var(--text-muted);
   }
+  .policy__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+  /* The same look for the built-in text and the admin's text */
+  .policy__body :global(h2) {
+    font-size: var(--type-h3-size);
+    font-weight: 700;
+    line-height: var(--type-h3-line);
+    letter-spacing: 0;
+  }
+  .policy__body :global(:is(p, li)) {
+    font-size: var(--type-body-large-size);
+    line-height: var(--type-body-large-line);
+  }
+  .policy__body :global(:is(ul, ol)) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    margin: 0;
+    padding-left: var(--space-24);
+  }
+  .policy__body :global(blockquote) {
+    margin: 0;
+    padding-left: var(--space-20);
+    border-left: 3px solid var(--border-primary);
+    font-style: italic;
+  }
+  .policy__body :global(a) {
+    color: var(--text-primary);
+    text-decoration: underline;
+  }
 </style>
+
+<script>
+  import { api } from '../lib/api';
+  import { renderPostText } from '../lib/postText';
+
+  api<{ body: string; updatedAt: string }>('/pages/privacy-policy')
+    .then((page) => {
+      document.querySelector('[data-policy-body]')!.replaceChildren(renderPostText(page.body));
+      document.querySelector('[data-updated]')!.textContent = `Last updated: ${new Date(page.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Africa/Lagos' })}`;
+    })
+    .catch(() => {
+      // Not saved yet in the admin (or the API is unreachable): the template stays.
+    });
+</script>

@@ -17,9 +17,13 @@ export interface Post {
   imageAlt?: string;
   publishAt?: string | null;
   publishedAt?: string;
+  authorName?: string;
   createdAt: string;
   createdBy?: { name?: string };
 }
+
+/** The author shown on a post: the name typed in the admin, or the admin account's. */
+export const postAuthor = (post: Pick<Post, 'authorName' | 'createdBy'>) => post.authorName || post.createdBy?.name || '';
 
 export const fetchPosts = () => api<Post[]>('/blogs');
 export const fetchPost = (idOrSlug: string) => api<Post>(`/blogs/${encodeURIComponent(idOrSlug)}`);

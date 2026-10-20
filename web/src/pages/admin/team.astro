@@ -1,0 +1,321 @@
+---
+/*
+  Admin · Team (not in the Figma admin; agreed 20 Oct 2026 to follow the
+  Gallery screen). The people in "Meet the team" on Home and About: name,
+  role, portrait and its description, and their order. Choose a person to
+  edit them, or Add Team Member. Changes show on the website straight away.
+*/
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import Button from '../../components/Button.astro';
+import FormField from '../../components/FormField.astro';
+import trash from '../../assets/icons/admin/trash-red.svg';
+---
+
+<AdminLayout title="Team" section="team">
+  <div class="admin-page-top">
+    <div class="admin-page-header">
+      <h1 class="t-h3">Team</h1>
+      <p class="t-body-small" data-counts>&nbsp;</p>
+    </div>
+    <div class="admin-page-top__actions">
+      <Button data-add>Add Team Member</Button>
+    </div>
+  </div>
+
+  <p class="admin-alert admin-alert--success" role="status" data-status></p>
+
+  <div class="admin-columns" data-columns>
+    <div class="admin-columns__main">
+      <ul class="gallery-grid" aria-label="Team" data-grid></ul>
+      <p class="t-body admin-empty" hidden data-empty>No team members yet.</p>
+    </div>
+
+    <div class="admin-columns__side">
+      <section class="admin-card" aria-labelledby="edit-title" hidden data-edit>
+        <h2 class="t-h4" id="edit-title" data-edit-title>Edit team member</h2>
+        <div class="gallery-photo team-edit__photo"><img alt="" hidden data-edit-img /></div>
+        <input class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" tabindex="-1" data-file />
+        <Button variant="outline" class="team-edit__photo-button" data-choose>Add Photo</Button>
+        <FormField name="name" label="Name" autocomplete="off" required />
+        <FormField name="role" label="Role" autocomplete="off" />
+        <FormField
+          name="photoAlt"
+          label="Photo description"
+          autocomplete="off"
+          helper="Describe what the photo shows, for people who use screen readers."
+        />
+        <div class="team-edit__move" data-move>
+          <Button variant="outline" data-move-earlier>Move Earlier</Button>
+          <Button variant="outline" data-move-later>Move Later</Button>
+        </div>
+        <Button class="team-edit__save" data-save>Save Changes</Button>
+        <button type="button" class="team-edit__delete t-button" data-delete>
+          <img src={trash.src} width="20" height="20" alt="" />
+          <span data-delete-label>Delete team member</span>
+        </button>
+      </section>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .team-edit__photo {
+    height: var(--size-admin-gallery-edit-photo);
+  }
+  .team-edit__move {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+  }
+  .team-edit__delete {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--space-8);
+    min-height: var(--size-touch-target);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-error);
+    cursor: pointer;
+  }
+  .team-edit__delete:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .admin-card :global(.team-edit__save) {
+    width: 100%;
+  }
+  @media (min-width: 768px) {
+    .admin-card :global(:is(.team-edit__save, .team-edit__photo-button)) {
+      width: auto;
+      align-self: flex-start;
+    }
+  }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { requireAdmin, confirmAction, el, preparePhoto } from '../../lib/admin';
+  import { sizedPhoto } from '../../lib/gallery';
+
+  interface Member {
+    id: string;
+    name: string;
+    role: string;
+    photoUrl: string;
+    photoAlt: string;
+  }
+
+  const NEW = 'new';
+  const grid = document.querySelector<HTMLElement>('[data-grid]')!;
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]')!;
+  const editCard = document.querySelector<HTMLElement>('[data-edit]')!;
+  const editTitle = document.querySelector<HTMLElement>('[data-edit-title]')!;
+  const editImg = document.querySelector<HTMLImageElement>('[data-edit-img]')!;
+  const fileInput = document.querySelector<HTMLInputElement>('[data-file]')!;
+  const choose = document.querySelector<HTMLButtonElement>('[data-choose]')!;
+  const nameField = document.querySelector<HTMLInputElement>('#field-name')!;
+  const roleField = document.querySelector<HTMLInputElement>('#field-role')!;
+  const altField = document.querySelector<HTMLInputElement>('#field-photoAlt')!;
+  const nameError = document.querySelector<HTMLElement>('[data-error-for="name"]')!;
+  const moveRow = document.querySelector<HTMLElement>('[data-move]')!;
+  const earlier = document.querySelector<HTMLButtonElement>('[data-move-earlier]')!;
+  const later = document.querySelector<HTMLButtonElement>('[data-move-later]')!;
+  const saveButton = document.querySelector<HTMLButtonElement>('[data-save]')!;
+  const deleteLabel = document.querySelector<HTMLElement>('[data-delete-label]')!;
+  const statusEl = document.querySelector<HTMLElement>('[data-status]')!;
+  const alertEl = document.querySelector<HTMLElement>('[data-admin-alert]')!;
+
+  nameField.maxLength = 100;
+  roleField.maxLength = 100;
+  altField.maxLength = 250;
+
+  let members: Member[] = [];
+  let selected: string | null = null;
+  let photoFile: File | null = null;
+  let unsaved = false;
+
+  const current = () => members.find((m) => m.id === selected);
+  const problem = (error: unknown, fallback: string) => (error instanceof ApiError ? error.message : fallback);
+
+  const showCounts = () => {
+    document.querySelector('[data-counts]')!.textContent =
+      `${members.length} ${members.length === 1 ? 'person' : 'people'} · shown in "Meet the team" on Home and About`;
+  };
+
+  const tile = (m: Member) => {
+    const li = el('li', 'gallery-tile');
+    const button = el('button', 'gallery-tile__button');
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(m.id === selected));
+    const photo = el('span', 'gallery-photo gallery-tile__photo');
+    if (m.photoUrl) {
+      const img = el('img');
+      img.src = sizedPhoto(m.photoUrl, 600);
+      img.alt = '';
+      img.loading = 'lazy';
+      photo.append(img);
+    }
+    const meta = el('span', 'gallery-tile__meta');
+    meta.append(el('span', 't-button', m.name), el('span', 't-body-small admin-muted', m.role));
+    button.append(photo, meta);
+    button.addEventListener('click', () => select(m.id));
+    li.append(button);
+    return li;
+  };
+
+  const render = () => {
+    grid.replaceChildren(...members.map(tile));
+    grid.hidden = members.length === 0;
+    emptyEl.hidden = members.length > 0;
+    showCounts();
+  };
+
+  const clearError = () => {
+    nameField.removeAttribute('aria-invalid');
+    nameError.textContent = '';
+  };
+
+  const select = (id: string | null) => {
+    selected = id;
+    photoFile = null;
+    unsaved = false;
+    clearError();
+    grid.querySelectorAll('.gallery-tile__button').forEach((b, i) => b.setAttribute('aria-pressed', String(members[i]?.id === id)));
+    editCard.hidden = id === null;
+    if (id === null) return;
+    const m = current();
+    editTitle.textContent = m ? 'Edit team member' : 'New team member';
+    nameField.value = m?.name ?? '';
+    roleField.value = m?.role ?? '';
+    altField.value = m?.photoAlt ?? '';
+    editImg.hidden = !m?.photoUrl;
+    if (m?.photoUrl) editImg.src = sizedPhoto(m.photoUrl, 800);
+    choose.textContent = m?.photoUrl ? 'Change Photo' : 'Add Photo';
+    deleteLabel.textContent = m ? 'Delete team member' : 'Cancel';
+    moveRow.hidden = !m;
+    const index = members.findIndex((x) => x.id === id);
+    earlier.disabled = index <= 0;
+    later.disabled = index === -1 || index >= members.length - 1;
+  };
+
+  document.querySelector('[data-add]')!.addEventListener('click', () => {
+    select(NEW);
+    nameField.focus();
+  });
+
+  choose.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', async () => {
+    const chosen = fileInput.files?.[0];
+    fileInput.value = '';
+    if (!chosen) return;
+    const file = await preparePhoto(chosen);
+    if (!file) {
+      alertEl.textContent = 'Choose a JPEG, PNG or WebP photo.';
+      return;
+    }
+    alertEl.textContent = '';
+    photoFile = file;
+    editImg.src = URL.createObjectURL(file);
+    editImg.hidden = false;
+    unsaved = true;
+    statusEl.textContent = 'Photo chosen. It is uploaded when you save.';
+  });
+
+  [nameField, roleField, altField].forEach((f) => f.addEventListener('input', () => (unsaved = true)));
+  nameField.addEventListener('input', clearError);
+
+  saveButton.addEventListener('click', async () => {
+    alertEl.textContent = '';
+    statusEl.textContent = '';
+    if (!nameField.value.trim()) {
+      nameField.setAttribute('aria-invalid', 'true');
+      nameError.textContent = "Add the person's name.";
+      nameField.focus();
+      return;
+    }
+    const form = new FormData();
+    form.set('name', nameField.value);
+    form.set('role', roleField.value);
+    form.set('photoAlt', altField.value);
+    if (photoFile) form.set('photo', photoFile);
+    saveButton.disabled = true;
+    try {
+      const existing = current();
+      const { member } = existing
+        ? await api<{ member: Member }>(`/admin/team/${encodeURIComponent(existing.id)}`, { method: 'PATCH', body: form })
+        : await api<{ member: Member }>('/admin/team', { method: 'POST', body: form });
+      members = existing ? members.map((m) => (m.id === member.id ? member : m)) : [...members, member];
+      render();
+      select(member.id);
+      statusEl.textContent = `${member.name} saved.`;
+    } catch (error) {
+      alertEl.textContent = problem(error, 'The changes were not saved. Please try again.');
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  document.querySelector('[data-delete]')!.addEventListener('click', async () => {
+    const m = current();
+    if (!m) {
+      select(null);
+      return;
+    }
+    const ok = await confirmAction({
+      title: 'Delete this team member?',
+      text: `${m.name} will be removed from "Meet the team" on the website. This can't be undone.`,
+      confirmLabel: 'Delete Team Member',
+    });
+    if (!ok) return;
+    try {
+      await api(`/admin/team/${encodeURIComponent(m.id)}`, { method: 'DELETE' });
+      members = members.filter((x) => x.id !== m.id);
+      render();
+      select(members[0]?.id ?? null);
+      statusEl.textContent = `${m.name} deleted.`;
+    } catch (error) {
+      alertEl.textContent = problem(error, 'The team member was not deleted. Please try again.');
+    }
+  });
+
+  const move = async (by: number, button: HTMLElement) => {
+    const index = members.findIndex((m) => m.id === selected);
+    const to = index + by;
+    if (index < 0 || to < 0 || to >= members.length) return;
+    const next = [...members];
+    const [m] = next.splice(index, 1);
+    next.splice(to, 0, m);
+    try {
+      members = (
+        await api<{ members: Member[] }>('/admin/team/order', {
+          method: 'PUT',
+          body: JSON.stringify({ ids: next.map((x) => x.id) }),
+        })
+      ).members;
+      render();
+      select(m.id);
+      button.focus();
+      statusEl.textContent = 'Order saved.';
+    } catch (error) {
+      alertEl.textContent = problem(error, 'The new order was not saved. Please try again.');
+    }
+  };
+  earlier.addEventListener('click', () => move(-1, earlier));
+  later.addEventListener('click', () => move(1, later));
+
+  window.addEventListener('beforeunload', (event) => {
+    if (unsaved) event.preventDefault();
+  });
+
+  requireAdmin().then(async () => {
+    try {
+      members = (await api<{ members: Member[] }>('/admin/team')).members;
+      render();
+      select(members[0]?.id ?? null);
+    } catch {
+      alertEl.textContent = 'The team could not load. Please refresh the page.';
+    }
+  });
+</script>

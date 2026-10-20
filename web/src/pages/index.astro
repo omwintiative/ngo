@@ -13,7 +13,20 @@ import OurTeam from '../components/OurTeam.astro';
 import Faq from '../components/Faq.astro';
 import LatestPosts from '../components/home/LatestPosts.astro';
 import DonationCallout from '../components/DonationCallout.astro';
-import { paths } from '../config/navigation';
+import { paths, contact } from '../config/navigation';
+
+// Who OMWI is, for search engines (schema.org NGO), from the footer details.
+const organisation = {
+  '@context': 'https://schema.org',
+  '@type': 'NGO',
+  name: 'Ọmụgwọ Maternal Welfare Initiative',
+  alternateName: 'OMWI',
+  url: Astro.site?.href,
+  logo: Astro.site ? new URL('/apple-touch-icon.png', Astro.site).href : undefined,
+  email: contact.email,
+  telephone: contact.phone,
+  address: { '@type': 'PostalAddress', addressLocality: 'Abuja', addressCountry: 'NG' },
+};
 
 // Home FAQ, exactly as in Figma (91:6838).
 const faqs = [
@@ -44,6 +57,7 @@ const faqs = [
   title="Ọmụgwọ Maternal Welfare Initiative"
   description="OMWI promotes health equity and reproductive health dignity by expanding access to reproductive healthcare and education, wellness resources, and compassionate support."
 >
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(organisation)} />
   <HeroSlider />
   <WhoWeAre />
   <WhatWeDo />

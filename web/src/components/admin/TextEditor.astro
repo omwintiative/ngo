@@ -1,0 +1,141 @@
+---
+/*
+  Formatted-text editor of the admin (Figma Admin · Edit post, Post
+  content): a toolbar (heading, bold, italic, link, lists, quote) over a
+  writing area. Used by Edit post and Privacy Policy; lib/textEditor.ts makes
+  it work, and lib/postText.ts turns its contents into the limited format
+  that is saved.
+*/
+import heading from '../../assets/icons/admin/tool-heading.svg';
+import bold from '../../assets/icons/admin/tool-bold.svg';
+import italic from '../../assets/icons/admin/tool-italic.svg';
+import link from '../../assets/icons/admin/tool-link.svg';
+import bullets from '../../assets/icons/admin/tool-bullets.svg';
+import numbers from '../../assets/icons/admin/tool-numbers.svg';
+import quote from '../../assets/icons/admin/tool-quote.svg';
+
+interface Props {
+  /** The visible label above the toolbar. */
+  label: string;
+  placeholder?: string;
+}
+
+const { label, placeholder = 'Keep writing here…' } = Astro.props;
+const tools = [
+  { command: 'heading', label: 'Heading', icon: heading },
+  { command: 'bold', label: 'Bold', icon: bold },
+  { command: 'italic', label: 'Italic', icon: italic },
+  { command: 'link', label: 'Link', icon: link },
+  { command: 'bullets', label: 'Bulleted list', icon: bullets },
+  { command: 'numbers', label: 'Numbered list', icon: numbers },
+  { command: 'quote', label: 'Quote', icon: quote },
+];
+---
+
+<div class="text-editor" data-text-editor>
+  <p class="t-button" id="text-editor-label">{label}</p>
+  <div class="text-editor__toolbar" role="toolbar" aria-label="Formatting" aria-controls="text-editor-area">
+    {
+      tools.map((tool) => (
+        <button type="button" class="text-editor__tool" aria-pressed="false" data-tool={tool.command}>
+          <img src={tool.icon.src} width="22" height="22" alt="" />
+          <span class="visually-hidden">{tool.label}</span>
+        </button>
+      ))
+    }
+  </div>
+  <div
+    class="text-editor__area t-body-large"
+    id="text-editor-area"
+    contenteditable="true"
+    role="textbox"
+    aria-multiline="true"
+    aria-labelledby="text-editor-label"
+    data-placeholder={placeholder}
+    data-editor
+  >
+  </div>
+</div>
+
+<style>
+  .text-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+  .text-editor__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border-radius: var(--radius-card);
+    background: var(--bg-tint);
+  }
+  .text-editor__tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--size-icon-button);
+    height: var(--size-icon-button);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-button);
+    background: var(--bg-surface);
+    cursor: pointer;
+  }
+  .text-editor__tool:hover,
+  .text-editor__tool[aria-pressed='true'] {
+    border-color: var(--border-primary);
+    background: var(--bg-soft);
+  }
+  .text-editor__tool:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .text-editor__area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    min-height: var(--size-textarea-height);
+    padding: var(--space-24);
+    border: 1px solid var(--border-field);
+    border-radius: var(--radius-button);
+    background: var(--bg-field);
+    color: var(--text-default);
+    overflow-wrap: anywhere;
+  }
+  .text-editor__area:focus-visible {
+    outline: none;
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  /* Sits over the empty first paragraph */
+  .text-editor__area[data-empty]::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    top: var(--space-24);
+    left: var(--space-24);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .text-editor__area :global(:is(p, ul, ol, blockquote, h2, div)) {
+    margin: 0;
+  }
+  .text-editor__area :global(h2) {
+    font-size: var(--type-h4-size);
+    font-weight: 600;
+    line-height: var(--type-h4-line);
+  }
+  .text-editor__area :global(:is(ul, ol)) {
+    padding-left: var(--space-24);
+  }
+  .text-editor__area :global(blockquote) {
+    padding-left: var(--space-20);
+    border-left: 3px solid var(--border-primary);
+    font-style: italic;
+  }
+  .text-editor__area :global(a) {
+    color: var(--text-primary);
+    text-decoration: underline;
+  }
+</style>

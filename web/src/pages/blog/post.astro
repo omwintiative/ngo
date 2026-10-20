@@ -220,7 +220,7 @@ const share = [
 </style>
 
 <script>
-  import { fetchPost, fetchPosts, formatDate, postDate, renderPostCard, safeImage, type Post } from '../../lib/posts';
+  import { fetchPost, fetchPosts, formatDate, postAuthor, postDate, renderPostCard, safeImage, type Post } from '../../lib/posts';
   import { renderPostText } from '../../lib/postText';
 
   const params = new URLSearchParams(location.search);
@@ -271,7 +271,7 @@ const share = [
 
     // Meta line: category · date · author (each only when known)
     const date = formatDate(postDate(post));
-    const meta = [post.category, date?.text, post.createdBy?.name].filter(Boolean).join('  ·  ');
+    const meta = [post.category, date?.text, postAuthor(post)].filter(Boolean).join('  ·  ');
     document.querySelector('[data-post-meta]')!.textContent = meta;
 
     const src = safeImage(post.images?.[0]);

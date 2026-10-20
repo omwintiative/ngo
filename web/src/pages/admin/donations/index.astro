@@ -146,6 +146,7 @@ import search from '../../../assets/icons/search-plum-20.svg';
     el,
     type DonationLike,
   } from '../../../lib/admin';
+  import { matchesSearch } from '../../../lib/search';
   import chevron from '../../../assets/icons/admin/chevron-right-plum.svg';
   import pencil from '../../../assets/icons/admin/pencil-plum.svg';
 
@@ -185,8 +186,7 @@ import search from '../../../assets/icons/search-plum-20.svg';
     if (filter === 'paystack' && d.method !== 'paystack') return false;
     if (filter === 'recorded' && d.method === 'paystack') return false;
     if (filter === 'hidden' && (d.showOnContributors || !listable(d))) return false;
-    const q = searchEl.value.trim().toLowerCase();
-    return !q || `${d.donorName} ${d.donorEmail}`.toLowerCase().includes(q);
+    return matchesSearch(searchEl.value, d.donorName, d.donorEmail);
   };
 
   const toggleListing = async (d: Donation, button: HTMLButtonElement) => {

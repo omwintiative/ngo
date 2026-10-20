@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo \"current address: $\\(curl -s -m 20 https://api.ipify.org\\)\")",
+      "Bash(timeout 40 npx --yes node@22.22.0 --env-file=.env.test -e \"const m=require\\('mongoose'\\);m.connect\\(process.env.MONGODB_URI,{serverSelectionTimeoutMS:20000}\\).then\\(async\\(\\)=>{console.log\\('database reachable'\\);await m.disconnect\\(\\)}\\).catch\\(e=>console.log\\('still blocked:', e.name, \\(e.reason && e.reason.type\\) || ''\\)\\)\")"
+    ]
+  }
+}

@@ -18,25 +18,8 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
 import Button from '../../../components/Button.astro';
 import FormField from '../../../components/FormField.astro';
 import { adminPaths } from '../../../config/admin';
+import TextEditor from '../../../components/admin/TextEditor.astro';
 import arrowLeft from '../../../assets/icons/admin/arrow-left-plum.svg';
-import heading from '../../../assets/icons/admin/tool-heading.svg';
-import bold from '../../../assets/icons/admin/tool-bold.svg';
-import italic from '../../../assets/icons/admin/tool-italic.svg';
-import link from '../../../assets/icons/admin/tool-link.svg';
-import bullets from '../../../assets/icons/admin/tool-bullets.svg';
-import numbers from '../../../assets/icons/admin/tool-numbers.svg';
-import quote from '../../../assets/icons/admin/tool-quote.svg';
-
-const CATEGORIES = ['Maternal Health', 'Newborn Care', 'Menstrual Health', 'Mental Wellness', 'OMWI News'];
-const tools = [
-  { command: 'heading', label: 'Heading', icon: heading },
-  { command: 'bold', label: 'Bold', icon: bold },
-  { command: 'italic', label: 'Italic', icon: italic },
-  { command: 'link', label: 'Link', icon: link },
-  { command: 'bullets', label: 'Bulleted list', icon: bullets },
-  { command: 'numbers', label: 'Numbered list', icon: numbers },
-  { command: 'quote', label: 'Quote', icon: quote },
-];
 ---
 
 <AdminLayout title="Edit post" section="blog">
@@ -57,7 +40,7 @@ const tools = [
     </div>
   </div>
 
-  <p class="visually-hidden" aria-live="polite" data-status></p>
+  <p class="admin-alert admin-alert--success" role="status" data-status></p>
 
   <form class="admin-columns" method="post" novalidate hidden data-post-form>
     <div class="admin-columns__main">
@@ -70,31 +53,16 @@ const tools = [
           helper="Made from the title. Change it only before the post is published."
         />
         <FormField name="summary" label="Summary" type="textarea" helper="Shown on the Blog page and in search results." />
+        <FormField
+          name="authorName"
+          label="Author name (optional)"
+          autocomplete="off"
+          helper="Leave empty to use the admin account's name."
+        />
       </section>
 
-      <section class="admin-card edit-content" aria-labelledby="content-label">
-        <p class="t-button" id="content-label">Post content</p>
-        <div class="edit-toolbar" role="toolbar" aria-label="Formatting" aria-controls="post-editor">
-          {
-            tools.map((tool) => (
-              <button type="button" class="edit-tool" aria-pressed="false" data-tool={tool.command}>
-                <img src={tool.icon.src} width="22" height="22" alt="" />
-                <span class="visually-hidden">{tool.label}</span>
-              </button>
-            ))
-          }
-        </div>
-        <div
-          class="edit-editor t-body-large"
-          id="post-editor"
-          contenteditable="true"
-          role="textbox"
-          aria-multiline="true"
-          aria-labelledby="content-label"
-          data-placeholder="Keep writing here…"
-          data-editor
-        >
-        </div>
+      <section class="admin-card" aria-label="Post content">
+        <TextEditor label="Post content" />
       </section>
     </div>
 
@@ -105,7 +73,7 @@ const tools = [
           <span class="t-body-small admin-muted">Status</span>
           <span data-badge></span>
         </div>
-        <FormField name="publishAt" label="Publish date" type="date" helper="Pick a later date to schedule the post." />
+        <FormField name="publishAt" label="Publish date" type="date" helper="Pick a later date to schedule the post." required />
       </section>
 
       <section class="admin-card" aria-labelledby="category-title">
@@ -114,7 +82,8 @@ const tools = [
           name="category"
           label="Category"
           type="select"
-          options={[{ value: '', label: 'No category' }, ...CATEGORIES.map((c) => ({ value: c, label: c }))]}
+          options={[{ value: '', label: 'No category' }]}
+          helper="Manage the list on the Blog posts page."
         />
       </section>
 
@@ -143,84 +112,6 @@ const tools = [
   .edit-actions {
     flex-direction: column;
     flex-wrap: wrap;
-  }
-  .edit-content {
-    gap: var(--space-12);
-  }
-  .edit-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    border-radius: var(--radius-card);
-    background: var(--bg-tint);
-  }
-  .edit-tool {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--size-icon-button);
-    height: var(--size-icon-button);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-button);
-    background: var(--bg-surface);
-    cursor: pointer;
-  }
-  .edit-tool:hover,
-  .edit-tool[aria-pressed='true'] {
-    border-color: var(--border-primary);
-    background: var(--bg-soft);
-  }
-  .edit-tool:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
-  }
-  .edit-editor {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-16);
-    min-height: var(--size-textarea-height);
-    padding: var(--space-24);
-    border: 1px solid var(--border-field);
-    border-radius: var(--radius-button);
-    background: var(--bg-field);
-    color: var(--text-default);
-    overflow-wrap: anywhere;
-  }
-  .edit-editor:focus-visible {
-    outline: none;
-    border-color: var(--border-primary);
-    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
-  }
-  /* Sits over the empty first paragraph */
-  .edit-editor[data-empty]::before {
-    content: attr(data-placeholder);
-    position: absolute;
-    top: var(--space-24);
-    left: var(--space-24);
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-  .edit-editor :global(:is(p, ul, ol, blockquote, h2, div)) {
-    margin: 0;
-  }
-  .edit-editor :global(h2) {
-    font-size: var(--type-h4-size);
-    font-weight: 600;
-    line-height: var(--type-h4-line);
-  }
-  .edit-editor :global(:is(ul, ol)) {
-    padding-left: var(--space-24);
-  }
-  .edit-editor :global(blockquote) {
-    padding-left: var(--space-20);
-    border-left: 3px solid var(--border-primary);
-    font-style: italic;
-  }
-  .edit-editor :global(a) {
-    color: var(--text-primary);
-    text-decoration: underline;
   }
   .edit-status {
     display: flex;
@@ -255,16 +146,17 @@ const tools = [
 <script>
   import { api, ApiError } from '../../../lib/api';
   import { adminPaths } from '../../../config/admin';
-  import { requireAdmin, confirmAction, postBadge, badge, preparePhoto, type AdminPost } from '../../../lib/admin';
-  import { renderPostText, postTextFrom, safeHref } from '../../../lib/postText';
+  import { requireAdmin, confirmAction, postBadge, badge, preparePhoto, formatDate, type AdminPost } from '../../../lib/admin';
+  import { setupTextEditor } from '../../../lib/textEditor';
 
   const form = document.querySelector<HTMLFormElement>('[data-post-form]')!;
-  const editor = document.querySelector<HTMLElement>('[data-editor]')!;
   const field = <T extends HTMLElement = HTMLInputElement>(name: string) => form.elements.namedItem(name) as unknown as T;
   const title = field('title');
   const slug = field('slug');
   const summary = field<HTMLTextAreaElement>('summary');
+  const authorName = field('authorName');
   const publishAt = field('publishAt');
+  const publishAtError = document.querySelector<HTMLElement>('[data-error-for="publishAt"]')!;
   const category = field<HTMLSelectElement>('category');
   const imageAlt = field('imageAlt');
   const photo = document.querySelector<HTMLImageElement>('[data-photo]')!;
@@ -278,6 +170,7 @@ const tools = [
 
   title.maxLength = 200;
   summary.maxLength = 300;
+  authorName.maxLength = 100;
   imageAlt.maxLength = 250;
 
   let post: AdminPost | null = null;
@@ -296,17 +189,10 @@ const tools = [
     return label;
   };
 
-  // The text always sits in blocks: an empty editor gets one empty
-  // paragraph, so the first line typed is a paragraph too.
-  const markEmpty = () => {
-    const empty = !editor.textContent?.trim() && !editor.querySelector('li');
-    editor.toggleAttribute('data-empty', empty);
-    if (empty && !editor.querySelector('p, h2, blockquote')) {
-      const p = document.createElement('p');
-      p.append(document.createElement('br'));
-      editor.replaceChildren(p);
-    }
-  };
+  const editor = setupTextEditor(document.querySelector<HTMLElement>('[data-text-editor]')!, {
+    onChange: () => (unsaved = true),
+    onError: (message) => (alertEl.textContent = message),
+  });
 
   const fill = (p: AdminPost) => {
     post = p;
@@ -317,9 +203,10 @@ const tools = [
     summary.value = p.summary;
     category.value = p.category;
     imageAlt.value = p.imageAlt;
-    publishAt.value = p.publishAt ? lagosDay(p.publishAt) : '';
-    editor.replaceChildren(renderPostText(p.description));
-    markEmpty();
+    authorName.value = p.authorName ?? '';
+    // Publishing needs a date: the post's own, or today for one never dated.
+    publishAt.value = lagosDay(p.publishAt || p.publishedAt || new Date().toISOString());
+    editor.load(p.description);
     photo.hidden = !p.images[0];
     if (p.images[0]) photo.src = p.images[0];
     chooseImage.textContent = p.images[0] ? 'Change Image' : 'Add Image';
@@ -334,7 +221,7 @@ const tools = [
     showBadge('draft', null);
     subtitle.textContent = 'Draft · not saved yet';
     chooseImage.textContent = 'Add Image';
-    markEmpty();
+    publishAt.value = lagosDay(new Date().toISOString());
   };
 
   const formData = (status: AdminPost['status']) => {
@@ -343,9 +230,10 @@ const tools = [
     data.set('title', title.value);
     data.set('slug', slug.value.trim().replace(/^\/?blog\//, ''));
     data.set('summary', summary.value);
-    data.set('description', postTextFrom(editor));
+    data.set('description', editor.text());
     data.set('category', category.value);
     data.set('imageAlt', imageAlt.value);
+    data.set('authorName', authorName.value);
     data.set('publishAt', publishAt.value ? startOfLagosDay(publishAt.value) : '');
     if (imageFile) data.set('image1', imageFile);
     return data;
@@ -353,6 +241,13 @@ const tools = [
 
   const save = async (status: AdminPost['status']) => {
     alertEl.textContent = '';
+    statusEl.textContent = '';
+    if (status === 'published' && !publishAt.value) {
+      publishAt.setAttribute('aria-invalid', 'true');
+      publishAtError.textContent = 'Choose a publish date.';
+      publishAt.focus();
+      return;
+    }
     actions.forEach((b) => (b.disabled = true));
     try {
       const saved = post
@@ -361,7 +256,13 @@ const tools = [
       if (!post) history.replaceState(null, '', `?id=${encodeURIComponent(saved._id)}`);
       imageFile = null;
       fill(saved);
-      statusEl.textContent = status === 'draft' ? 'Draft saved.' : `Post saved: ${showBadge(saved.status, saved.publishAt)}.`;
+      const scheduled = postBadge(saved).label === 'Scheduled';
+      statusEl.textContent =
+        status === 'draft'
+          ? 'Draft saved.'
+          : scheduled
+            ? `Post scheduled for ${formatDate(saved.publishAt!)}.`
+            : 'Post published.';
     } catch (error) {
       alertEl.textContent = error instanceof ApiError ? error.message : 'The post was not saved. Please try again.';
     } finally {
@@ -388,7 +289,7 @@ const tools = [
     const preview = {
       _id: post?._id ?? 'preview',
       title: title.value.trim() || 'Untitled draft',
-      description: postTextFrom(editor),
+      description: editor.text(),
       summary: summary.value.trim(),
       category: category.value,
       images: post?.images ?? [],
@@ -397,6 +298,7 @@ const tools = [
       publishedAt: post?.publishedAt,
       createdAt: post?.createdAt ?? now,
       createdBy: post?.createdBy,
+      authorName: authorName.value.trim(),
     };
     try {
       localStorage.setItem('omwi-post-preview', JSON.stringify(preview));
@@ -442,99 +344,12 @@ const tools = [
     statusEl.textContent = 'Photo chosen. It is uploaded when you save.';
   });
 
-  // ----- Editor -----
-  // execCommand is old but still the only built-in way to format inside an
-  // editable area in every browser; what it produces is turned back into the
-  // limited format on save, so stray markup never reaches the site.
-  document.execCommand('defaultParagraphSeparator', false, 'p');
-  document.execCommand('styleWithCSS', false, 'false');
-
-  const closestInEditor = (selector: string) => {
-    const node = window.getSelection()?.anchorNode;
-    const element = node instanceof Element ? node : node?.parentElement;
-    const found = element?.closest(selector);
-    return found && editor.contains(found) ? found : null;
-  };
-
-  const addLink = () => {
-    const selection = window.getSelection();
-    if (!selection?.rangeCount || !editor.contains(selection.anchorNode)) return;
-    const range = selection.getRangeAt(0);
-    const existing = closestInEditor('a');
-    let href = window.prompt('Link address', existing?.getAttribute('href') ?? 'https://')?.trim();
-    if (href === undefined) return;
-    if (!href || href === 'https://') {
-      if (existing) document.execCommand('unlink');
-      return;
-    }
-    if (/^www\./i.test(href)) href = `https://${href}`;
-    if (!safeHref(href)) {
-      alertEl.textContent = 'Links must start with https:// (or mailto: for an email address).';
-      return;
-    }
-    if (selection.isCollapsed) {
-      const a = document.createElement('a');
-      a.href = href;
-      a.textContent = href;
-      range.insertNode(a);
-      range.setStartAfter(a);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    } else {
-      document.execCommand('createLink', false, href);
-    }
-  };
-
-  const tools: Record<string, () => void> = {
-    heading: () => document.execCommand('formatBlock', false, closestInEditor('h2') ? '<p>' : '<h2>'),
-    bold: () => document.execCommand('bold'),
-    italic: () => document.execCommand('italic'),
-    link: addLink,
-    bullets: () => document.execCommand('insertUnorderedList'),
-    numbers: () => document.execCommand('insertOrderedList'),
-    quote: () => document.execCommand('formatBlock', false, closestInEditor('blockquote') ? '<p>' : '<blockquote>'),
-  };
-
-  const toolButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-tool]')];
-  const updateTools = () => {
-    const state: Record<string, boolean> = {
-      heading: Boolean(closestInEditor('h2')),
-      bold: document.queryCommandState('bold'),
-      italic: document.queryCommandState('italic'),
-      link: Boolean(closestInEditor('a')),
-      bullets: Boolean(closestInEditor('ul')),
-      numbers: Boolean(closestInEditor('ol')),
-      quote: Boolean(closestInEditor('blockquote')),
-    };
-    toolButtons.forEach((b) => b.setAttribute('aria-pressed', String(state[b.dataset.tool!] ?? false)));
-  };
-
-  toolButtons.forEach((button) => {
-    // Keep the text selection in the editor while a tool is clicked.
-    button.addEventListener('mousedown', (event) => event.preventDefault());
-    button.addEventListener('click', () => {
-      if (!editor.contains(window.getSelection()?.anchorNode ?? null)) editor.focus();
-      tools[button.dataset.tool!]();
-      unsaved = true;
-      markEmpty();
-      updateTools();
-    });
-  });
-
-  // Pasted text arrives without its outside formatting.
-  editor.addEventListener('paste', (event) => {
-    event.preventDefault();
-    document.execCommand('insertText', false, event.clipboardData?.getData('text/plain') ?? '');
-  });
-  editor.addEventListener('input', () => {
-    unsaved = true;
-    markEmpty();
-  });
-  document.addEventListener('selectionchange', () => {
-    if (editor.contains(window.getSelection()?.anchorNode ?? null)) updateTools();
-  });
 
   form.addEventListener('input', () => (unsaved = true));
+  publishAt.addEventListener('change', () => {
+    publishAt.removeAttribute('aria-invalid');
+    publishAtError.textContent = '';
+  });
   form.addEventListener('submit', (event) => event.preventDefault());
   window.addEventListener('beforeunload', (event) => {
     if (unsaved) event.preventDefault();
@@ -543,6 +358,9 @@ const tools = [
   requireAdmin().then(async () => {
     const id = new URLSearchParams(window.location.search).get('id');
     try {
+      // The admin's categories (GET /api/categories), after "No category".
+      const categories = await api<{ id: string; name: string }[]>('/categories');
+      category.append(...categories.map((c) => new Option(c.name, c.name)));
       if (id) fill((await api<{ post: AdminPost }>(`/admin/blogs/${encodeURIComponent(id)}`)).post);
       else startNew();
       form.hidden = false;

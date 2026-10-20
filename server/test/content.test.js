@@ -7,6 +7,7 @@ const { Writable } = require("node:stream");
 const { startServer, createAdmin, request, signIn } = require("./helpers");
 const cloudinary = require("../src/config/cloudinary");
 const Blog = require("../src/models/Blog");
+const Category = require("../src/models/Category");
 const GalleryPhoto = require("../src/models/GalleryPhoto");
 
 let server;
@@ -47,6 +48,7 @@ before(async () => {
 after(() => server.stop());
 beforeEach(async () => {
   await Blog.deleteMany({});
+  await Category.deleteMany({});
   await GalleryPhoto.deleteMany({});
   uploads.length = 0;
   deletions.length = 0;
@@ -187,9 +189,54 @@ test("blog: a post scheduled for later stays hidden until its date", async () =>
   assert.equal((await request(server.base, "GET", "/api/blogs")).body.length, 0);
   assert.equal((await request(server.base, "GET", "/api/blogs/tomorrow")).status, 404);
 
-  const now = await api("PUT", `/api/blogs/${scheduled.body._id}`, postForm({ status: "published", publishAt: "" }));
-  assert.equal(now.body.publishAt, null);
+  // Publishing needs a date: cleared is refused, an earlier date goes live
+  assert.equal((await api("PUT", `/api/blogs/${scheduled.body._id}`, postForm({ status: "published", publishAt: "" }))).status, 400);
+  const earlier = new Date(Date.now() - 60 * 1000).toISOString();
+  const now = await api("PUT", `/api/blogs/${scheduled.body._id}`, postForm({ status: "published", publishAt: earlier }));
+  assert.equal(now.status, 200);
   assert.equal((await request(server.base, "GET", "/api/blogs/tomorrow")).status, 200);
+  // A draft may leave the date empty
+  assert.equal((await api("PUT", `/api/blogs/${scheduled.body._id}`, postForm({ status: "draft", publishAt: "" }))).status, 200);
+});
+
+test("categories: start with the design's five; add, rename (posts follow), remove only when unused", async () => {
+  const start = await request(server.base, "GET", "/api/categories");
+  assert.deepEqual(start.body.map((c) => c.name), ["Maternal Health", "Newborn Care", "Menstrual Health", "Mental Wellness", "OMWI News"]);
+
+  const added = await api("POST", "/api/admin/categories", { name: "  Community   Stories " });
+  assert.equal(added.status, 201);
+  assert.equal(added.body.category.name, "Community Stories");
+  assert.equal((await api("POST", "/api/admin/categories", { name: "community stories" })).status, 409);
+  assert.equal((await api("POST", "/api/admin/categories", { name: " " })).status, 400);
+  assert.equal((await request(server.base, "POST", "/api/admin/categories", { body: { name: "Signed out" } })).status, 401);
+
+  // Posts may use the new category; unknown ones are refused
+  const post = await api("POST", "/api/blogs", postForm({ title: "Story", description: "Text", status: "published", category: "Community Stories" }));
+  assert.equal(post.body.category, "Community Stories");
+  assert.equal((await api("POST", "/api/blogs", postForm({ title: "X", description: "Y", category: "Sports" }))).status, 400);
+
+  // Renaming moves its posts along
+  const renamed = await api("PATCH", `/api/admin/categories/${added.body.category.id}`, { name: "Stories" });
+  assert.equal(renamed.body.category.name, "Stories");
+  assert.equal((await Blog.findById(post.body._id)).category, "Stories");
+  assert.equal((await api("PATCH", `/api/admin/categories/${added.body.category.id}`, { name: "OMWI News" })).status, 409);
+
+  // Removing is refused while a post uses it
+  const blocked = await api("DELETE", `/api/admin/categories/${added.body.category.id}`);
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.body.message, /1 post uses this category/);
+  await api("PUT", `/api/blogs/${post.body._id}`, postForm({ status: "published", category: "", publishAt: new Date().toISOString() }));
+  assert.equal((await api("DELETE", `/api/admin/categories/${added.body.category.id}`)).status, 200);
+  assert.equal((await request(server.base, "GET", "/api/categories")).body.length, 5);
+});
+
+test("blog: an optional author name is saved and shown publicly", async () => {
+  const post = await api("POST", "/api/blogs", postForm({ title: "By a guest", description: "Text", status: "published", authorName: "  Ngozi E.  " }));
+  assert.equal(post.body.authorName, "Ngozi E.");
+  assert.equal((await request(server.base, "GET", "/api/blogs/by-a-guest")).body.authorName, "Ngozi E.");
+  const cleared = await api("PUT", `/api/blogs/${post.body._id}`, postForm({ status: "published", authorName: "", publishAt: new Date().toISOString() }));
+  assert.equal(cleared.body.authorName, "");
+  assert.equal((await api("POST", "/api/blogs", postForm({ title: "T", description: "D", authorName: "x".repeat(101) }))).status, 400);
 });
 
 test("gallery: upload with a description, newest first, public list", async () => {

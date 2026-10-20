@@ -17,6 +17,8 @@ process.env.CLOUDINARY_CLOUD_NAME ||= "test";
 process.env.CLOUDINARY_API_KEY ||= "test";
 process.env.CLOUDINARY_API_SECRET ||= "test";
 delete process.env.CORS_ORIGIN;
+// Uploads go to the Cloudinary stand-in; the test that needs local files sets this itself.
+delete process.env.LOCAL_UPLOADS;
 
 const app = require("../src/app");
 const User = require("../src/models/User");

@@ -8,6 +8,8 @@
   the hero or page banner). A page without either should leave room for it:
   `padding-top: var(--layout-header-height)`.
 */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import '@fontsource-variable/montserrat';
 import '../styles/tokens.css';
 import '../styles/global.css';
@@ -15,6 +17,7 @@ import '../styles/typography.css';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import PageLoader from '../components/PageLoader.astro';
+import defaultShareImage from '../assets/photos/outreach-2.jpg';
 
 interface Props {
   /** Page title, shown in the browser tab and search results. */
@@ -23,13 +26,18 @@ interface Props {
   description: string;
   /** Keep this page out of search engines (for example, thank-you pages). */
   noindex?: boolean;
+  /** Picture shown when the page is shared (WhatsApp, Facebook, LinkedIn). */
+  shareImage?: ImageMetadata;
 }
 
-const { title, description, noindex = false } = Astro.props;
+const { title, description, noindex = false, shareImage = defaultShareImage } = Astro.props;
 const siteName = 'Ọmụgwọ Maternal Welfare Initiative';
 const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
 // Becomes an absolute URL once `site` is set in astro.config.mjs.
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+// 1200 x 630, the size link previews use.
+const share = await getImage({ src: shareImage, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const shareUrl = Astro.site ? new URL(share.src, Astro.site).href : share.src;
 ---
 
 <!doctype html>
@@ -50,6 +58,10 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     {canonical && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={shareUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="generator" content={Astro.generator} />
     <!-- Marks that JavaScript runs, so scroll reveals start hidden only then -->
     <script is:inline>document.documentElement.classList.add('js');</script>

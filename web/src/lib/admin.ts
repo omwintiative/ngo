@@ -163,6 +163,8 @@ export interface AdminPost {
   publishedAt?: string;
   images: string[];
   imageAlt: string;
+  /** Shown as the author; empty means the admin account's name. */
+  authorName?: string;
   createdAt: string;
   updatedAt: string;
   createdBy?: { name?: string };

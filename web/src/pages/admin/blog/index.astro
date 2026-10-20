@@ -6,6 +6,7 @@
 */
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import Button from '../../../components/Button.astro';
+import FormField from '../../../components/FormField.astro';
 import { adminPaths } from '../../../config/admin';
 import search from '../../../assets/icons/search-plum-20.svg';
 ---
@@ -48,6 +49,20 @@ import search from '../../../assets/icons/search-plum-20.svg';
     <ul class="posts-list__rows" data-rows></ul>
   </div>
   <p class="t-body admin-empty" hidden data-empty>No posts match.</p>
+
+  <section class="admin-card categories" aria-labelledby="categories-title">
+    <h2 class="t-h4" id="categories-title">Categories</h2>
+    <p class="t-body-small admin-muted">
+      Posts can use any of these. Renaming one renames it on its posts; a category can be removed once no post uses
+      it.
+    </p>
+    <ul class="categories__list" data-categories></ul>
+    <form class="categories__add" method="post" novalidate data-category-add>
+      <FormField name="newCategory" label="New category" autocomplete="off" />
+      <Button type="submit" variant="outline">Add Category</Button>
+    </form>
+    <p class="admin-alert" role="alert" data-category-error></p>
+  </section>
 </AdminLayout>
 
 <style>
@@ -55,6 +70,47 @@ import search from '../../../assets/icons/search-plum-20.svg';
     display: flex;
     flex-direction: column;
     gap: var(--space-16);
+  }
+  .categories {
+    max-width: var(--size-admin-form-column);
+  }
+  .categories__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  /* Rows are made by the script below */
+  .categories__list :global(.category-row) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-12);
+  }
+  .categories__list :global(.category-row input) {
+    flex: 1 1 var(--size-admin-col-method-wide);
+    min-width: 0;
+    height: var(--size-button-height);
+    padding: 0 var(--space-16);
+    border: 1px solid var(--border-field);
+    border-radius: var(--radius-button);
+    background: var(--bg-field);
+    color: var(--text-default);
+  }
+  .categories__list :global(.category-row input:focus-visible) {
+    outline: none;
+    border-color: var(--border-primary);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring);
+  }
+  .categories__add {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+  .categories__add :global(.btn) {
+    align-self: flex-start;
   }
   @media (min-width: 1200px) {
     .posts-toolbar {
@@ -66,9 +122,10 @@ import search from '../../../assets/icons/search-plum-20.svg';
 </style>
 
 <script>
-  import { api } from '../../../lib/api';
+  import { api, ApiError } from '../../../lib/api';
   import { adminPaths } from '../../../config/admin';
-  import { requireAdmin, formatDate, publicName, postBadge, badge, el, type AdminPost } from '../../../lib/admin';
+  import { requireAdmin, formatDate, publicName, postBadge, badge, el, confirmAction, type AdminPost } from '../../../lib/admin';
+  import { matchesSearch } from '../../../lib/search';
   import pencil from '../../../assets/icons/admin/pencil-plum.svg';
 
   const rowsEl = document.querySelector<HTMLElement>('[data-rows]')!;
@@ -87,8 +144,7 @@ import search from '../../../assets/icons/search-plum-20.svg';
   const matches = (p: AdminPost) => {
     if (filter === 'draft' && p.status !== 'draft') return false;
     if (filter === 'published' && p.status === 'draft') return false;
-    const q = searchEl.value.trim().toLowerCase();
-    return !q || titleOf(p).toLowerCase().includes(q);
+    return matchesSearch(searchEl.value, titleOf(p));
   };
 
   const row = (p: AdminPost) => {
@@ -117,7 +173,7 @@ import search from '../../../assets/icons/search-plum-20.svg';
     item.append(
       title,
       el('span', 't-body posts-row__category', category),
-      el('span', 't-body posts-row__author', publicName(p.createdBy?.name ?? '')),
+      el('span', 't-body posts-row__author', p.authorName || publicName(p.createdBy?.name ?? '')),
       el('span', 't-body posts-row__date', dateOf(p)),
       status,
       edit,
@@ -142,7 +198,98 @@ import search from '../../../assets/icons/search-plum-20.svg';
   );
   searchEl.addEventListener('input', render);
 
+  // ----- Categories -----
+  interface Category {
+    id: string;
+    name: string;
+  }
+  const categoryList = document.querySelector<HTMLElement>('[data-categories]')!;
+  const addForm = document.querySelector<HTMLFormElement>('[data-category-add]')!;
+  const newName = addForm.elements.namedItem('newCategory') as HTMLInputElement;
+  const categoryError = document.querySelector<HTMLElement>('[data-category-error]')!;
+  newName.maxLength = 40;
+  let categories: Category[] = [];
+
+  const problem = (error: unknown) => (error instanceof ApiError ? error.message : 'That did not save. Please try again.');
+
+  const categoryRow = (c: Category) => {
+    const li = el('li', 'category-row');
+    const input = el('input', 't-body');
+    input.value = c.name;
+    input.maxLength = 40;
+    input.setAttribute('aria-label', `Category name: ${c.name}`);
+    const save = el('button', 'btn btn--outline t-button', 'Save');
+    save.type = 'button';
+    save.setAttribute('aria-label', `Save the name of ${c.name}`);
+    const remove = el('button', 'btn btn--outline t-button', 'Remove');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `Remove ${c.name}`);
+
+    save.addEventListener('click', async () => {
+      categoryError.textContent = '';
+      try {
+        const { category } = await api<{ category: Category }>(`/admin/categories/${encodeURIComponent(c.id)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name: input.value }),
+        });
+        // Its posts were renamed too.
+        all = all.map((p) => (p.category === c.name ? { ...p, category: category.name } : p));
+        categories = categories.map((x) => (x.id === c.id ? category : x));
+        renderCategories();
+        render();
+        statusEl.textContent = `Renamed to ${category.name}.`;
+      } catch (error) {
+        categoryError.textContent = problem(error);
+      }
+    });
+    remove.addEventListener('click', async () => {
+      categoryError.textContent = '';
+      const ok = await confirmAction({
+        title: 'Remove this category?',
+        text: `${c.name} will no longer be offered for posts.`,
+        confirmLabel: 'Remove Category',
+      });
+      if (!ok) return;
+      try {
+        await api(`/admin/categories/${encodeURIComponent(c.id)}`, { method: 'DELETE' });
+        categories = categories.filter((x) => x.id !== c.id);
+        renderCategories();
+        statusEl.textContent = `${c.name} removed.`;
+      } catch (error) {
+        categoryError.textContent = problem(error);
+      }
+    });
+
+    li.append(input, save, remove);
+    return li;
+  };
+
+  const renderCategories = () => categoryList.replaceChildren(...categories.map(categoryRow));
+
+  addForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    categoryError.textContent = '';
+    try {
+      const { category } = await api<{ category: Category }>('/admin/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name: newName.value }),
+      });
+      categories = [...categories, category];
+      renderCategories();
+      newName.value = '';
+      statusEl.textContent = `${category.name} added.`;
+    } catch (error) {
+      categoryError.textContent = problem(error);
+    }
+  });
+
   requireAdmin().then(async () => {
+    try {
+      categories = await api<Category[]>('/categories');
+      renderCategories();
+    } catch {
+      categoryError.textContent = 'The categories could not load. Please refresh the page.';
+    }
     try {
       all = (await api<{ posts: AdminPost[] }>('/admin/blogs')).posts;
       const drafts = all.filter((p) => p.status === 'draft').length;

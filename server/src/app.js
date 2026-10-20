@@ -10,6 +10,9 @@ const adminDonationRoutes = require("./routes/adminDonationRoutes");
 const adminMessageRoutes = require("./routes/adminMessageRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const galleryRoutes = require("./routes/galleryRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
+const teamRoutes = require("./routes/teamRoutes");
+const pageRoutes = require("./routes/pageRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const contributorRoutes = require("./routes/contributorRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -51,12 +54,18 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin/donations", adminDonationRoutes);
 app.use("/api/admin/messages", adminMessageRoutes);
 app.use("/api/admin/gallery", galleryRoutes.adminRouter);
+app.use("/api/admin/categories", categoryRoutes.adminRouter);
+app.use("/api/admin/team", teamRoutes.adminRouter);
+app.use("/api/admin/pages", pageRoutes.adminRouter);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/contributors", contributorRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/gallery", galleryRoutes.publicRouter);
+app.use("/api/categories", categoryRoutes.publicRouter);
+app.use("/api/team", teamRoutes.publicRouter);
+app.use("/api/pages", pageRoutes.publicRouter);
 
 app.get("/api/health", (req, res) => {
   return res.json({ status: "ok" });

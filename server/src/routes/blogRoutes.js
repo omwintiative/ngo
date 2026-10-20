@@ -5,6 +5,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Blog = require("../models/Blog");
+const Category = require("../models/Category");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const { serverError } = require("../lib/http");
@@ -51,14 +52,16 @@ const uniqueSlug = async (base, ownId) => {
 const text = (value) => (typeof value === "string" ? value.trim() : "");
 
 // Check the fields sent (form values arrive as text). Only fields present
-// are returned. Returns { values } or { error }.
-const readPostFields = (body) => {
+// are returned. `categories`: the admin's category names. Returns { values }
+// or { error }.
+const readPostFields = (body, categories) => {
   const values = {};
   if (body.category !== undefined) {
-    if (body.category !== "" && !Blog.CATEGORIES.includes(body.category)) {
+    const category = text(body.category);
+    if (category !== "" && !categories.includes(category)) {
       return { error: "Choose one of the blog categories." };
     }
-    values.category = body.category;
+    values.category = category;
   }
   if (body.status !== undefined) {
     if (!["draft", "published"].includes(body.status)) return { error: "Save the post as a draft or publish it." };
@@ -75,6 +78,11 @@ const readPostFields = (body) => {
     values.title = title;
   }
   if (body.description !== undefined) values.description = text(body.description);
+  if (body.authorName !== undefined) {
+    const authorName = text(body.authorName);
+    if (authorName.length > 100) return { error: "Please shorten the author name to 100 characters or fewer." };
+    values.authorName = authorName;
+  }
   if (body.summary !== undefined) {
     const summary = text(body.summary);
     if (summary.length > 300) return { error: "Please shorten the summary to 300 characters or fewer." };
@@ -101,6 +109,11 @@ const readPostFields = (body) => {
 // Apply checked values to a post and save it. Answers the request itself
 // when something is not allowed; returns the saved post otherwise.
 const applyAndSave = async (blog, values, res) => {
+  // The admin always sends a publish date; publishing with it cleared is refused.
+  if ((values.status ?? blog.status) === "published" && "publishAt" in values && !values.publishAt) {
+    res.status(400).json({ message: "Choose a publish date." });
+    return null;
+  }
   const wantedSlug = values.slug;
   delete values.slug;
 
@@ -161,7 +174,7 @@ router.get("/:idOrSlug", async (req, res) => {
 
 router.post("/", auth, adminOnly, uploadImages, async (req, res) => {
   try {
-    const fields = readPostFields(req.body);
+    const fields = readPostFields(req.body, (await Category.list()).map((c) => c.name));
     if (fields.error) return res.status(400).json({ message: fields.error });
     // The old site's form sends no status: its posts go live, as before.
     const blog = new Blog({ createdBy: req.user._id, status: "published" });
@@ -193,7 +206,7 @@ router.put("/:id", auth, adminOnly, uploadImages, async (req, res) => {
       if (body.title === "") delete body.title;
       if (body.description === "") delete body.description;
     }
-    const fields = readPostFields(body);
+    const fields = readPostFields(body, (await Category.list()).map((c) => c.name));
     if (fields.error) return res.status(400).json({ message: fields.error });
 
     let images;

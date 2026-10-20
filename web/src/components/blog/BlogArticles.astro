@@ -198,6 +198,7 @@ import searchLarge from '../../assets/icons/search-plum.svg';
 
 <script>
   import { fetchPosts, renderPostCard, type Post } from '../../lib/posts';
+  import { matchesSearch } from '../../lib/search';
 
   const PAGE_SIZE = 6;
   const root = document.querySelector<HTMLElement>('[data-articles]');
@@ -216,9 +217,8 @@ import searchLarge from '../../assets/icons/search-plum.svg';
     let shown = PAGE_SIZE;
 
     const matches = (post: Post) => {
-      const q = input.value.trim().toLowerCase();
       const inCategory = !category || post.category === category;
-      const inText = !q || `${post.title} ${post.description}`.toLowerCase().includes(q);
+      const inText = matchesSearch(input.value, post.title, post.summary, post.description);
       return inCategory && inText;
     };
 
