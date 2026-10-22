@@ -8,14 +8,25 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const TeamMember = require("../models/TeamMember");
 const { serverError } = require("../lib/http");
-const { imageUpload, uploadToCloudinary, deleteFromCloudinary } = require("../lib/uploads");
+const {
+  imageUpload,
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../lib/uploads");
 
 const TEAM_FOLDER = "omwi/team";
 const uploadPhoto = imageUpload([{ name: "photo", maxCount: 1 }]);
 
-const toJSON = (m) => ({ id: m._id, name: m.name, role: m.role, photoUrl: m.photoUrl, photoAlt: m.photoAlt });
+const toJSON = (m) => ({
+  id: m._id,
+  name: m.name,
+  role: m.role,
+  photoUrl: m.photoUrl,
+  photoAlt: m.photoAlt,
+});
 const sorted = () => TeamMember.find().sort({ order: 1, createdAt: 1 });
-const notFound = (res) => res.status(404).json({ message: "Team member not found." });
+const notFound = (res) =>
+  res.status(404).json({ message: "Team member not found." });
 
 // Only the fields sent are returned. Returns { values } or { error }.
 const readFields = (body, { requireName }) => {
@@ -24,17 +35,23 @@ const readFields = (body, { requireName }) => {
   if (body.name !== undefined || requireName) {
     const name = text(body.name);
     if (!name) return { error: "Add the person's name." };
-    if (name.length > 100) return { error: "Please shorten the name to 100 characters or fewer." };
+    if (name.length > 100)
+      return { error: "Please shorten the name to 100 characters or fewer." };
     values.name = name;
   }
   if (body.role !== undefined) {
     const role = text(body.role);
-    if (role.length > 100) return { error: "Please shorten the role to 100 characters or fewer." };
+    if (role.length > 100)
+      return { error: "Please shorten the role to 100 characters or fewer." };
     values.role = role;
   }
   if (body.photoAlt !== undefined) {
     const photoAlt = text(body.photoAlt);
-    if (photoAlt.length > 250) return { error: "Please shorten the photo description to 250 characters or fewer." };
+    if (photoAlt.length > 250)
+      return {
+        error:
+          "Please shorten the photo description to 250 characters or fewer.",
+      };
     values.photoAlt = photoAlt;
   }
   return { values };
@@ -43,12 +60,19 @@ const readFields = (body, { requireName }) => {
 // Uploads a new portrait when one was sent; removes the old one afterwards.
 const applyPhoto = async (member, file) => {
   if (!file) return;
-  const uploaded = await uploadToCloudinary(file.buffer, file.originalname, TEAM_FOLDER);
+  const uploaded = await uploadToCloudinary(
+    file.buffer,
+    file.originalname,
+    TEAM_FOLDER,
+    file.mimetype,
+  );
   const oldId = member.photoPublicId;
   member.photoUrl = uploaded.secure_url;
   member.photoPublicId = uploaded.public_id;
   if (oldId) {
-    deleteFromCloudinary(oldId).catch((error) => console.error(`Cloudinary delete failed for ${oldId}:`, error));
+    deleteFromCloudinary(oldId).catch((error) =>
+      console.error(`Cloudinary delete failed for ${oldId}:`, error),
+    );
   }
 };
 
@@ -78,11 +102,18 @@ adminRouter.post("/", uploadPhoto, async (req, res) => {
     const { values, error } = readFields(req.body, { requireName: true });
     if (error) return res.status(400).json({ message: error });
     const last = await TeamMember.findOne().sort({ order: -1 }).lean();
-    const member = new TeamMember({ ...values, order: last ? last.order + 1 : 0 });
+    const member = new TeamMember({
+      ...values,
+      order: last ? last.order + 1 : 0,
+    });
     try {
       await applyPhoto(member, req.files?.photo?.[0]);
     } catch (uploadError) {
-      return serverError(res, uploadError, "The photo could not be uploaded, so nothing was saved. Please try again.");
+      return serverError(
+        res,
+        uploadError,
+        "The photo could not be uploaded, so nothing was saved. Please try again.",
+      );
     }
     await member.save();
     return res.status(201).json({ member: toJSON(member) });
@@ -99,14 +130,19 @@ adminRouter.put("/order", async (req, res) => {
     const known = new Set(all.map((m) => String(m._id)));
     if (
       !Array.isArray(ids) ||
+      !ids.every((id) => typeof id === "string") ||
       ids.length !== known.size ||
       new Set(ids.map(String)).size !== ids.length ||
       !ids.every((id) => known.has(String(id)))
     ) {
-      return res.status(400).json({ message: "Send every person once, in the new order." });
+      return res
+        .status(400)
+        .json({ message: "Send every person once, in the new order." });
     }
     await TeamMember.bulkWrite(
-      ids.map((id, index) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: index } } } })),
+      ids.map((id, index) => ({
+        updateOne: { filter: { _id: id }, update: { $set: { order: index } } },
+      })),
     );
     return res.json({ members: (await sorted()).map(toJSON) });
   } catch (error) {
@@ -118,7 +154,9 @@ adminRouter.put("/order", async (req, res) => {
 adminRouter.patch("/:id", uploadPhoto, async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
-    const { values, error } = readFields(req.body || {}, { requireName: false });
+    const { values, error } = readFields(req.body || {}, {
+      requireName: false,
+    });
     if (error) return res.status(400).json({ message: error });
     const member = await TeamMember.findById(req.params.id);
     if (!member) return notFound(res);
@@ -126,7 +164,11 @@ adminRouter.patch("/:id", uploadPhoto, async (req, res) => {
     try {
       await applyPhoto(member, req.files?.photo?.[0]);
     } catch (uploadError) {
-      return serverError(res, uploadError, "The photo could not be uploaded, so nothing was saved. Please try again.");
+      return serverError(
+        res,
+        uploadError,
+        "The photo could not be uploaded, so nothing was saved. Please try again.",
+      );
     }
     await member.save();
     return res.json({ member: toJSON(member) });
@@ -145,7 +187,10 @@ adminRouter.delete("/:id", async (req, res) => {
       try {
         await deleteFromCloudinary(member.photoPublicId);
       } catch (cloudError) {
-        console.error(`Cloudinary delete failed for ${member.photoPublicId}:`, cloudError);
+        console.error(
+          `Cloudinary delete failed for ${member.photoPublicId}:`,
+          cloudError,
+        );
       }
     }
     return res.json({ message: "Deleted." });

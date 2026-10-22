@@ -3,6 +3,7 @@
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const { hasUnsafeKey, UNSAFE_ANSWER } = require("./lib/http");
 
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
@@ -19,6 +20,8 @@ const contributorRoutes = require("./routes/contributorRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
+// Query values stay plain text (no nested objects such as ?email[$ne]=).
+app.set("query parser", "simple");
 
 const allowedOrigins = (process.env.CORS_ORIGIN || "")
   .split(",")
@@ -49,6 +52,11 @@ app.use(
   }),
 );
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  if (hasUnsafeKey(req.body) || hasUnsafeKey(req.query))
+    return res.status(400).json(UNSAFE_ANSWER);
+  return next();
+});
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use("/api/auth", authRoutes);
@@ -99,11 +107,15 @@ app.use((error, req, res, next) => {
     return res.status(403).json({ message: "Blocked by CORS policy." });
   }
   if (error.type === "entity.parse.failed") {
-    return res.status(400).json({ message: "The request body is not valid JSON." });
+    return res
+      .status(400)
+      .json({ message: "The request body is not valid JSON." });
   }
 
   console.error(error);
-  return res.status(500).json({ message: "Something went wrong. Please try again." });
+  return res
+    .status(500)
+    .json({ message: "Something went wrong. Please try again." });
 });
 
 module.exports = app;

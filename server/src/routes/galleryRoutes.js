@@ -9,7 +9,11 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/admin");
 const GalleryPhoto = require("../models/GalleryPhoto");
 const { serverError } = require("../lib/http");
-const { imageUpload, uploadToCloudinary, deleteFromCloudinary } = require("../lib/uploads");
+const {
+  imageUpload,
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} = require("../lib/uploads");
 
 const GALLERY_FOLDER = "omwi/gallery";
 
@@ -29,14 +33,22 @@ const notFound = (res) => res.status(404).json({ message: "Photo not found." });
 
 const readAlt = (value) => {
   const alt = typeof value === "string" ? value.trim() : "";
-  if (!alt) return { error: "Describe the photo in a few words, for people using screen readers." };
-  if (alt.length > 250) return { error: "Please shorten the description to 250 characters or fewer." };
+  if (!alt)
+    return {
+      error:
+        "Describe the photo in a few words, for people using screen readers.",
+    };
+  if (alt.length > 250)
+    return {
+      error: "Please shorten the description to 250 characters or fewer.",
+    };
   return { alt };
 };
 
 const readCaption = (value) => {
   const caption = typeof value === "string" ? value.trim() : "";
-  if (caption.length > 200) return { error: "Please shorten the caption to 200 characters or fewer." };
+  if (caption.length > 200)
+    return { error: "Please shorten the caption to 200 characters or fewer." };
   return { caption };
 };
 
@@ -45,7 +57,10 @@ const readOnHome = (value) => value === true || value === "true";
 
 // The Home strip holds up to HOME_LIMIT photos.
 const homeIsFull = async (exceptId) =>
-  (await GalleryPhoto.countDocuments({ onHome: true, _id: { $ne: exceptId } })) >= GalleryPhoto.HOME_LIMIT;
+  (await GalleryPhoto.countDocuments({
+    onHome: true,
+    _id: { $ne: exceptId },
+  })) >= GalleryPhoto.HOME_LIMIT;
 const HOME_FULL = `The Home photo strip holds up to ${GalleryPhoto.HOME_LIMIT} photos. Turn one off first.`;
 
 // "outreach-6.jpg" -> "outreach-6"
@@ -77,36 +92,51 @@ adminRouter.get("/", async (req, res) => {
 
 // multipart/form-data: `photo` (the image), `alt` (its description), and
 // optionally `caption` and `onHome`.
-adminRouter.post("/", imageUpload([{ name: "photo", maxCount: 1 }]), async (req, res) => {
-  try {
-    const file = req.files?.photo?.[0];
-    if (!file) return res.status(400).json({ message: "Choose a photo to upload." });
-    const { alt, error } = readAlt(req.body.alt);
-    if (error) return res.status(400).json({ message: error });
-    const { caption, error: captionError } = readCaption(req.body.caption);
-    if (captionError) return res.status(400).json({ message: captionError });
-    const onHome = readOnHome(req.body.onHome);
-    if (onHome && (await homeIsFull())) return res.status(400).json({ message: HOME_FULL });
+adminRouter.post(
+  "/",
+  imageUpload([{ name: "photo", maxCount: 1 }]),
+  async (req, res) => {
+    try {
+      const file = req.files?.photo?.[0];
+      if (!file)
+        return res.status(400).json({ message: "Choose a photo to upload." });
+      const { alt, error } = readAlt(req.body.alt);
+      if (error) return res.status(400).json({ message: error });
+      const { caption, error: captionError } = readCaption(req.body.caption);
+      if (captionError) return res.status(400).json({ message: captionError });
+      const onHome = readOnHome(req.body.onHome);
+      if (onHome && (await homeIsFull()))
+        return res.status(400).json({ message: HOME_FULL });
 
-    const uploaded = await uploadToCloudinary(file.buffer, file.originalname, GALLERY_FOLDER);
-    // New photos go first.
-    const first = await GalleryPhoto.findOne().sort({ order: 1 }).lean();
-    const photo = await GalleryPhoto.create({
-      url: uploaded.secure_url,
-      publicId: uploaded.public_id,
-      width: uploaded.width,
-      height: uploaded.height,
-      name: nameFromFile(file.originalname),
-      alt,
-      caption,
-      onHome,
-      order: first ? first.order - 1 : 0,
-    });
-    return res.status(201).json({ photo: toJSON(photo) });
-  } catch (error) {
-    return serverError(res, error, "The photo could not be uploaded. Please try again.");
-  }
-});
+      const uploaded = await uploadToCloudinary(
+        file.buffer,
+        file.originalname,
+        GALLERY_FOLDER,
+        file.mimetype,
+      );
+      // New photos go first.
+      const first = await GalleryPhoto.findOne().sort({ order: 1 }).lean();
+      const photo = await GalleryPhoto.create({
+        url: uploaded.secure_url,
+        publicId: uploaded.public_id,
+        width: uploaded.width,
+        height: uploaded.height,
+        name: nameFromFile(file.originalname),
+        alt,
+        caption,
+        onHome,
+        order: first ? first.order - 1 : 0,
+      });
+      return res.status(201).json({ photo: toJSON(photo) });
+    } catch (error) {
+      return serverError(
+        res,
+        error,
+        "The photo could not be uploaded. Please try again.",
+      );
+    }
+  },
+);
 
 // The full new order: { ids: [...] }, every photo once.
 adminRouter.put("/order", async (req, res) => {
@@ -116,14 +146,19 @@ adminRouter.put("/order", async (req, res) => {
     const known = new Set(all.map((p) => String(p._id)));
     if (
       !Array.isArray(ids) ||
+      !ids.every((id) => typeof id === "string") ||
       ids.length !== known.size ||
       new Set(ids.map(String)).size !== ids.length ||
       !ids.every((id) => known.has(String(id)))
     ) {
-      return res.status(400).json({ message: "Send every photo once, in the new order." });
+      return res
+        .status(400)
+        .json({ message: "Send every photo once, in the new order." });
     }
     await GalleryPhoto.bulkWrite(
-      ids.map((id, index) => ({ updateOne: { filter: { _id: id }, update: { $set: { order: index } } } })),
+      ids.map((id, index) => ({
+        updateOne: { filter: { _id: id }, update: { $set: { order: index } } },
+      })),
     );
     return res.json({ photos: (await sorted()).map(toJSON) });
   } catch (error) {
@@ -173,7 +208,10 @@ adminRouter.delete("/:id", async (req, res) => {
     try {
       await deleteFromCloudinary(photo.publicId);
     } catch (cloudError) {
-      console.error(`Cloudinary delete failed for ${photo.publicId}:`, cloudError);
+      console.error(
+        `Cloudinary delete failed for ${photo.publicId}:`,
+        cloudError,
+      );
     }
     return res.json({ message: "Deleted." });
   } catch (error) {

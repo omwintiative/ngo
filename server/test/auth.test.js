@@ -2,7 +2,13 @@ const { test, before, after, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const User = require("../src/models/User");
 const loginLimiter = require("../src/lib/loginLimiter");
-const { ADMIN, startServer, createAdmin, request, signIn } = require("./helpers");
+const {
+  ADMIN,
+  startServer,
+  createAdmin,
+  request,
+  signIn,
+} = require("./helpers");
 
 let server;
 before(async () => {
@@ -19,7 +25,11 @@ test("sign-in sets a secure, HttpOnly, SameSite=Strict session cookie", async ()
   assert.match(res.setCookie, /Secure/i);
   assert.match(res.setCookie, /SameSite=Strict/i);
   assert.match(res.setCookie, /Path=\//);
-  assert.doesNotMatch(res.setCookie, /Expires=/, "ends when the browser closes");
+  assert.doesNotMatch(
+    res.setCookie,
+    /Expires=/,
+    "ends when the browser closes",
+  );
   // Old site still gets its token and user until launch
   assert.ok(res.body.token);
   assert.equal(res.body.user.email, ADMIN.email);
@@ -34,7 +44,11 @@ test("'Keep me signed in' keeps the cookie for 30 days", async () => {
   const expires = new Date(res.setCookie.match(/Expires=([^;]+)/)[1]).getTime();
   const days = (expires - Date.now()) / (24 * 60 * 60 * 1000);
   assert.ok(days > 29.9 && days <= 30, `expires in ${days} days`);
-  assert.equal((await request(server.base, "GET", "/api/auth/me", { cookie: res.cookie })).status, 200);
+  assert.equal(
+    (await request(server.base, "GET", "/api/auth/me", { cookie: res.cookie }))
+      .status,
+    200,
+  );
 });
 
 test("wrong password or unknown email gives the same 401", async () => {
@@ -51,14 +65,60 @@ test("wrong password or unknown email gives the same 401", async () => {
 });
 
 test("missing or non-text credentials give 400", async () => {
-  const res = await request(server.base, "POST", "/api/auth/login", { body: { email: { $ne: "" }, password: "x" } });
+  const res = await request(server.base, "POST", "/api/auth/login", {
+    body: { email: { $ne: "" }, password: "x" },
+  });
   assert.equal(res.status, 400);
+});
+
+test("MongoDB operators and prototype keys are refused anywhere in the request", async () => {
+  const { cookie } = await signIn(server.base);
+  for (const body of [
+    { name: "A", items: [{ nested: { $where: "1" } }] },
+    JSON.parse('{"__proto__": {"admin": true}}'),
+    { constructor: { prototype: {} } },
+  ]) {
+    const res = await request(server.base, "POST", "/api/contact", { body });
+    assert.equal(res.status, 400, JSON.stringify(body));
+  }
+  // Nested query values stay plain text, so the filter is ignored rather than applied.
+  const query = await request(
+    server.base,
+    "GET",
+    "/api/admin/messages?status[$ne]=x&q[$regex]=.*",
+    { cookie },
+  );
+  assert.equal(query.status, 200);
+  const dollarKey = await request(
+    server.base,
+    "GET",
+    "/api/admin/messages?$where=1",
+    { cookie },
+  );
+  assert.equal(dollarKey.status, 400);
+});
+
+test("public sign-up checks its input", async () => {
+  for (const body of [
+    { name: 123, email: "a@b.co", password: "long enough password" },
+    { name: "A", email: "nope", password: "long enough password" },
+    { name: "A", email: "a@b.co", password: "short" },
+  ]) {
+    const res = await request(server.base, "POST", "/api/auth/register", {
+      body,
+    });
+    assert.equal(res.status, 400, JSON.stringify(body));
+  }
 });
 
 test("/me works with the cookie and with a Bearer token, and not without", async () => {
   const { cookie, body } = await signIn(server.base);
-  const viaCookie = await request(server.base, "GET", "/api/auth/me", { cookie });
-  const viaToken = await request(server.base, "GET", "/api/auth/me", { token: body.token });
+  const viaCookie = await request(server.base, "GET", "/api/auth/me", {
+    cookie,
+  });
+  const viaToken = await request(server.base, "GET", "/api/auth/me", {
+    token: body.token,
+  });
   const none = await request(server.base, "GET", "/api/auth/me");
   assert.equal(viaCookie.status, 200);
   assert.equal(viaCookie.body.user.email, ADMIN.email);
@@ -70,8 +130,11 @@ test("/me works with the cookie and with a Bearer token, and not without", async
 
 test("a forged or tampered session is refused", async () => {
   const { cookie } = await signIn(server.base);
-  const tampered = cookie.slice(0, -3) + (cookie.endsWith("abc") ? "xyz" : "abc");
-  const res = await request(server.base, "GET", "/api/auth/me", { cookie: tampered });
+  const tampered =
+    cookie.slice(0, -3) + (cookie.endsWith("abc") ? "xyz" : "abc");
+  const res = await request(server.base, "GET", "/api/auth/me", {
+    cookie: tampered,
+  });
   assert.equal(res.status, 401);
 });
 
@@ -97,7 +160,12 @@ test("sign-in pauses after 5 wrong passwords, even with the right one", async ()
   assert.equal(locked.cookie, null);
 
   // Other addresses are not affected
-  await User.create({ name: "Other", email: "other@example.com", password: "x", role: "user" });
+  await User.create({
+    name: "Other",
+    email: "other@example.com",
+    password: "x",
+    role: "user",
+  });
   const other = await request(server.base, "POST", "/api/auth/login", {
     body: { email: "other@example.com", password: "wrong" },
   });
@@ -105,7 +173,9 @@ test("sign-in pauses after 5 wrong passwords, even with the right one", async ()
 });
 
 test("a body that is not valid JSON gives 400, not a server error", async () => {
-  const res = await request(server.base, "POST", "/api/auth/login", { body: "{not json" });
+  const res = await request(server.base, "POST", "/api/auth/login", {
+    body: "{not json",
+  });
   assert.equal(res.status, 400);
   assert.equal(typeof res.body.message, "string");
   assert.doesNotMatch(JSON.stringify(res.body), /stack|SyntaxError|at /);

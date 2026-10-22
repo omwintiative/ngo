@@ -16,17 +16,23 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: "Please sign in." });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ["HS256"],
+    });
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user || (decoded.v || 0) !== (user.sessionVersion || 0)) {
-      return res.status(401).json({ message: "Your session has ended. Please sign in again." });
+      return res
+        .status(401)
+        .json({ message: "Your session has ended. Please sign in again." });
     }
 
     req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Your session has ended. Please sign in again." });
+    return res
+      .status(401)
+      .json({ message: "Your session has ended. Please sign in again." });
   }
 };
 

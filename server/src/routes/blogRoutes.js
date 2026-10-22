@@ -14,17 +14,30 @@ const { imageUpload, uploadToCloudinary } = require("../lib/uploads");
 const router = express.Router();
 
 const IMAGE_FIELDS = ["image1", "image2", "image3"];
-const uploadImages = imageUpload(IMAGE_FIELDS.map((name) => ({ name, maxCount: 1 })));
+const uploadImages = imageUpload(
+  IMAGE_FIELDS.map((name) => ({ name, maxCount: 1 })),
+);
 const BLOG_FOLDER = "young-heart-ngo/blogs";
 
 const notFound = (res) => res.status(404).json({ message: "Blog not found" });
-const PHOTO_FAILED = "The photo could not be uploaded, so the post was not saved. Please try again.";
+const PHOTO_FAILED =
+  "The photo could not be uploaded, so the post was not saved. Please try again.";
 
 const collectUploadedImageUrls = async (files) => {
   const imageUrls = [];
   for (const field of IMAGE_FIELDS) {
     const file = files[field]?.[0];
-    if (file) imageUrls.push((await uploadToCloudinary(file.buffer, file.originalname, BLOG_FOLDER)).secure_url);
+    if (file)
+      imageUrls.push(
+        (
+          await uploadToCloudinary(
+            file.buffer,
+            file.originalname,
+            BLOG_FOLDER,
+            file.mimetype,
+          )
+        ).secure_url,
+      );
   }
   return imageUrls;
 };
@@ -44,7 +57,8 @@ const slugify = (text) =>
 const uniqueSlug = async (base, ownId) => {
   for (let n = 1; n < 1000; n += 1) {
     const candidate = n === 1 ? base : `${base.slice(0, 76)}-${n}`;
-    if (!(await Blog.exists({ slug: candidate, _id: { $ne: ownId } }))) return candidate;
+    if (!(await Blog.exists({ slug: candidate, _id: { $ne: ownId } })))
+      return candidate;
   }
   throw new Error("No free web address");
 };
@@ -64,34 +78,49 @@ const readPostFields = (body, categories) => {
     values.category = category;
   }
   if (body.status !== undefined) {
-    if (!["draft", "published"].includes(body.status)) return { error: "Save the post as a draft or publish it." };
+    if (!["draft", "published"].includes(body.status))
+      return { error: "Save the post as a draft or publish it." };
     values.status = body.status;
   }
   if (body.imageAlt !== undefined) {
     const alt = text(body.imageAlt);
-    if (alt.length > 250) return { error: "Please shorten the photo description." };
+    if (alt.length > 250)
+      return { error: "Please shorten the photo description." };
     values.imageAlt = alt;
   }
   if (body.title !== undefined) {
     const title = text(body.title);
-    if (title.length > 200) return { error: "Give the post a title of up to 200 characters." };
+    if (title.length > 200)
+      return { error: "Give the post a title of up to 200 characters." };
     values.title = title;
   }
-  if (body.description !== undefined) values.description = text(body.description);
+  if (body.description !== undefined)
+    values.description = text(body.description);
   if (body.authorName !== undefined) {
     const authorName = text(body.authorName);
-    if (authorName.length > 100) return { error: "Please shorten the author name to 100 characters or fewer." };
+    if (authorName.length > 100)
+      return {
+        error: "Please shorten the author name to 100 characters or fewer.",
+      };
     values.authorName = authorName;
   }
   if (body.summary !== undefined) {
     const summary = text(body.summary);
-    if (summary.length > 300) return { error: "Please shorten the summary to 300 characters or fewer." };
+    if (summary.length > 300)
+      return {
+        error: "Please shorten the summary to 300 characters or fewer.",
+      };
     values.summary = summary;
   }
   if (body.slug !== undefined) {
-    const slug = text(body.slug).toLowerCase().replace(/^\/?blog\//, "");
+    const slug = text(body.slug)
+      .toLowerCase()
+      .replace(/^\/?blog\//, "");
     if (slug && (!Blog.SLUG_PATTERN.test(slug) || slug.length > 80)) {
-      return { error: "Use only lower-case letters, numbers and hyphens in the web address." };
+      return {
+        error:
+          "Use only lower-case letters, numbers and hyphens in the web address.",
+      };
     }
     values.slug = slug;
   }
@@ -99,7 +128,8 @@ const readPostFields = (body, categories) => {
     if (!text(body.publishAt)) values.publishAt = null;
     else {
       const date = new Date(body.publishAt);
-      if (Number.isNaN(date.getTime())) return { error: "Choose a valid publish date." };
+      if (Number.isNaN(date.getTime()))
+        return { error: "Choose a valid publish date." };
       values.publishAt = date;
     }
   }
@@ -110,7 +140,11 @@ const readPostFields = (body, categories) => {
 // when something is not allowed; returns the saved post otherwise.
 const applyAndSave = async (blog, values, res) => {
   // The admin always sends a publish date; publishing with it cleared is refused.
-  if ((values.status ?? blog.status) === "published" && "publishAt" in values && !values.publishAt) {
+  if (
+    (values.status ?? blog.status) === "published" &&
+    "publishAt" in values &&
+    !values.publishAt
+  ) {
     res.status(400).json({ message: "Choose a publish date." });
     return null;
   }
@@ -118,20 +152,28 @@ const applyAndSave = async (blog, values, res) => {
   delete values.slug;
 
   if (blog.publishedAt && wantedSlug && wantedSlug !== blog.slug) {
-    res.status(400).json({ message: "The web address cannot change after the post is published." });
+    res
+      .status(400)
+      .json({
+        message: "The web address cannot change after the post is published.",
+      });
     return null;
   }
   blog.set(values);
 
   if (blog.status === "published" && (!blog.title || !blog.description)) {
-    res.status(400).json({ message: "Add a title and the post's text before publishing." });
+    res
+      .status(400)
+      .json({ message: "Add a title and the post's text before publishing." });
     return null;
   }
 
   if (!blog.publishedAt) {
     if (wantedSlug) {
       if (await Blog.exists({ slug: wantedSlug, _id: { $ne: blog._id } })) {
-        res.status(409).json({ message: "Another post already uses that web address." });
+        res
+          .status(409)
+          .json({ message: "Another post already uses that web address." });
         return null;
       }
       blog.slug = wantedSlug;
@@ -140,7 +182,8 @@ const applyAndSave = async (blog, values, res) => {
     }
   }
 
-  if (blog.status === "published" && !blog.publishedAt) blog.publishedAt = blog.publishAt || new Date();
+  if (blog.status === "published" && !blog.publishedAt)
+    blog.publishedAt = blog.publishAt || new Date();
   await blog.save();
   return blog;
 };
@@ -150,7 +193,10 @@ const shownDate = (b) => b.publishAt || b.publishedAt || b.createdAt;
 
 router.get("/", async (req, res) => {
   try {
-    const blogs = await Blog.find(Blog.publishedNow()).populate("createdBy", "name");
+    const blogs = await Blog.find(Blog.publishedNow()).populate(
+      "createdBy",
+      "name",
+    );
     blogs.sort((a, b) => shownDate(b) - shownDate(a));
     return res.json(blogs);
   } catch (error) {
@@ -162,9 +208,16 @@ router.get("/", async (req, res) => {
 router.get("/:idOrSlug", async (req, res) => {
   try {
     const key = req.params.idOrSlug;
-    const match = mongoose.isValidObjectId(key) ? { _id: key } : Blog.SLUG_PATTERN.test(key) ? { slug: key } : null;
+    const match = mongoose.isValidObjectId(key)
+      ? { _id: key }
+      : Blog.SLUG_PATTERN.test(key)
+        ? { slug: key }
+        : null;
     if (!match) return notFound(res);
-    const blog = await Blog.findOne({ ...match, ...Blog.publishedNow() }).populate("createdBy", "name");
+    const blog = await Blog.findOne({
+      ...match,
+      ...Blog.publishedNow(),
+    }).populate("createdBy", "name");
     if (!blog) return notFound(res);
     return res.json(blog);
   } catch (error) {
@@ -174,7 +227,10 @@ router.get("/:idOrSlug", async (req, res) => {
 
 router.post("/", auth, adminOnly, uploadImages, async (req, res) => {
   try {
-    const fields = readPostFields(req.body, (await Category.list()).map((c) => c.name));
+    const fields = readPostFields(
+      req.body,
+      (await Category.list()).map((c) => c.name),
+    );
     if (fields.error) return res.status(400).json({ message: fields.error });
     // The old site's form sends no status: its posts go live, as before.
     const blog = new Blog({ createdBy: req.user._id, status: "published" });
@@ -206,7 +262,10 @@ router.put("/:id", auth, adminOnly, uploadImages, async (req, res) => {
       if (body.title === "") delete body.title;
       if (body.description === "") delete body.description;
     }
-    const fields = readPostFields(body, (await Category.list()).map((c) => c.name));
+    const fields = readPostFields(
+      body,
+      (await Category.list()).map((c) => c.name),
+    );
     if (fields.error) return res.status(400).json({ message: fields.error });
 
     let images;

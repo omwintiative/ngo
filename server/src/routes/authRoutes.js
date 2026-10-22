@@ -4,12 +4,18 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
 const { serverError } = require("../lib/http");
-const { signToken, setSessionCookie, clearSessionCookie } = require("../lib/session");
+const {
+  signToken,
+  setSessionCookie,
+  clearSessionCookie,
+} = require("../lib/session");
 const loginLimiter = require("../lib/loginLimiter");
 const { newPasswordProblem } = require("../lib/passwords");
 const { sendEmail } = require("../lib/email");
 
 const router = express.Router();
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const publicUser = (user) => ({
   id: user._id,
@@ -23,21 +29,38 @@ router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !name.trim() ||
+      !email
+    ) {
       return res
         .status(400)
         .json({ message: "Name, email, and password are required." });
     }
+    if (
+      name.trim().length > 100 ||
+      !EMAIL_PATTERN.test(email.trim()) ||
+      email.trim().length > 254
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Enter a name and a valid email address." });
+    }
+    const problem = newPasswordProblem(password);
+    if (problem) return res.status(400).json({ message: problem });
 
-    const exists = await User.findOne({ email: String(email).toLowerCase() });
+    const exists = await User.findOne({ email: email.trim().toLowerCase() });
     if (exists) {
       return res.status(409).json({ message: "Email already exists." });
     }
 
-    const hashedPassword = await bcrypt.hash(String(password), 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      name,
-      email: String(email).toLowerCase(),
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
       password: hashedPassword,
       role: "user",
     });
@@ -57,7 +80,12 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (typeof email !== "string" || typeof password !== "string" || !email || !password) {
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !email ||
+      !password
+    ) {
       return res
         .status(400)
         .json({ message: "Email and password are required." });
@@ -71,7 +99,9 @@ router.post("/login", async (req, res) => {
     }
 
     const user = await User.findOne({ email: normalisedEmail });
-    const isMatch = user ? await bcrypt.compare(password, user.password) : false;
+    const isMatch = user
+      ? await bcrypt.compare(password, user.password)
+      : false;
     if (!isMatch) {
       loginLimiter.recordFailure(normalisedEmail);
       return res.status(401).json({ message: "Invalid credentials." });
@@ -104,16 +134,20 @@ router.post("/logout", (req, res) => {
 const RESET_LINK_MS = 60 * 60 * 1000;
 const RESETS_PER_HOUR = 3;
 const FORGOT_ANSWER = {
-  message: "If that is the email for the OMWI admin account, we have sent it a link to set a new password.",
+  message:
+    "If that is the email for the OMWI admin account, we have sent it a link to set a new password.",
 };
 
-const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
+const hashToken = (token) =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 // email -> times reset emails were sent, so nobody can flood the inbox.
 const resetsSent = new Map();
 const mayResend = (email) => {
   const now = Date.now();
-  const times = (resetsSent.get(email) || []).filter((t) => now - t < RESET_LINK_MS);
+  const times = (resetsSent.get(email) || []).filter(
+    (t) => now - t < RESET_LINK_MS,
+  );
   resetsSent.set(email, times);
   return times.length < RESETS_PER_HOUR;
 };
@@ -125,7 +159,8 @@ const sendResetLink = async (user) => {
   await user.save();
 
   const base = (process.env.ADMIN_SITE_URL || "").replace(/\/+$/, "");
-  if (!base) console.warn("ADMIN_SITE_URL is not set: the reset link will not work.");
+  if (!base)
+    console.warn("ADMIN_SITE_URL is not set: the reset link will not work.");
   const link = `${base}/reset-password?token=${token}`;
   // TODO: wording to be approved by OMWI (not in the Figma file).
   await sendEmail({
@@ -144,8 +179,14 @@ const sendResetLink = async (user) => {
 
 router.post("/forgot-password", async (req, res) => {
   try {
-    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
-    if (!email) return res.status(400).json({ message: "Enter the email address you use to sign in." });
+    const email =
+      typeof req.body?.email === "string"
+        ? req.body.email.trim().toLowerCase()
+        : "";
+    if (!email)
+      return res
+        .status(400)
+        .json({ message: "Enter the email address you use to sign in." });
 
     // Same answer whether or not the address matches, so the page never
     // reveals which emails exist. Only the admin account gets a link.
@@ -154,7 +195,9 @@ router.post("/forgot-password", async (req, res) => {
       resetsSent.get(email).push(Date.now());
       // Not awaited: answering at the same speed either way also hides
       // whether the address matched.
-      sendResetLink(user).catch((error) => console.error("Reset link failed:", error));
+      sendResetLink(user).catch((error) =>
+        console.error("Reset link failed:", error),
+      );
     }
     return res.json(FORGOT_ANSWER);
   } catch (error) {
@@ -167,10 +210,18 @@ router.post("/reset-password", async (req, res) => {
     const { token, newPassword } = req.body || {};
     const user =
       typeof token === "string" && /^[a-f0-9]{64}$/.test(token)
-        ? await User.findOne({ passwordResetTokenHash: hashToken(token), passwordResetExpires: { $gt: new Date() } })
+        ? await User.findOne({
+            passwordResetTokenHash: hashToken(token),
+            passwordResetExpires: { $gt: new Date() },
+          })
         : null;
     if (!user) {
-      return res.status(400).json({ message: "This link has expired or was already used. Ask for a new one." });
+      return res
+        .status(400)
+        .json({
+          message:
+            "This link has expired or was already used. Ask for a new one.",
+        });
     }
 
     const problem = newPasswordProblem(newPassword);
